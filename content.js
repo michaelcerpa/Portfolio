@@ -77,12 +77,12 @@ const PROJECTS = [
   },
   {
     section:"professional",
-    title:"Vantage",
-    cats:"Architecture · Governance · Banking",
+    title:"Granite",
+    cats:"Architecture · Governance · Regulated Finance",
     status:{ label:"In progress", kind:"soon" },
-    blurb:"An interactive white paper: intent → orchestration → retrieval → grounded response → audit → escalation. Click through the whole flow.",
-    demo:{ type:"preview", query:"Interactive architecture walkthrough",
-           pills:["Intent","Orchestrate","Retrieve","Audit"],
+    blurb:"An interactive white paper on building AI a bank can trust: trace a request through intent → entitlements → orchestration → grounded response → LLM-as-judge → audit, and watch it refuse rather than guess.",
+    demo:{ type:"preview", query:"Trace a request through the architecture",
+           pills:["Confidence-routed","Fail-closed","LLM-as-judge"],
            note:"Illustrative concept · sanitized patterns only." },
   },
   {
