@@ -79,11 +79,9 @@ const PROJECTS = [
     section:"professional",
     title:"Granite",
     cats:"Architecture · Governance · Regulated Finance",
-    status:{ label:"In progress", kind:"soon" },
+    status:{ label:"Live", kind:"live" },
     blurb:"An interactive white paper on building AI a bank can trust: trace a request through intent → entitlements → orchestration → grounded response → LLM-as-judge → audit, and watch it refuse rather than guess.",
-    demo:{ type:"preview", query:"Trace a request through the architecture",
-           pills:["Confidence-routed","Fail-closed","LLM-as-judge"],
-           note:"Illustrative concept · sanitized patterns only." },
+    demo:{ type:"iframe", url:"https://granite-gilt-zeta.vercel.app", label:"granite-gilt-zeta.vercel.app" },
   },
   {
     section:"professional",

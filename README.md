@@ -8,7 +8,7 @@ Personal portfolio site. I'm an operator who ships AI in regulated environments
 ## What this is
 
 A single-page portfolio shell that houses my work — passion builds (e.g. Cairn AI)
-and professional projects (e.g. Vantage) — each embedded **inline via `<iframe>`,
+and professional projects (e.g. Granite) — each embedded **inline via `<iframe>`,
 never a new tab**, with a fullscreen view for the live apps.
 
 ## Architecture
