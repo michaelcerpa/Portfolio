@@ -8,27 +8,27 @@
 /* ---- 1. Identity + hero --------------------------------------------- */
 const SITE = {
   name:    "Michael Cerpa",
-  eyebrow: "Operator · AI in regulated environments",
+  eyebrow: "AI Product Manager · Expert in 0 to 1 Delivery",
   // Wrap one word in <em>…</em> to give it the green accent.
-  headline: "I ship <em>AI</em> that survives the bank.",   // ✏️ TODO: reword, keep it professional
-  sub:      "Army intelligence → UC Berkeley → JPMorgan → Wells Fargo.",
+  headline: "I take <em>messy</em> problems from clients and ship something real in <em>regulated</em> environments",
+  sub:      "Army Intelligence → UC Berkeley → JPMorgan → Wells Fargo",
 
   resumeUrl:   "#",                 // ✏️ TODO: link to your résumé PDF
-  linkedinUrl: "#",                 // ✏️ TODO: your LinkedIn URL
-  email:       "you@example.com",   // ✏️ TODO: your email
+  linkedinUrl: "https://www.linkedin.com/in/michaelanthonycerpa/",
+  email:       "michael.cerp@gmail.com",
 };
 
 /* ---- 2. Sections (order + headings + nav labels) -------------------- */
 /* render: "projects" = card grid | "prose" = paragraphs | "photos" = flip cards */
 const SECTIONS = [
   { id:"passion", num:"01", nav:"Passion",
-    title:"Things I built because I wanted them to exist.",
-    lead:"Each opens inline — never a new tab. Click a card to expand the live demo.",
+    title:"Things I built to solve problems for my friends and I.",
+    lead:"",
     render:"projects" },
 
   { id:"professional", num:"02", nav:"Professional",
-    title:"Enterprise AI, sanitized to patterns.",
-    lead:"Real product work, stripped of anything proprietary — architecture you can click through.",
+    title:"Enterprise AI, sanitized.",
+    lead:"Real product work consisting of shipped solutions and case studies. All from personal experience with clickable architectures and concepts.",
     render:"projects" },
 
   { id:"about", num:"03", nav:"About",
@@ -62,7 +62,7 @@ const PROJECTS = [
     title:"Cairn AI",
     cats:"Trip Planning · NL Search · GPX",
     status:{ label:"Live", kind:"live" },
-    blurb:"Sierra backcountry trip-planner: natural-language search, current-conditions beta, condition-tuned packing lists.",
+    blurb:"Sierra backcountry planner: natural language search, current beta, packing lists, and an exportable GPX file for Garmin and Strava.",
     demo:{ type:"iframe", url:"https://cairn-weld.vercel.app", label:"cairn-weld.vercel.app" },
   },
   {
