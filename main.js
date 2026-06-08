@@ -46,27 +46,36 @@
 
   function renderProjects(sectionId) {
     const grid = el(`<div class="grid"></div>`);
-    PROJECTS.filter(p => p.section === sectionId).forEach(p => grid.appendChild(renderCard(p)));
+    // Live cards first (bright cream, top row); in-progress cards drop below
+    // as full-width "roadmap" strips — see renderCard + .card.soon in styles.css.
+    PROJECTS.filter(p => p.section === sectionId)
+      .sort((a, b) => (a.status.kind === "live" ? 0 : 1) - (b.status.kind === "live" ? 0 : 1))
+      .forEach(p => grid.appendChild(renderCard(p)));
     return grid;
   }
 
   function renderCard(p) {
-    const kind = p.status.kind === "live" ? "live" : "soon";
-    const dot  = p.status.kind === "live" ? `<span class="dot"></span>` : "";
-    const card = el(`<article class="card">
-        <div class="top"><h3>${esc(p.title)}</h3><span class="tag ${kind}">${dot}${esc(p.status.label)}</span></div>
-        ${p.cats ? `<div class="cats">${esc(p.cats)}</div>` : ""}
-        <p>${p.blurb}</p>
+    // Every card is a full-width horizontal row: head column (title/tag/cats)
+    // on the left, body on the right. Live = cream + expandable demo;
+    // in-progress = muted ghost surface (.soon). Demo strip spans full width.
+    const live = p.status.kind === "live";
+    const dot  = live ? `<span class="dot"></span>` : "";
+    const tag  = `<span class="tag ${live ? "live" : "soon"}">${dot}${esc(p.status.label)}</span>`;
+
+    const card = el(`<article class="card${live ? "" : " soon"}">
+        <div class="card-head">
+          <div class="top"><h3>${esc(p.title)}</h3>${tag}</div>
+          ${p.cats ? `<div class="cats">${esc(p.cats)}</div>` : ""}
+        </div>
+        <div class="card-body"><p>${p.blurb}</p></div>
       </article>`);
-    if (p.demo && p.demo.type === "iframe") {
-      card.appendChild(el(`<div class="more"><span class="plus">+</span><span class="more-label">View demo</span></div>`));
+
+    if (live && p.demo && p.demo.type === "iframe") {
+      card.querySelector(".card-body").appendChild(
+        el(`<div class="more"><span class="plus">+</span><span class="more-label">View demo</span></div>`));
       const demo = el(`<div class="demo"></div>`);
       demo.appendChild(renderDemo(p.demo));
       card.appendChild(demo);
-    } else if (p.demo) {
-      // WIP / concept card: compact strip, no expandable demo
-      const q = p.demo.query ? `<div class="wip-q">${esc(p.demo.query)}</div>` : "";
-      card.appendChild(el(`<div class="wip">${q}<div class="wip-note">${esc(p.demo.note || "Concept · in progress")}</div></div>`));
     }
     return card;
   }

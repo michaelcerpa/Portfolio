@@ -82,11 +82,12 @@ const PROJECTS = [
   },
   {
     section:"professional",
-    title:"IBP Case Studies",
-    cats:"Concept · Interactive",
-    status:{ label:"Coming", kind:"soon" },
-    blurb:"Existing case studies, rebuilt as clickable concepts instead of static slides.",
-    demo:{ type:"preview", note:"Coming — concept stage." },
+    title:"Strata",
+    cats:"Extraction · Human-in-the-loop · Ops",
+    status:{ label:"In progress", kind:"soon" },
+    blurb:"A Forward Deployed case study: one extraction engine, two adapters - turn emails and scanned paper into structured records, with a human on only the uncertain cases.",
+    demo:{ type:"preview", query:"one engine, two adapters",
+           note:"Forward Deployed case study · demo when deployed." },
   },
 ];
 
