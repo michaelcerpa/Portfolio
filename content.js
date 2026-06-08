@@ -85,7 +85,7 @@ const PROJECTS = [
     title:"Strata",
     cats:"Extraction · Human-in-the-loop · Ops",
     status:{ label:"Live", kind:"live" },
-    blurb:"A Forward Deployed case study: one extraction engine, two adapters - turn emails and scanned paper into structured records, with a human on only the uncertain cases.",
+    blurb:"A Forward Deployed case study for a national installer: one extraction engine, two adapters - turn emails and scanned paper into structured records, with a human on only the uncertain cases.",
     demo:{ type:"iframe", url:"https://strata-phi-ochre.vercel.app", label:"strata-phi-ochre.vercel.app" },
   },
 ];
