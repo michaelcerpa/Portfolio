@@ -151,8 +151,6 @@ section.block{padding-top:56px;padding-bottom:56px;border-top:1px solid var(--ru
 .flip.flipped .flip-inner{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;overflow:hidden}
 .front{display:flex;align-items:flex-end;padding:16px}
-.front .cap{font-family:var(--serif);font-style:italic;font-size:18px;color:#fff;
-            text-shadow:0 1px 8px rgba(0,0,0,.5)}
 .front .hint{position:absolute;top:12px;right:14px;font-family:var(--mono);font-size:11px;
              color:rgba(255,255,255,.8)}
 .back{transform:rotateY(180deg);background:var(--cream);color:var(--on-cream);

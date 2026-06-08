@@ -112,7 +112,7 @@
       grid.appendChild(el(`<div class="flip">
           <div class="flip-inner">
             <div class="face front" style="${front}">
-              <span class="hint">⟲ flip</span><span class="cap">${esc(ph.title)}</span>
+              <span class="hint">⟲ flip</span>
             </div>
             <div class="face back">
               <div class="mrow"><span>Location</span><b>${esc(ph.location)}</b></div>
