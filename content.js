@@ -44,7 +44,7 @@ const SECTIONS = [
 
   { id:"personal", num:"05", nav:"Personal",
     title:"Off the clock, usually at altitude.",
-    lead:"Photography from the Sierra. Click a photo to flip it.",
+    lead:"Photography from the Sierra and beyond. Click a photo to flip it.",
     render:"photos" },
 ];
 
@@ -94,10 +94,12 @@ const PROJECTS = [
 /* img: "photos/whitney.jpg" to use a real image; leave "" to show the gradient.
    ✏️ TODO: drop photos in a /photos folder, set img, fill the metadata. */
 const PHOTOS = [
-  { title:"Mt. Whitney",  img:"", gradient:"linear-gradient(160deg,#3a5a72,#7b94a3)",
-    location:"Mt. Whitney, CA", date:"2025-09-14", coords:"36.5785° N, 118.2923° W", elevation:"14,505 ft" },
-  { title:"Sabrina Basin", img:"", gradient:"linear-gradient(160deg,#4a6b4e,#8aa57a)",
-    location:"Bishop, CA", date:"2025-07-22", coords:"37.1758° N, 118.6112° W", elevation:"10,300 ft" },
-  { title:"Alabama Hills", img:"", gradient:"linear-gradient(160deg,#6a5a3a,#a3937b)",
-    location:"Lone Pine, CA", date:"2026-03-08", coords:"36.6061° N, 118.1192° W", elevation:"4,800 ft" },
+  { title:"Mt. Shasta", img:"photos/shasta.jpg", gradient:"linear-gradient(160deg,#3a5a72,#7b94a3)",
+    location:"Mt. Shasta, CA", date:"2024-05-11", coords:"41.4092° N, 122.1949° W", elevation:"14,179 ft" },
+  { title:"Mt. Whitney", img:"photos/whitney.jpg", gradient:"linear-gradient(160deg,#4a6b4e,#8aa57a)",
+    location:"Mt. Whitney, CA", date:"2024-10-04", coords:"36.5785° N, 118.2923° W", elevation:"14,505 ft" },
+  { title:"Pico de Orizaba", img:"photos/pico.jpg", gradient:"linear-gradient(160deg,#6a5a3a,#a3937b)",
+    location:"Pico de Orizaba, Mexico", date:"2025-02-16", coords:"19.0303° N, 97.2683° W", elevation:"18,491 ft" },
+  { title:"Palisades Tahoe", img:"photos/palisades.jpg", gradient:"linear-gradient(160deg,#4a6b72,#8aa5b5)",
+    location:"Palisades Tahoe, CA", date:"2026-04-03", coords:"39.1981° N, 120.2873° W", elevation:"9,006 ft" },
 ];
