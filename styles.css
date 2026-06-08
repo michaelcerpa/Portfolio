@@ -152,3 +152,14 @@ footer{border-top:1px solid var(--rule-d);padding:36px 0;color:var(--ink-soft);f
 footer .fl{font-family:var(--mono);font-size:12px;color:var(--ink-soft);opacity:.7}
 footer a{color:var(--ink-soft);text-decoration:none;margin-left:20px}
 footer a:hover{color:var(--accent)}
+
+/* ---------- small phones: tighten gutters, stack photos, guard overflow ---------- */
+body{overflow-x:clip}                 /* nothing can shove the page sideways */
+@media(max-width:560px){
+  .wrap{padding:0 22px}               /* 40px gutters are too big on a phone */
+  .nav .row{padding:0 22px}
+  .photos{grid-template-columns:1fr}  /* one photo per row so coords fit */
+  .hero h1{font-size:clamp(30px,8.5vw,42px)}
+  .lb-bar{padding:10px 14px}
+  footer{gap:10px}
+}
