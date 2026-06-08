@@ -94,6 +94,10 @@ section.block{padding-top:56px;padding-bottom:56px;border-top:1px solid var(--ru
 .tag .dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block}
 .tag.live{background:var(--accent-deep);color:#fff}
 .tag.soon{background:transparent;color:var(--on-cream-soft);border:1px solid var(--rule-c)}
+/* live badge: blinking dot */
+.tag.live .dot{animation:livepulse 1.5s ease-in-out infinite}
+@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.28}}
+@media(prefers-reduced-motion:reduce){.tag.live .dot{animation:none}}
 .card .cats{font-family:var(--mono);font-size:11.5px;color:var(--accent-deep);margin:11px 0 9px}
 .card p{font-size:14px;color:var(--on-cream-soft)}
 .card .more{margin-top:15px;font-family:var(--mono);font-size:12.5px;color:var(--accent-deep);
@@ -126,6 +130,10 @@ section.block{padding-top:56px;padding-bottom:56px;border-top:1px solid var(--ru
 .preview .pill{display:inline-block;background:var(--accent-deep);color:#fff;font-family:var(--mono);
      font-size:12px;padding:6px 12px;border-radius:8px;margin:3px 4px 3px 0}
 .preview .note{font-family:var(--mono);font-size:11px;color:var(--on-cream-soft);margin-top:12px}
+/* compact WIP / concept strip (non-live cards) */
+.wip{margin-top:15px;border-top:1px dashed var(--rule-c);padding-top:13px}
+.wip-q{font-family:var(--mono);font-size:12.5px;color:var(--accent-deep);margin-bottom:6px}
+.wip-note{font-family:var(--mono);font-size:11px;color:var(--on-cream-soft)}
 
 /* ---------- PERSONAL: photo flip cards ---------- */
 .photos{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}

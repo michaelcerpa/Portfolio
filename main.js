@@ -58,11 +58,15 @@
         ${p.cats ? `<div class="cats">${esc(p.cats)}</div>` : ""}
         <p>${p.blurb}</p>
       </article>`);
-    if (p.demo) {
+    if (p.demo && p.demo.type === "iframe") {
       card.appendChild(el(`<div class="more"><span class="plus">+</span><span class="more-label">View demo</span></div>`));
       const demo = el(`<div class="demo"></div>`);
       demo.appendChild(renderDemo(p.demo));
       card.appendChild(demo);
+    } else if (p.demo) {
+      // WIP / concept card: compact strip, no expandable demo
+      const q = p.demo.query ? `<div class="wip-q">${esc(p.demo.query)}</div>` : "";
+      card.appendChild(el(`<div class="wip">${q}<div class="wip-note">${esc(p.demo.note || "Concept · in progress")}</div></div>`));
     }
     return card;
   }

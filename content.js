@@ -10,7 +10,7 @@ const SITE = {
   name:    "Michael Cerpa",
   eyebrow: "AI Product Manager · Ships 0-to-1",
   // Wrap one word in <em>…</em> to give it the green accent.
-  headline: "I take <em>messy</em> problems from clients and ship something real in <em>regulated</em> environments",
+  headline: "I take <em>messy</em> problems from clients and ship something <em>real</em>",
   sub:      "Army Intelligence → UC Berkeley → JPMorgan → Wells Fargo",
 
   linkedinUrl: "https://www.linkedin.com/in/michaelanthonycerpa/",
@@ -65,20 +65,19 @@ const PROJECTS = [
   },
   {
     section:"passion",
-    title:"Playlist, but only yours",
-    cats:"Spotify API · NL · Personal",
-    status:{ label:"Building", kind:"soon" },
-    blurb:"Build playlists from natural language - pulling <em>only</em> from songs already in your library. The thing Spotify's own prompt feature won't.",
-    demo:{ type:"preview", query:"“upbeat indie for a long climb — only my saved songs”",
-           pills:["Phoebe Bridgers","Big Thief","Hovvdy"],
-           note:"Illustrative · demo swaps in once the build exists." },
+    title:"Soundtrack your route",
+    cats:"Spotify API · NL · Route-aware",
+    status:{ label:"In progress", kind:"soon" },
+    blurb:"Describe a trip in plain language - drive, ride, or run - and get a playlist that shifts as you go: by time of day, weather, and where you are on the route.",
+    demo:{ type:"preview", query:"“drive SF to Mammoth, leaving at 3pm”",
+           note:"Concept · in progress - demo when built." },
   },
   {
     section:"professional",
     title:"Granite",
     cats:"Architecture · Governance · Regulated Finance",
     status:{ label:"Live", kind:"live" },
-    blurb:"An interactive white paper on building AI a bank can trust: trace a request through intent → entitlements → orchestration → grounded response → LLM-as-judge → audit, and watch it refuse rather than guess.",
+    blurb:"An interactive architecture for building AI a bank can trust: trace a request through intent → entitlements → orchestration → grounded response → LLM-as-judge → audit, and watch it refuse rather than guess.",
     demo:{ type:"iframe", url:"https://granite-gilt-zeta.vercel.app", label:"granite-gilt-zeta.vercel.app" },
   },
   {
