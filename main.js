@@ -8,15 +8,12 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
   // turn an HTML string into a single element
   const el  = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
-  // Résumé links only show once SITE.resumeUrl is a real URL (set it in content.js to bring them back).
-  const hasResume = SITE.resumeUrl && SITE.resumeUrl !== "#";
 
   /* ---------- NAV ---------- */
   const navRow = $("#navRow");
   navRow.appendChild(el(`<a href="#top" class="brand">${esc(SITE.name)}</a>`));
   const links = el(`<div class="nav-links"></div>`);
   SECTIONS.forEach(s => links.appendChild(el(`<a href="#${s.id}">${esc(s.nav)}</a>`)));
-  if (hasResume) links.appendChild(el(`<a href="${esc(SITE.resumeUrl)}" class="resume">Résumé ↗</a>`));
   navRow.appendChild(links);
   navRow.appendChild(el(`<button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>`));
 
@@ -25,7 +22,6 @@
   overlay.appendChild(el(`<button class="x" id="closeMenu" aria-label="Close">×</button>`));
   SECTIONS.forEach(s => overlay.appendChild(el(`<a href="#${s.id}">${esc(s.nav)}</a>`)));
   overlay.appendChild(el(`<a href="${esc(SITE.linkedinUrl)}">LinkedIn ↗</a>`));
-  if (hasResume) overlay.appendChild(el(`<a href="${esc(SITE.resumeUrl)}">Résumé ↗</a>`));
 
   /* ---------- HERO ---------- */
   $("#hero").innerHTML = `
@@ -121,7 +117,6 @@
   $("#footer").innerHTML = `
     <span class="fl">© ${new Date().getFullYear()} ${esc(SITE.name)} · San Francisco</span>
     <span>
-      ${hasResume ? `<a href="${esc(SITE.resumeUrl)}">Résumé</a>` : ""}
       <a href="${esc(SITE.linkedinUrl)}">LinkedIn</a>
       <a href="mailto:${esc(SITE.email)}">Email</a>
     </span>`;

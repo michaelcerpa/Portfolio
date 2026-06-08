@@ -8,12 +8,11 @@
 /* ---- 1. Identity + hero --------------------------------------------- */
 const SITE = {
   name:    "Michael Cerpa",
-  eyebrow: "AI Product Manager · Expert in 0 to 1 Delivery",
+  eyebrow: "AI Product Manager · Ships 0-to-1",
   // Wrap one word in <em>…</em> to give it the green accent.
   headline: "I take <em>messy</em> problems from clients and ship something real in <em>regulated</em> environments",
   sub:      "Army Intelligence → UC Berkeley → JPMorgan → Wells Fargo",
 
-  resumeUrl:   "#",                 // ✏️ TODO: link to your résumé PDF
   linkedinUrl: "https://www.linkedin.com/in/michaelanthonycerpa/",
   email:       "michael.cerp@gmail.com",
 };
@@ -21,28 +20,27 @@ const SITE = {
 /* ---- 2. Sections (order + headings + nav labels) -------------------- */
 /* render: "projects" = card grid | "prose" = paragraphs | "photos" = flip cards */
 const SECTIONS = [
-  { id:"passion", num:"01", nav:"Passion",
-    title:"Things I built to solve problems for my friends and I.",
+  { id:"passion", num:"01", nav:"Side Projects",
+    title:"Solutions for my friends and me.",
     lead:"",
     render:"projects" },
 
   { id:"professional", num:"02", nav:"Professional",
     title:"Enterprise AI, sanitized.",
-    lead:"Real product work consisting of shipped solutions and case studies. All from personal experience with clickable architectures and concepts.",
+    lead:"Real product work - shipped solutions and case studies, rebuilt as clickable architectures and concepts.",
     render:"projects" },
 
   { id:"about", num:"03", nav:"About",
     title:"The short version.",
     render:"prose",
-    body:[   // ✏️ TODO: your story — first thing a hiring manager reads
-      "<em>Placeholder.</em> A few sentences on who you are and what you do — Army intelligence to Berkeley to JPMorgan to Wells Fargo, shipping AI in regulated environments.",
-      "A second paragraph if you want one."
+    body:[
+      "I started as an Army all-source intelligence analyst out of high school, then Berkeley, then five years shipping AI inside large, regulated banks. The throughline: drop into an ambiguous, high-stakes problem and get something live. Now I lead AI for a corporate banking platform at Wells Fargo."
     ] },
 
   { id:"education", num:"04", nav:"Education",
     title:"UC Berkeley.",
     render:"prose",
-    body:[ "<em>Placeholder.</em> Degree, focus, and any relevant coursework or honors." ] },  // ✏️ TODO
+    body:[ "University of California, Berkeley - Political Economy and Finance (Haas BASE Program), 2021." ] },
 
   { id:"personal", num:"05", nav:"Personal",
     title:"Off the clock, usually at altitude.",
@@ -62,7 +60,7 @@ const PROJECTS = [
     title:"Cairn AI",
     cats:"Trip Planning · NL Search · GPX",
     status:{ label:"Live", kind:"live" },
-    blurb:"Sierra backcountry planner: natural language search, current beta, packing lists, and an exportable GPX file for Garmin and Strava.",
+    blurb:"Sierra backcountry planner: natural-language search, condition-tuned packing lists, and exportable GPX for Garmin and Strava.",
     demo:{ type:"iframe", url:"https://cairn-weld.vercel.app", label:"cairn-weld.vercel.app" },
   },
   {
@@ -70,7 +68,7 @@ const PROJECTS = [
     title:"Playlist, but only yours",
     cats:"Spotify API · NL · Personal",
     status:{ label:"Building", kind:"soon" },
-    blurb:"Build playlists from natural language — pulling <em>only</em> from songs already in your library. The thing Spotify's prompt feature won't do.",
+    blurb:"Build playlists from natural language - pulling <em>only</em> from songs already in your library. The thing Spotify's own prompt feature won't.",
     demo:{ type:"preview", query:"“upbeat indie for a long climb — only my saved songs”",
            pills:["Phoebe Bridgers","Big Thief","Hovvdy"],
            note:"Illustrative · demo swaps in once the build exists." },
