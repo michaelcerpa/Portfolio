@@ -57,7 +57,7 @@ const SECTIONS = [
 const PROJECTS = [
   {
     section:"passion",
-    title:"Cairn AI",
+    title:"Cairn",
     cats:"Trip Planning · NL Search · GPX",
     status:{ label:"Live", kind:"live" },
     blurb:"Sierra backcountry planner: natural-language search, condition-tuned packing lists, and exportable GPX for Garmin and Strava.",
