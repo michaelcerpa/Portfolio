@@ -144,8 +144,7 @@ section.block{padding-top:56px;padding-bottom:56px;border-top:1px solid var(--ru
 .card.soon .tag.soon{color:var(--ink-soft);border-color:var(--rule-d)}
 
 /* ---------- PERSONAL: photo flip cards ---------- */
-.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-@media(max-width:760px){.photos{grid-template-columns:1fr 1fr}}
+.photos{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
 .flip{perspective:1100px;aspect-ratio:4/5;cursor:pointer}
 .flip-inner{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
 .flip.flipped .flip-inner{transform:rotateY(180deg)}
