@@ -3,7 +3,7 @@
 Personal portfolio site. I'm an operator who ships AI in regulated environments
 (Army intelligence → UC Berkeley → JPMorgan → Wells Fargo).
 
-**Live:** https://michael-cerpa.vercel.app
+**Live:** https://mcerpa.com
 
 ## What this is
 
