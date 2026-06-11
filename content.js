@@ -8,10 +8,13 @@
 /* ---- 1. Identity + hero --------------------------------------------- */
 const SITE = {
   name:    "Michael Cerpa",
-  eyebrow: "AI Product Manager · Ships 0-to-1",
+  eyebrow: "AI Product Manager · First conversation → live system",
   // Wrap one word in <em>…</em> to give it the green accent.
-  headline: "I take <em>messy</em> problems from clients and ship something <em>real</em>",
+  headline: "I take <em>messy</em> problems and ship something <em>real</em>",
   sub:      "Army Intelligence → UC Berkeley → JPMorgan → Wells Fargo",
+  // One mono proof line under the sub — structural facts only, no business metrics
+  // (public surfaces mirror LinkedIn's disclosure level).
+  receipt:  "No budget, no remit → the bank's first client-facing GenAI deployment · cleared model risk, governance & compliance",
 
   linkedinUrl: "https://www.linkedin.com/in/michaelanthonycerpa/",
   email:       "michael.cerp@gmail.com",
@@ -20,29 +23,26 @@ const SITE = {
 /* ---- 2. Sections (order + headings + nav labels) -------------------- */
 /* render: "projects" = card grid | "prose" = paragraphs | "photos" = flip cards */
 const SECTIONS = [
-  { id:"passion", num:"01", nav:"Side Projects",
-    title:"Solutions for my friends and me.",
-    lead:"",
+  { id:"professional", num:"01", nav:"Professional",
+    title:"Enterprise AI, sanitized.",
+    lead:"AI for companies that can't build it themselves - a bank under model-risk review, an installer scheduling jobs out of spreadsheets. The job is matching the system to the constraint, not maximizing the complexity. At Wells Fargo I was the first AI product manager in the corporate & investment bank, with no budget and no formal remit. I recruited an architect and an engineer by shopping the idea around, ran 40+ hours of working sessions with investment clients, and shipped the bank's first client-facing GenAI deployment - cleared through model risk, governance, and compliance. Other teams now build on it.",
     render:"projects" },
 
-  { id:"professional", num:"02", nav:"Professional",
-    title:"Enterprise AI, sanitized.",
-    lead:"Real product work - shipped solutions and case studies, rebuilt as clickable architectures and concepts.",
+  { id:"passion", num:"02", nav:"Side Projects",
+    title:"Built for my friends and me.",
+    lead:"",
     render:"projects" },
 
   { id:"about", num:"03", nav:"About",
     title:"The short version.",
     render:"prose",
     body:[
-      "I started as an Army all-source intelligence analyst out of high school, then Berkeley, then five years shipping AI inside large, regulated banks. The throughline: drop into an ambiguous, high-stakes problem and get something live. Now I lead AI for a corporate banking platform at Wells Fargo."
+      "I started as an Army all-source intelligence analyst out of high school, then Berkeley, then five years shipping AI inside large, regulated banks. The throughline: drop into an ambiguous, high-stakes problem and get something live. Now I lead AI for a corporate banking platform at Wells Fargo.",
+      "Before that, at JPMorgan: the bank's first self-serve onboarding platform for startups - shipped in two months during the SVB collapse - and a financial modeling tool for founders that now lives on the digital bank's homepage.",
+      "UC Berkeley - Political Economy and Finance (Haas BASE Program), 2021."
     ] },
 
-  { id:"education", num:"04", nav:"Education",
-    title:"UC Berkeley.",
-    render:"prose",
-    body:[ "University of California, Berkeley - Political Economy and Finance (Haas BASE Program), 2021." ] },
-
-  { id:"personal", num:"05", nav:"Personal",
+  { id:"personal", num:"04", nav:"Personal",
     title:"Off the clock, usually at altitude.",
     lead:"Photography from the Sierra and beyond. Click a photo to flip it.",
     render:"photos" },
@@ -60,24 +60,15 @@ const PROJECTS = [
     title:"Cairn",
     cats:"Trip Planning · NL Search · GPX",
     status:{ label:"Live", kind:"live" },
-    blurb:"Sierra backcountry planner: natural-language search, condition-tuned packing lists, and exportable GPX for Garmin and Strava.",
+    blurb:"Sierra backcountry planner: natural-language search, condition-tuned packing lists, and exportable GPX for Garmin and Strava. Built and deployed solo, on live NOAA and Recreation.gov data.",
     demo:{ type:"iframe", url:"https://cairn-weld.vercel.app", label:"cairn-weld.vercel.app" },
-  },
-  {
-    section:"passion",
-    title:"Soundtrack your route",
-    cats:"Spotify API · NL · Route-aware",
-    status:{ label:"In progress", kind:"soon" },
-    blurb:"Describe a trip in plain language - drive, ride, or run - and get a playlist that shifts as you go: by time of day, weather, and where you are on the route.",
-    demo:{ type:"preview", query:"“drive SF to Mammoth, leaving at 3pm”",
-           note:"Concept · in progress - demo when built." },
   },
   {
     section:"professional",
     title:"Granite",
     cats:"Architecture · Governance · Regulated Finance",
     status:{ label:"Live", kind:"live" },
-    blurb:"An interactive architecture for building AI a bank can trust: trace a request through intent → entitlements → orchestration → grounded response → LLM-as-judge → audit, and watch it refuse rather than guess.",
+    blurb:"An interactive architecture for building AI a bank can trust: trace a request through intent → entitlements → orchestration → grounded response → LLM-as-judge → audit, and watch it refuse rather than guess. The thinking behind the platform work above, sanitized.",
     demo:{ type:"iframe", url:"https://granite-gilt-zeta.vercel.app", label:"granite-gilt-zeta.vercel.app" },
   },
   {
@@ -85,7 +76,7 @@ const PROJECTS = [
     title:"Strata",
     cats:"Extraction · Human-in-the-loop · Ops",
     status:{ label:"Live", kind:"live" },
-    blurb:"A Forward Deployed case study for a national installer: one extraction engine, two adapters - turn emails and scanned paper into structured records, with a human on only the uncertain cases.",
+    blurb:"A Forward Deployed scenario built on real ground truth: two operators with 35+ years inside a national installer, plus three summers I spent working in its branches. Their two messiest paperwork problems, rebuilt as one engine that reads the mess, writes the structured record, and asks a human only when it isn't sure.",
     demo:{ type:"iframe", url:"https://strata-phi-ochre.vercel.app", label:"strata-phi-ochre.vercel.app" },
   },
 ];

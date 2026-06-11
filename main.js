@@ -28,6 +28,7 @@
     <div class="eyebrow">${esc(SITE.eyebrow)}</div>
     <h1>${SITE.headline}</h1>
     <p class="sub">${esc(SITE.sub)}</p>
+    ${SITE.receipt ? `<p class="receipt">${esc(SITE.receipt)}</p>` : ""}
     <a class="scrollcue" href="#${SECTIONS[0].id}" aria-label="Scroll"></a>`;
 
   /* ---------- SECTIONS ---------- */

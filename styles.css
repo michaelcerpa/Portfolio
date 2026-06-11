@@ -61,6 +61,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:3
          line-height:1.05;letter-spacing:-.015em;max-width:17ch}
 .hero h1 em{font-style:italic;color:var(--accent)}
 .hero .sub{margin-top:20px;max-width:56ch;font-size:17px;color:var(--ink-soft)}
+.hero .receipt{margin-top:14px;max-width:64ch;font-family:var(--mono);font-size:12.5px;
+     line-height:1.7;color:var(--accent)}
 /* scroll cue: a green dash flowing down a hairline */
 .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);
            width:1px;height:48px;background:var(--rule-d);overflow:hidden;display:block}
