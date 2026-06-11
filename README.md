@@ -7,25 +7,30 @@ Personal portfolio site. I'm an operator who ships AI in regulated environments
 
 ## What this is
 
-A single-page portfolio shell that houses my work — passion builds (e.g. Cairn AI)
-and professional projects (e.g. Granite) — each embedded **inline via `<iframe>`,
-never a new tab**, with a fullscreen view for the live apps.
+A single hand-written page that exhibits my work — Granite and Strata (enterprise AI,
+sanitized) and Cairn (a live Sierra trip planner). Each project is its own repo and its
+own deploy; this site shows a real screenshot of each and links to the live app at
+`mcerpa.com/granite/`, `/strata/`, `/cairn/` — same domain, full viewport, no iframes.
+
+The hero carries one live element: real NOAA conditions for the Eastern Sierra, fetched
+from Cairn's own API and typed out on load. If the fetch fails, the line hides — it is
+never faked.
 
 ## Architecture
 
-Vanilla HTML / CSS / JS. No framework, no build step. Content is **separated from
-structure** so the site scales by editing data, not markup:
+Vanilla HTML / CSS / JS. No framework, no build step, no dependencies.
 
 | File | Job |
 |------|-----|
-| `index.html` | Skeleton + empty mount points (rarely edited) |
-| `styles.css` | All styling; design tokens (colors, fonts) live in `:root` |
-| `content.js` | **The editable data** — `SITE`, `SECTIONS`, `PROJECTS[]`, `PHOTOS[]`. Add a project or photo = append one object |
-| `main.js` | Renders the page from `content.js`; wires nav, click-to-expand demos, photo flips, and the fullscreen lightbox |
+| `index.html` | The whole page, semantic hand-written HTML; ~60 lines of JS for the live weather line, the email-copy interaction, and nav state |
+| `styles.css` | All styling; design tokens (colors, fonts, the house ease) live in `:root` |
+| `vercel.json` | Rewrites that serve each project's separate Vercel deploy under this domain |
+| `fonts/` | Two self-hosted variable fonts (Space Grotesk, JetBrains Mono) — no third-party font requests |
+| `assets/`, `photos/` | Project screenshots and summit photos, web-sized WebP |
 
-**Why the split:** a single app (like Cairn) is fine as one self-contained file, but a
-portfolio is a growing *container* of repeating content — separating the data keeps it
-editable and lets it scale cleanly as projects are added.
+Motion is native CSS: scroll-driven reveals (`animation-timeline: view()`) and
+cross-document view transitions, both shipped as progressive enhancement, both
+respecting `prefers-reduced-motion`.
 
 ## Deploy
 

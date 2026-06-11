@@ -3,51 +3,235 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Michael Cerpa - AI Product Manager</title>
-  <meta name="description" content="AI Product Manager shipping 0-to-1 in regulated finance. Army Intelligence → UC Berkeley → JPMorgan → Wells Fargo. Live, clickable projects - not slideware.">
-  <meta name="theme-color" content="#0A1610">
+  <title>Michael Cerpa — AI Product Manager</title>
+  <meta name="description" content="AI Product Manager shipping 0-to-1 in regulated finance. Army Intelligence → UC Berkeley → JPMorgan → Wells Fargo. Live, clickable projects — not slideware.">
+  <meta name="theme-color" content="#08130D">
 
-  <!-- favicon + home-screen icon -->
   <link rel="icon" type="image/png" sizes="48x48" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-  <!-- link previews (iMessage / LinkedIn / Slack read these; og:image must be absolute) -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Michael Cerpa">
-  <meta property="og:title" content="Michael Cerpa - AI Product Manager">
-  <meta property="og:description" content="I take messy problems from clients and ship something real. Live projects from regulated-finance AI and the Sierra backcountry.">
+  <meta property="og:title" content="Michael Cerpa — AI Product Manager">
+  <meta property="og:description" content="I take messy problems and ship something real. Live projects from regulated-finance AI and the Sierra backcountry.">
   <meta property="og:url" content="https://mcerpa.com/">
   <meta property="og:image" content="https://mcerpa.com/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Michael Cerpa - AI Product Manager">
-  <meta name="twitter:description" content="I take messy problems from clients and ship something real. Live projects from regulated-finance AI and the Sierra backcountry.">
+  <meta name="twitter:title" content="Michael Cerpa — AI Product Manager">
+  <meta name="twitter:description" content="I take messy problems and ship something real. Live projects from regulated-finance AI and the Sierra backcountry.">
   <meta name="twitter:image" content="https://mcerpa.com/og.png">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preload" href="fonts/SpaceGrotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- ===================================================================
-       This file is just the skeleton. The page is BUILT from content.js
-       by main.js. To edit text, add a project, or add a photo:
-       open  content.js  — not this file.
-       The tags below are empty "mount points" the script fills in.
-       =================================================================== -->
 
-  <nav class="nav" id="nav"><div class="row" id="navRow"></div></nav>
-  <div class="overlay" id="overlay"></div>
+<nav class="nav up d4" id="nav">
+  <div class="row">
+    <a href="#top" class="brand">Michael Cerpa</a>
+    <div class="nav-links">
+      <a href="#work">Work</a>
+      <a href="#about">About</a>
+      <a href="#photos">Photos</a>
+      <!-- Resume link lands here once the web-safe PDF exists (BACKLOG.md) -->
+    </div>
+  </div>
+</nav>
 
-  <header class="hero wrap" id="hero"></header>
+<header class="hero wrap" id="top">
+  <svg class="topo" viewBox="0 0 1440 420" aria-hidden="true" preserveAspectRatio="xMidYMin slice">
+    <path d="M-20,320 C250,110 550,400 890,200 S1400,330 1480,130" fill="none" stroke="#6FBF93" stroke-width="1"/>
+    <path d="M-20,380 C300,170 640,470 990,250 S1430,380 1490,210" fill="none" stroke="#6FBF93" stroke-width="1"/>
+    <path d="M-20,250 C210,30 510,340 850,130 S1390,250 1480,60" fill="none" stroke="#6FBF93" stroke-width="1"/>
+    <path d="M-20,185 C260,-30 560,280 910,75 S1420,185 1490,10" fill="none" stroke="#6FBF93" stroke-width="1"/>
+  </svg>
 
-  <main id="sections"></main>
+  <div class="eyebrow up d1">AI Product Manager · First conversation → live system</div>
+  <h1 class="up d2">I take messy problems and ship something <span class="acc">real</span>.</h1>
+  <p class="sub up d3">Army Intelligence → UC Berkeley → JPMorgan → Wells Fargo</p>
 
-  <footer class="wrap" id="footer"></footer>
+  <p class="tick up d3" id="tick" hidden>
+    <span class="beacon" aria-hidden="true"></span>
+    <span><span id="tickText"></span><span class="cursor" aria-hidden="true">▋</span></span>
+  </p>
+</header>
 
-  <script src="content.js"></script>
-  <script src="main.js"></script>
+<main>
+  <section class="block wrap" id="work">
+    <div class="kicker">Work</div>
+    <h2>Enterprise AI, sanitized.</h2>
+    <p class="lead">At Wells Fargo I'm the first AI product manager in the corporate &amp; investment bank. I started with no budget and no formal remit — recruited an architect and an engineer by shopping the idea around, ran 40+ hours of working sessions with investment clients, and shipped the result through model risk, governance, and compliance. Other teams now build on it.</p>
+
+    <article class="stage">
+      <div class="rail">
+        <div class="idx">01 — Granite</div>
+        <div class="cats">enterprise AI · regulated finance</div>
+        <span class="livetag"><span class="dot" aria-hidden="true"></span>live</span>
+        <p class="blurb">An interactive architecture for building AI a bank can trust: trace a request through intent → entitlements → orchestration → grounded response → LLM-as-judge → audit, and watch it refuse rather than guess. The thinking behind the platform work above, sanitized.</p>
+        <a class="openlink" href="/granite/" data-fallback="https://granite-gilt-zeta.vercel.app">view project <span class="arrow">→</span></a>
+      </div>
+      <a class="stageshot" href="/granite/" data-fallback="https://granite-gilt-zeta.vercel.app" aria-label="Open Granite">
+        <img src="assets/granite.webp" alt="Granite — interactive architecture walkthrough" loading="lazy" decoding="async" width="1600" height="957">
+      </a>
+    </article>
+
+    <article class="stage">
+      <div class="rail">
+        <div class="idx">02 — Strata</div>
+        <div class="cats">forward deployed · extraction · human-in-the-loop</div>
+        <span class="livetag"><span class="dot" aria-hidden="true"></span>live</span>
+        <p class="blurb">A Forward Deployed scenario built on real ground truth: two operators with 35+ years inside a national installer, plus three summers I spent working in its branches. Their two messiest paperwork problems, rebuilt as one engine that reads the mess, writes the structured record, and asks a human only when it isn't sure.</p>
+        <a class="openlink" href="/strata/" data-fallback="https://strata-phi-ochre.vercel.app">view project <span class="arrow">→</span></a>
+      </div>
+      <a class="stageshot" href="/strata/" data-fallback="https://strata-phi-ochre.vercel.app" aria-label="Open Strata">
+        <img src="assets/strata.webp" alt="Strata — extraction engine walkthrough" loading="lazy" decoding="async" width="1600" height="880">
+      </a>
+    </article>
+
+    <article class="stage">
+      <div class="rail">
+        <div class="idx">03 — Cairn</div>
+        <div class="cats">side project · trip planning · live data</div>
+        <span class="livetag"><span class="dot" aria-hidden="true"></span>live</span>
+        <p class="blurb">Sierra backcountry planner: natural-language search, condition-tuned packing lists, and exportable GPX for Garmin and Strava. Built and deployed solo, on live NOAA and Recreation.gov data.</p>
+        <a class="openlink" href="/cairn/" data-fallback="https://cairn-weld.vercel.app">view project <span class="arrow">→</span></a>
+      </div>
+      <a class="stageshot" href="/cairn/" data-fallback="https://cairn-weld.vercel.app" aria-label="Open Cairn">
+        <img src="assets/cairn.webp" alt="Cairn — Sierra backcountry planner" loading="lazy" decoding="async" width="1600" height="643">
+      </a>
+    </article>
+  </section>
+
+  <section class="block wrap" id="about">
+    <div class="kicker">About</div>
+    <h2>The short version.</h2>
+    <div class="prose">
+      <p>I started as an Army all-source intelligence analyst out of high school, then Berkeley, then five years shipping AI inside large, regulated banks. The throughline: drop into an ambiguous, high-stakes problem and get something live. Now I lead AI for a corporate banking platform at Wells Fargo.</p>
+      <p>Before that, at JPMorgan: the bank's first self-serve onboarding platform for startups — shipped in two months during the SVB collapse — and a financial modeling tool for founders that now lives on the digital bank's homepage.</p>
+      <p>UC Berkeley — Political Economy and Finance (Haas BASE Program), 2021.</p>
+    </div>
+    <p class="contact">
+      <a href="mailto:michael.cerp@gmail.com">michael.cerp@gmail.com</a>
+      <a href="https://www.linkedin.com/in/michaelanthonycerpa/">LinkedIn ↗</a>
+    </p>
+  </section>
+
+  <section class="block" id="photos">
+    <div class="wrap">
+      <div class="kicker">Photos</div>
+      <h2>Off the clock, usually at altitude.</h2>
+    </div>
+    <div class="breaks">
+      <figure class="break">
+        <img src="photos/shasta.webp" alt="Summit ridge of Mt. Shasta" loading="lazy" decoding="async">
+        <figcaption>Mt. Shasta · 14,179 ft · 2024-05-11 · 41.4092°N 122.1949°W</figcaption>
+      </figure>
+      <figure class="break">
+        <img src="photos/whitney.webp" alt="Mt. Whitney" loading="lazy" decoding="async">
+        <figcaption>Mt. Whitney · 14,505 ft · 2024-10-04 · 36.5785°N 118.2923°W</figcaption>
+      </figure>
+      <figure class="break">
+        <img src="photos/pico.webp" alt="Crater of Pico de Orizaba" loading="lazy" decoding="async">
+        <figcaption>Pico de Orizaba · 18,491 ft · 2025-02-16 · 19.0303°N 97.2683°W</figcaption>
+      </figure>
+      <figure class="break">
+        <img src="photos/palisades.webp" alt="Palisades Tahoe" loading="lazy" decoding="async">
+        <figcaption>Palisades Tahoe · 9,006 ft · 2026-04-03 · 39.1981°N 120.2873°W</figcaption>
+      </figure>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="row">
+    <span class="fl">© 2026 Michael Cerpa · San Francisco</span>
+    <span>
+      <a href="https://www.linkedin.com/in/michaelanthonycerpa/">LinkedIn</a>
+      <a href="mailto:michael.cerp@gmail.com">Email</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const nav = document.getElementById("nav");
+  addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 20), { passive: true });
+
+  // local file preview can't use the /granite/ rewrites — fall back to the deploy URLs
+  if (location.protocol === "file:") {
+    document.querySelectorAll("[data-fallback]").forEach(a => a.href = a.dataset.fallback);
+  }
+
+  // email → "copied" (falls back to a normal mailto if the clipboard is unavailable)
+  const em = document.querySelector('.contact a[href^="mailto:"]');
+  if (em) em.addEventListener("click", e => {
+    if (!navigator.clipboard) return;
+    e.preventDefault();
+    navigator.clipboard.writeText("michael.cerp@gmail.com").then(() => {
+      const t = em.textContent;
+      em.textContent = "copied ✓";
+      setTimeout(() => em.textContent = t, 1600);
+    }).catch(() => { location.href = em.href; });
+  });
+
+  /* Live tick — real NOAA conditions via Cairn's API. Honest by construction:
+     if the data can't be fetched, the line stays hidden. Never faked. */
+  const tick = document.getElementById("tick");
+  const tickText = document.getElementById("tickText");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let current = "";
+
+  function compose(d) {
+    const t = d.trailheads && d.trailheads["duck-pass"]; // Coldwater TH, Mammoth Lakes
+    if (!t || t.low == null) return null;
+    const mins = Math.max(1, Math.round((Date.now() - new Date(d.fetchedAt)) / 60000));
+    return `live — Mammoth Lakes ${t.low}°F overnight · NOAA, via Cairn · updated ${mins}m ago`;
+  }
+
+  function typeOut(line) {
+    tick.hidden = false;
+    if (reduced) { tickText.textContent = line; return; }
+    tickText.textContent = "";
+    let i = 0;
+    (function step() {
+      if (i <= line.length) {
+        tickText.textContent = line.slice(0, i++);
+        setTimeout(step, 26);
+      }
+    })();
+  }
+
+  async function fetchConditions() {
+    // same-origin through the vercel rewrite in production; absolute URL as fallback
+    for (const url of ["/cairn/api/conditions", "https://cairn-weld.vercel.app/api/conditions"]) {
+      try {
+        const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        if (r.ok) return await r.json();
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  async function refresh(first) {
+    const d = await fetchConditions();
+    const line = d && compose(d);
+    if (!line) { if (first) tick.hidden = true; return; }
+    if (first) { typeOut(line); }
+    else if (line !== current) {
+      tickText.textContent = line;
+      tick.classList.add("flash");
+      tick.addEventListener("animationend", () => tick.classList.remove("flash"), { once: true });
+    }
+    current = line;
+  }
+
+  refresh(true);
+  setInterval(() => refresh(false), 10 * 60 * 1000); // NOAA cache is 30 min; 10 min is honest
+})();
+</script>
+
 </body>
 </html>

@@ -1,0 +1,8 @@
+{
+  "trailingSlash": true,
+  "rewrites": [
+    { "source": "/cairn/:path*",   "destination": "https://cairn-weld.vercel.app/:path*" },
+    { "source": "/granite/:path*", "destination": "https://granite-gilt-zeta.vercel.app/:path*" },
+    { "source": "/strata/:path*",  "destination": "https://strata-phi-ochre.vercel.app/:path*" }
+  ]
+}
