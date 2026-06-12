@@ -74,7 +74,7 @@
         <a class="openlink" href="/granite/" data-fallback="https://granite-gilt-zeta.vercel.app">view project <span class="arrow">→</span></a>
       </div>
       <a class="stageshot" href="/granite/" data-fallback="https://granite-gilt-zeta.vercel.app" aria-label="Open Granite">
-        <img src="assets/granite.webp" alt="Granite — interactive architecture walkthrough" loading="lazy" decoding="async" width="1600" height="957">
+        <video muted loop playsinline preload="none" poster="assets/granite.webp" data-vid="assets/granite.mp4" width="1440" height="900" aria-label="Granite — watch the architecture trace a request"></video>
       </a>
     </article>
 
@@ -87,7 +87,7 @@
         <a class="openlink" href="/strata/" data-fallback="https://strata-phi-ochre.vercel.app">view project <span class="arrow">→</span></a>
       </div>
       <a class="stageshot" href="/strata/" data-fallback="https://strata-phi-ochre.vercel.app" aria-label="Open Strata">
-        <img src="assets/strata.webp" alt="Strata — extraction engine walkthrough" loading="lazy" decoding="async" width="1600" height="880">
+        <video muted loop playsinline preload="none" poster="assets/strata.webp" data-vid="assets/strata.mp4" width="1440" height="900" aria-label="Strata — switching from scheduling intake to acquisition integration"></video>
       </a>
     </article>
 
@@ -100,7 +100,7 @@
         <a class="openlink" href="/cairn/" data-fallback="https://cairn-weld.vercel.app">view project <span class="arrow">→</span></a>
       </div>
       <a class="stageshot" href="/cairn/" data-fallback="https://cairn-weld.vercel.app" aria-label="Open Cairn">
-        <img src="assets/cairn.webp" alt="Cairn — Sierra backcountry planner" loading="lazy" decoding="async" width="1600" height="643">
+        <video muted loop playsinline preload="none" poster="assets/cairn.webp" data-vid="assets/cairn.mp4" width="1440" height="900" aria-label="Cairn — typing a trip request and opening a matched route"></video>
       </a>
     </article>
   </section>
@@ -177,18 +177,31 @@
     }).catch(() => { location.href = em.href; });
   });
 
-  /* Live tick — real NOAA conditions via Cairn's API. Honest by construction:
-     if the data can't be fetched, the line stays hidden. Never faked. */
+  /* Systems check — the visitor's own browser pings each project (and Cairn's
+     NOAA feed) and types out the result. Real requests, real results; if a check
+     fails it shows ✗, and if nothing can be verified the line stays hidden. */
   const tick = document.getElementById("tick");
   const tickText = document.getElementById("tickText");
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let current = "";
+  const local = location.protocol === "file:";
+  const CHECKS = [
+    ["granite", "/granite/", "https://granite-gilt-zeta.vercel.app/"],
+    ["strata",  "/strata/",  "https://strata-phi-ochre.vercel.app/"],
+    ["cairn",   "/cairn/",   "https://cairn-weld.vercel.app/"]
+  ];
+  let lastChecked = 0;
 
-  function compose(d) {
-    const t = d.trailheads && d.trailheads["duck-pass"]; // Coldwater TH, Mammoth Lakes
-    if (!t || t.low == null) return null;
-    const mins = Math.max(1, Math.round((Date.now() - new Date(d.fetchedAt)) / 60000));
-    return `live — Mammoth Lakes ${t.low}°F overnight · NOAA, via Cairn · updated ${mins}m ago`;
+  async function ping(path, abs) {
+    try {
+      if (local) { await fetch(abs, { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(7000) }); return true; }
+      const r = await fetch(path, { method: "HEAD", signal: AbortSignal.timeout(7000) });
+      return r.ok;
+    } catch (e) { return false; }
+  }
+
+  function ago() {
+    const m = Math.round((Date.now() - lastChecked) / 60000);
+    return m < 1 ? "checked just now" : `checked ${m}m ago`;
   }
 
   function typeOut(line) {
@@ -204,32 +217,39 @@
     })();
   }
 
-  async function fetchConditions() {
-    // same-origin through the vercel rewrite in production; absolute URL as fallback
-    for (const url of ["/cairn/api/conditions", "https://cairn-weld.vercel.app/api/conditions"]) {
-      try {
-        const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
-        if (r.ok) return await r.json();
-      } catch (e) {}
-    }
-    return null;
-  }
-
+  let current = "";
   async function refresh(first) {
-    const d = await fetchConditions();
-    const line = d && compose(d);
-    if (!line) { if (first) tick.hidden = true; return; }
-    if (first) { typeOut(line); }
+    const results = await Promise.all(CHECKS.map(([n, p, a]) => ping(p, a)));
+    if (!results.some(Boolean)) { if (first) tick.hidden = true; return; } // can't verify anything — say nothing
+    lastChecked = Date.now();
+    const parts = CHECKS.map(([n], i) => `${n} ${results[i] ? "✓" : "✗"}`).join(" · ");
+    const line = `systems live — ${parts} — `;
+    if (first) { typeOut(line + ago()); }
     else if (line !== current) {
-      tickText.textContent = line;
+      tickText.textContent = line + ago();
       tick.classList.add("flash");
       tick.addEventListener("animationend", () => tick.classList.remove("flash"), { once: true });
     }
     current = line;
   }
 
+  // stage videos — load + play only in view; reduced-motion visitors keep the poster
+  const vids = document.querySelectorAll(".stageshot video");
+  if (!reduced && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      const v = e.target;
+      if (e.isIntersecting) {
+        v.muted = true; // Safari requires the property, not just the attribute, for autoplay
+        if (!v.src) { v.src = v.dataset.vid; v.load(); }
+        v.play().catch(() => {});
+      } else v.pause();
+    }), { threshold: 0.25 });
+    vids.forEach(v => io.observe(v));
+  }
+
   refresh(true);
-  setInterval(() => refresh(false), 10 * 60 * 1000); // NOAA cache is 30 min; 10 min is honest
+  setInterval(() => refresh(false), 5 * 60 * 1000);
+  setInterval(() => { if (!tick.hidden && current) tickText.textContent = current + ago(); }, 60 * 1000);
 })();
 </script>
 
