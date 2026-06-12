@@ -49,7 +49,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:4
 .brand{font-size:16px;font-weight:500;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
 .nav-links{display:flex;gap:26px;align-items:center;font-family:var(--mono);font-size:12px;
            letter-spacing:.04em}
-.nav-links a{color:var(--ink-soft);text-decoration:none;transition:color .2s var(--ease-out-soft)}
+.nav-links a{color:var(--ink-soft);text-decoration:none;transition:color .2s var(--ease-out-soft);
+              padding:13px 5px;margin:-13px -5px}
 .nav-links a:hover{color:var(--ink)}
 
 /* ---------- hero ---------- */
@@ -90,10 +91,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:4
 
 /* ---------- sections ---------- */
 section.block{padding-top:56px;padding-bottom:56px;border-top:1px solid var(--rule)}
-.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.15em;text-transform:uppercase;
-        color:var(--accent);margin-bottom:10px}
+.kicker,.block h2.kicker{font-family:var(--mono);font-size:12px;font-weight:400;
+        letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
 .block h2{font-size:30px;font-weight:500;letter-spacing:-.01em;margin-bottom:10px}
 .block .lead{color:var(--ink-soft);max-width:64ch;font-size:15.5px}
+.block .lead+.lead{margin-top:10px}
 /* about */
 .prose{max-width:64ch}
 .prose p{color:var(--ink-soft);font-size:15.5px;margin-bottom:14px}
@@ -128,7 +130,9 @@ section.block{padding-top:56px;padding-bottom:56px;border-top:1px solid var(--ru
               animation:breathe 3.5s var(--ease-out-soft) infinite}
 .rail .blurb{font-family:var(--sans);font-size:14px;line-height:1.65;margin-top:14px;
              color:var(--ink-soft)}
-.openlink{display:inline-flex;align-items:center;gap:7px;margin-top:16px;padding:6px 0;
+.rail .blurb p{margin:0 0 9px}
+.rail .blurb p:last-child{margin-bottom:0}
+.openlink{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:12px 0;
           color:var(--accent);text-decoration:none}
 .openlink .arrow{transition:transform .15s var(--ease-out-soft)}
 .openlink:hover .arrow{transform:translateX(3px)}
