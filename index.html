@@ -177,31 +177,18 @@
     }).catch(() => { location.href = em.href; });
   });
 
-  /* Systems check — the visitor's own browser pings each project (and Cairn's
-     NOAA feed) and types out the result. Real requests, real results; if a check
-     fails it shows ✗, and if nothing can be verified the line stays hidden. */
+  /* Live tick — San Francisco weather, straight from NOAA (where I live).
+     Fetched by the visitor's own browser; if it can't be fetched, the line
+     hides. Never faked. */
   const tick = document.getElementById("tick");
   const tickText = document.getElementById("tickText");
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const local = location.protocol === "file:";
-  const CHECKS = [
-    ["granite", "/granite/", "https://granite-gilt-zeta.vercel.app/"],
-    ["strata",  "/strata/",  "https://strata-phi-ochre.vercel.app/"],
-    ["cairn",   "/cairn/",   "https://cairn-weld.vercel.app/"]
-  ];
+  const FORECAST = "https://api.weather.gov/gridpoints/MTR/85,105/forecast"; // SF, resolved once
   let lastChecked = 0;
-
-  async function ping(path, abs) {
-    try {
-      if (local) { await fetch(abs, { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(7000) }); return true; }
-      const r = await fetch(path, { method: "HEAD", signal: AbortSignal.timeout(7000) });
-      return r.ok;
-    } catch (e) { return false; }
-  }
 
   function ago() {
     const m = Math.round((Date.now() - lastChecked) / 60000);
-    return m < 1 ? "checked just now" : `checked ${m}m ago`;
+    return m < 1 ? "updated just now" : `updated ${m}m ago`;
   }
 
   function typeOut(line) {
@@ -219,11 +206,14 @@
 
   let current = "";
   async function refresh(first) {
-    const results = await Promise.all(CHECKS.map(([n, p, a]) => ping(p, a)));
-    if (!results.some(Boolean)) { if (first) tick.hidden = true; return; } // can't verify anything — say nothing
+    let p = null;
+    try {
+      const r = await fetch(FORECAST, { signal: AbortSignal.timeout(8000) });
+      if (r.ok) p = (await r.json()).properties.periods[0];
+    } catch (e) {}
+    if (!p) { if (first) tick.hidden = true; return; } // no data — say nothing
     lastChecked = Date.now();
-    const parts = CHECKS.map(([n], i) => `${n} ${results[i] ? "✓" : "✗"}`).join(" · ");
-    const line = `systems live — ${parts} — `;
+    const line = `san francisco — ${p.temperature}°F · ${p.shortForecast.toLowerCase()} · NOAA · `;
     if (first) { typeOut(line + ago()); }
     else if (line !== current) {
       tickText.textContent = line + ago();
@@ -248,7 +238,7 @@
   }
 
   refresh(true);
-  setInterval(() => refresh(false), 5 * 60 * 1000);
+  setInterval(() => refresh(false), 15 * 60 * 1000);
   setInterval(() => { if (!tick.hidden && current) tickText.textContent = current + ago(); }, 60 * 1000);
 })();
 </script>
