@@ -9,12 +9,13 @@ Personal portfolio site. I'm an operator who ships AI in regulated environments
 
 A single hand-written page that exhibits my work — Granite and Strata (enterprise AI,
 sanitized) and Cairn (a live Sierra trip planner). Each project is its own repo and its
-own deploy; this site shows a real screenshot of each and links to the live app at
-`mcerpa.com/granite/`, `/strata/`, `/cairn/` — same domain, full viewport, no iframes.
+own deploy; this site shows a muted screen-recording loop of each app in action and links
+to the live thing at `mcerpa.com/granite/`, `/strata/`, `/cairn/` — same domain, full
+viewport, no iframes.
 
-The hero carries one live element: real NOAA conditions for the Eastern Sierra, fetched
-from Cairn's own API and typed out on load. If the fetch fails, the line hides — it is
-never faked.
+The hero carries one live element: current San Francisco weather, fetched by the
+visitor's own browser straight from the National Weather Service and typed out on load.
+If the fetch fails, the line hides — it is never faked.
 
 ## Architecture
 
@@ -26,7 +27,7 @@ Vanilla HTML / CSS / JS. No framework, no build step, no dependencies.
 | `styles.css` | All styling; design tokens (colors, fonts, the house ease) live in `:root` |
 | `vercel.json` | Rewrites that serve each project's separate Vercel deploy under this domain |
 | `fonts/` | Two self-hosted variable fonts (Space Grotesk, JetBrains Mono) — no third-party font requests |
-| `assets/`, `photos/` | Project screenshots and summit photos, web-sized WebP |
+| `assets/`, `photos/` | Card posters (WebP) + demo loops (MP4, loaded only in view) · summit photos |
 
 Motion is native CSS: scroll-driven reveals (`animation-timeline: view()`) and
 cross-document view transitions, both shipped as progressive enhancement, both
