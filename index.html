@@ -74,7 +74,10 @@
         <a class="openlink" href="/granite/" data-fallback="https://granite-gilt-zeta.vercel.app">view project <span class="arrow">→</span></a>
       </div>
       <a class="stageshot" href="/granite/" data-fallback="https://granite-gilt-zeta.vercel.app" aria-label="Open Granite">
-        <video muted loop playsinline preload="none" poster="assets/granite.webp" data-vid="assets/granite.mp4" width="1440" height="900" aria-label="Granite — watch the architecture trace a request"></video>
+        <picture>
+          <source srcset="assets/granite-anim.webp" media="(prefers-reduced-motion: no-preference)">
+          <img src="assets/granite.webp" alt="Granite — the architecture tracing a request" loading="lazy" decoding="async" width="900" height="562">
+        </picture>
       </a>
     </article>
 
@@ -87,7 +90,10 @@
         <a class="openlink" href="/strata/" data-fallback="https://strata-phi-ochre.vercel.app">view project <span class="arrow">→</span></a>
       </div>
       <a class="stageshot" href="/strata/" data-fallback="https://strata-phi-ochre.vercel.app" aria-label="Open Strata">
-        <video muted loop playsinline preload="none" poster="assets/strata.webp" data-vid="assets/strata.mp4" width="1440" height="900" aria-label="Strata — switching from scheduling intake to acquisition integration"></video>
+        <picture>
+          <source srcset="assets/strata-anim.webp" media="(prefers-reduced-motion: no-preference)">
+          <img src="assets/strata.webp" alt="Strata — switching from scheduling intake to acquisition integration" loading="lazy" decoding="async" width="900" height="562">
+        </picture>
       </a>
     </article>
 
@@ -100,7 +106,10 @@
         <a class="openlink" href="/cairn/" data-fallback="https://cairn-weld.vercel.app">view project <span class="arrow">→</span></a>
       </div>
       <a class="stageshot" href="/cairn/" data-fallback="https://cairn-weld.vercel.app" aria-label="Open Cairn">
-        <video muted loop playsinline preload="none" poster="assets/cairn.webp" data-vid="assets/cairn.mp4" width="1440" height="900" aria-label="Cairn — typing a trip request and opening a matched route"></video>
+        <picture>
+          <source srcset="assets/cairn-anim.webp" media="(prefers-reduced-motion: no-preference)">
+          <img src="assets/cairn.webp" alt="Cairn — typing a trip request and opening a matched route" loading="lazy" decoding="async" width="900" height="562">
+        </picture>
       </a>
     </article>
   </section>
@@ -221,20 +230,6 @@
       tick.addEventListener("animationend", () => tick.classList.remove("flash"), { once: true });
     }
     current = line;
-  }
-
-  // stage videos — load + play only in view; reduced-motion visitors keep the poster
-  const vids = document.querySelectorAll(".stageshot video");
-  if (!reduced && "IntersectionObserver" in window) {
-    const io = new IntersectionObserver(es => es.forEach(e => {
-      const v = e.target;
-      if (e.isIntersecting) {
-        v.muted = true; // Safari requires the property, not just the attribute, for autoplay
-        if (!v.src) { v.src = v.dataset.vid; v.load(); }
-        v.play().catch(() => {});
-      } else v.pause();
-    }), { threshold: 0.25 });
-    vids.forEach(v => io.observe(v));
   }
 
   refresh(true);
