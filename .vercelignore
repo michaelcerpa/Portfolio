@@ -1,0 +1,3 @@
+# The repo root is the served directory — keep non-site files off mcerpa.com.
+tools/
+.github/

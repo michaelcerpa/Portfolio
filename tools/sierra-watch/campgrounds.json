@@ -1,0 +1,93 @@
+{
+  "trip": {
+    "label": "Labor Day weekend 2026 — Eastern Sierra",
+    "nights": ["2026-09-05", "2026-09-06"],
+    "party": { "people": 2, "vehicles": 1, "shelter": "tent", "hookups": false }
+  },
+
+  "_id_provenance": "Every id below was read out of a real recreation.gov /camping/campgrounds/{id} URL. None were guessed. Bishop Park and Convict Lake were supplied by the trip owner and independently matched by lookup.",
+
+  "campgrounds": [
+    {
+      "rank": 1,
+      "name": "Big Pine Creek",
+      "id": "232305",
+      "elevation_ft": 7700,
+      "elevation_source": "recreation.gov campground description"
+    },
+    {
+      "rank": 2,
+      "name": "Rock Creek Lake",
+      "id": "233907",
+      "elevation_ft": null,
+      "elevation_source": "not reliably sourced; the 9,000 ft figure found applies to the adjacent Group Camp (232239), not this campground"
+    },
+    {
+      "rank": 3,
+      "name": "Lake Mary",
+      "id": "233404",
+      "elevation_ft": 8900,
+      "elevation_source": "recreation.gov campground description"
+    },
+    {
+      "rank": 4,
+      "name": "Coldwater",
+      "id": "234290",
+      "elevation_ft": 8900,
+      "elevation_source": "recreation.gov campground description"
+    },
+    {
+      "rank": 5,
+      "name": "Four Jeffrey",
+      "id": "233807",
+      "elevation_ft": 8100,
+      "elevation_source": "recreation.gov campground description"
+    },
+    {
+      "rank": 6,
+      "name": "Forks",
+      "id": "10132055",
+      "elevation_ft": null,
+      "elevation_source": "not stated on the recreation.gov listing"
+    },
+    {
+      "rank": 7,
+      "name": "Big Trees",
+      "id": null,
+      "fcfs": true,
+      "elevation_ft": 7000,
+      "elevation_source": "USFS: 'just past the 7,000 foot elevation sign' on SR-168",
+      "note": "No recreation.gov reservation inventory. USFS Inyo lists it as first-come, first-served — register at the campground. Listed as reservable in the original request; it is not."
+    },
+    {
+      "rank": 8,
+      "name": "Bishop Park",
+      "id": "10132033",
+      "elevation_ft": null,
+      "elevation_source": "not stated on the recreation.gov listing"
+    },
+    {
+      "rank": 9,
+      "name": "Sherwin Creek",
+      "id": "232271",
+      "elevation_ft": 7600,
+      "elevation_source": "recreation.gov campground description"
+    },
+    {
+      "rank": 10,
+      "name": "Convict Lake",
+      "id": "234311",
+      "elevation_ft": 7500,
+      "elevation_source": "recreation.gov campground description"
+    }
+  ],
+
+  "fcfs_phone_only": [
+    "North Lake",
+    "Sabrina",
+    "Upper Pine Grove",
+    "Pleasant Valley Pit (BLM)",
+    "Pleasant Valley (Inyo County)",
+    "Baker Creek (Inyo County)"
+  ]
+}

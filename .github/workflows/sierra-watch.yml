@@ -1,0 +1,106 @@
+name: sierra-watch
+
+# Every 6 hours. NOTE: GitHub only fires `schedule` from the DEFAULT branch —
+# this file must be on `main` for the cron to run at all. `workflow_dispatch`
+# works from any branch, so use that to test before merging.
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: sierra-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # force-push the state branch
+  issues: write     # the notification itself
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore previous state
+        run: |
+          mkdir -p .state
+          if git fetch --depth=1 origin sierra-watch-state 2>/dev/null \
+             && git cat-file -e FETCH_HEAD:state.json 2>/dev/null; then
+            git show FETCH_HEAD:state.json > .state/state.json
+            echo "Restored state from sierra-watch-state."
+          else
+            echo "No prior state — this run establishes the baseline and will not alert."
+          fi
+
+      - name: Check availability
+        id: check
+        run: |
+          # pipefail matters: without it `tee` would swallow a non-zero exit
+          # and a fully blocked run would show up green.
+          set -o pipefail
+          python3 tools/sierra-watch/check.py \
+            --state .state/state.json \
+            --out-md report.md \
+            --transitions-out transitions.md \
+            --delay 2.5 \
+            | tee run.log
+
+      - name: Persist state
+        if: always() && hashFiles('.state/state.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          work=$(mktemp -d)
+          cp .state/state.json "$work/state.json"
+          git -C "$work" init -q
+          git -C "$work" config user.name "sierra-watch"
+          git -C "$work" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$work" checkout -q -b sierra-watch-state
+          git -C "$work" add state.json
+          git -C "$work" commit -qm "state $(date -u +%FT%TZ)"
+          git -C "$work" push -q --force \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            sierra-watch-state
+          echo "State saved (single-commit orphan branch, no history bloat)."
+
+      # ---- Notification. Only on unavailable -> available. ----
+      - name: Open an issue for new openings
+        if: steps.check.outputs.transitions != '0' && steps.check.outputs.transitions != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            cat transitions.md
+            echo
+            echo "<details><summary>Full report</summary>"
+            echo
+            cat report.md
+            echo
+            echo "</details>"
+          } > issue.md
+          gh issue create \
+            --title "Sierra: ${{ steps.check.outputs.transitions }} new opening(s) for Sep 5-6" \
+            --body-file issue.md \
+            --assignee "${{ github.repository_owner }}"
+
+      - name: Email the new openings (only if SMTP secrets are configured)
+        if: steps.check.outputs.transitions != '0' && steps.check.outputs.transitions != ''
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
+        run: python3 tools/sierra-watch/notify_email.py transitions.md
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sierra-report
+          path: |
+            report.md
+            run.log
+          if-no-files-found: ignore
+          retention-days: 30
