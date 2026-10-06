@@ -33,7 +33,9 @@ jobs:
       - name: Check the deployed app
         if: github.event_name != 'pull_request'
         run: |
-          curl -fsS --retry 3 https://mcerpa.com/bus/ | grep -q 'id="rows"'
+          # A push to main races Vercel's deploy, so wait up to 5 minutes for /bus/ to be live.
+          for i in $(seq 1 30); do curl -fsS https://mcerpa.com/bus/ 2>/dev/null | grep -q 'id="rows"' && break; sleep 10; done
+          curl -fsS https://mcerpa.com/bus/ | grep -q 'id="rows"'
           curl -fsS --retry 3 "https://mcerpa.com/api/ggt/?from=40033&to=42203,40053" > /tmp/api.json
           node -e '
             const b = require("/tmp/api.json");
