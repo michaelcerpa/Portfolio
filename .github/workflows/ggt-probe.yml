@@ -9,4 +9,4 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: python3 tools/ggt_probe.py
+      - run: python3 tools/ggt_probe2.py
