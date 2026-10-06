@@ -6,8 +6,8 @@
   "scope": "/presidio/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0A101C",
-  "theme_color": "#0A101C",
+  "background_color": "#08130D",
+  "theme_color": "#08130D",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },

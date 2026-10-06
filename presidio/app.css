@@ -1,13 +1,12 @@
-/* Shuttle — Presidio GO tracker. Same layout as /bus/, in a fog-and-sea-glass palette. */
+/* Shuttle — Presidio GO tracker. Same layout as /bus/; tokens follow the portfolio's styles.css. */
 @font-face{font-family:'Space Grotesk';src:url('../fonts/SpaceGrotesk-var.woff2') format('woff2');font-weight:300 700;font-display:swap}
 @font-face{font-family:'JetBrains Mono';src:url('../fonts/JetBrainsMono-var.woff2') format('woff2');font-weight:100 800;font-display:swap}
 
 :root{
-  --bg:#0A101C; --panel:#0E1626; --panel-2:#132036;
-  --ink:#F1F5F9; --ink-soft:#A0B0C4; --ink-faint:#6B7C92;
-  --accent:#5CCFC0; --accent-deep:#24685F;
-  --late:#E8B04B; --very-late:#F07A5A; --early:#93B4FF; --bad:#F07A5A;
-  --pass:#C9A2FF;
+  --bg:#08130D; --panel:#0B1A12; --panel-2:#10241A;
+  --ink:#F2F5F1; --ink-soft:#9DB0A4; --ink-faint:#6D8276;
+  --accent:#6FBF93; --accent-deep:#2F6B49;
+  --late:#E8B04B; --very-late:#F07A5A; --early:#86B8FF; --bad:#F07A5A;
   --rule:rgba(255,255,255,.07); --rule-strong:rgba(255,255,255,.12);
   --sans:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,monospace;
@@ -43,13 +42,13 @@ h1 .arrow{color:var(--ink-soft)}
 /* ---------- feed status + holiday note ---------- */
 .feed{display:flex;align-items:center;gap:8px;margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
 .beacon{width:8px;height:8px;border-radius:50%;background:var(--ink-faint);flex:none}
-.feed.ok .beacon{background:var(--accent);box-shadow:0 0 0 0 rgba(92,207,192,.6);animation:ping 2s var(--ease) infinite}
+.feed.ok .beacon{background:var(--accent);box-shadow:0 0 0 0 rgba(111,191,147,.6);animation:ping 2s var(--ease) infinite}
 .feed.warn{color:var(--late)} .feed.warn .beacon{background:var(--late)}
 .feed.bad{color:var(--bad)} .feed.bad .beacon{background:var(--bad)}
 .note{margin-top:10px;font-size:13px;color:var(--late);border:1px solid rgba(232,176,75,.35);background:rgba(232,176,75,.08);
       border-radius:10px;padding:8px 12px}
 .note[hidden]{display:none}
-@keyframes ping{0%{box-shadow:0 0 0 0 rgba(92,207,192,.55)}80%,100%{box-shadow:0 0 0 7px rgba(92,207,192,0)}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(111,191,147,.55)}80%,100%{box-shadow:0 0 0 7px rgba(111,191,147,0)}}
 
 /* ---------- hero: the bus to take ---------- */
 .hero{margin-top:14px;background:linear-gradient(160deg,var(--panel-2),var(--panel));border:1px solid var(--rule-strong);
@@ -82,24 +81,24 @@ h1 .arrow{color:var(--ink-soft)}
 
 /* ---------- map ---------- */
 .map-wrap{position:relative;margin-top:14px;border-radius:18px;overflow:hidden;border:1px solid var(--rule-strong)}
-#map{height:42vh;min-height:260px;max-height:420px;background:#0c1422}
-.map-fit{position:absolute;right:10px;bottom:10px;z-index:500;background:rgba(10,16,28,.86);border:1px solid var(--rule-strong);
+#map{height:42vh;min-height:260px;max-height:420px;background:#0d1712}
+.map-fit{position:absolute;right:10px;bottom:10px;z-index:500;background:rgba(8,19,13,.86);border:1px solid var(--rule-strong);
          border-radius:10px;padding:7px 12px;font-family:var(--mono);font-size:12px;color:var(--ink);cursor:pointer}
-.leaflet-container{font-family:var(--sans);background:#0c1422}
+.leaflet-container{font-family:var(--sans);background:#0d1712}
 .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.35)}
-.leaflet-control-attribution{background:rgba(10,16,28,.75)!important;color:var(--ink-faint)!important;font-size:10px}
+.leaflet-control-attribution{background:rgba(8,19,13,.75)!important;color:var(--ink-faint)!important;font-size:10px}
 .leaflet-control-attribution a{color:var(--ink-soft)!important}
-.leaflet-bar a{background:rgba(10,16,28,.9);color:var(--ink);border-color:var(--rule-strong)}
+.leaflet-bar a{background:rgba(8,19,13,.9);color:var(--ink);border-color:var(--rule-strong)}
 .pin-host{background:none;border:none}
 .bus-pin{width:40px;height:24px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:11px;color:#fff;
-         border-radius:8px;border:2px solid var(--bg);box-shadow:0 0 0 2px var(--ring,#5CCFC0),0 2px 8px rgba(0,0,0,.5);
+         border-radius:8px;border:2px solid var(--bg);box-shadow:0 0 0 2px var(--ring,#6FBF93),0 2px 8px rgba(0,0,0,.5);
          transition:transform .2s var(--ease)}
 .bus-pin.dim{opacity:.6;box-shadow:0 0 0 2px var(--ink-faint)}
 .bus-pin.sel{transform:scale(1.2)}
 .stop-pin{width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);box-shadow:0 0 0 2px var(--accent)}
 .stop-pin.dest{border-radius:4px;background:var(--ink);box-shadow:0 0 0 2px var(--ink-soft)}
 .stop-pin.work{background:var(--late);box-shadow:0 0 0 2px var(--late)}
-.leaflet-tooltip.lbl{background:rgba(10,16,28,.9);color:var(--ink);border:1px solid var(--rule-strong);font-family:var(--mono);
+.leaflet-tooltip.lbl{background:rgba(8,19,13,.9);color:var(--ink);border:1px solid var(--rule-strong);font-family:var(--mono);
                      font-size:11px;padding:3px 6px;box-shadow:none}
 .leaflet-tooltip.lbl::before{display:none}
 
@@ -110,7 +109,7 @@ h1 .arrow{color:var(--ink-soft)}
 .row{display:flex;gap:12px;align-items:flex-start;padding:13px 4px;border-bottom:1px solid var(--rule);cursor:pointer;
      border-radius:10px;transition:background .2s var(--ease)}
 .row:active,.row.sel{background:var(--panel)}
-.row.best{background:linear-gradient(90deg,rgba(92,207,192,.10),transparent 70%)}
+.row.best{background:linear-gradient(90deg,rgba(111,191,147,.10),transparent 70%)}
 .row.gone{opacity:.45}
 .row.canceled .t{text-decoration:line-through}
 .row .main{flex:1;min-width:0}
@@ -121,7 +120,7 @@ h1 .arrow{color:var(--ink-soft)}
 .row .line3{color:var(--ink-faint)}
 .row .tag{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);
           border:1px solid var(--accent-deep);padding:1px 5px;border-radius:4px;margin-left:2px}
-.tag.pass,.row .tag.pass{color:var(--pass);border:1px solid rgba(201,162,255,.45);font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+.tag.pass,.row .tag.pass{color:var(--ink-soft);border:1px solid var(--rule-strong);font-family:var(--mono);font-size:10px;letter-spacing:.06em;
                          text-transform:uppercase;padding:1px 5px;border-radius:4px;margin-left:2px}
 .hero .pass-note{display:flex;align-items:center;gap:6px;margin-top:6px}
 .hero .pass-note .tag{margin-left:0}
@@ -203,7 +202,7 @@ body.riding{overflow:hidden}
 .ride-hero.next{background:var(--late);border-color:var(--late);color:var(--bg);animation:pulse 1.4s var(--ease) infinite}
 .ride-hero.next .ride-lead,.ride-hero.next .ride-sub,.ride-hero.next .ride-sub b{color:var(--bg)}
 .ride-alert-text{font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1.05;margin-top:6px}
-.ride-hero.arrived{border-color:var(--accent);background:linear-gradient(160deg,rgba(92,207,192,.22),var(--panel))}
+.ride-hero.arrived{border-color:var(--accent);background:linear-gradient(160deg,rgba(111,191,147,.22),var(--panel))}
 .ride-hero.arrived .ride-lead{color:var(--accent);font-size:14px}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,176,75,.55)}50%{box-shadow:0 0 0 10px rgba(232,176,75,0)}}
 
@@ -221,12 +220,12 @@ body.riding{overflow:hidden}
 .stop.passed .tm{color:var(--accent)}
 .stop.next .nm{color:var(--ink);font-weight:500}
 .stop.next .tl{border-color:var(--accent)}
-.stop.at .tl{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px rgba(92,207,192,.25)}
+.stop.at .tl{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px rgba(111,191,147,.25)}
 .stop.dest .tl{width:18px;height:18px;margin-left:1px;border-radius:5px;border-color:var(--late);background:var(--late)}
 .stop.dest .nm{font-weight:600;color:var(--ink)}
 .stop.skipped .nm{text-decoration:line-through}
 .stop.marker{padding:4px 0;font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.04em;text-transform:uppercase}
-.stop.marker .tl{width:12px;height:12px;margin-left:4px;border:none;background:var(--accent);box-shadow:0 0 0 0 rgba(92,207,192,.6);animation:ping 1.6s var(--ease) infinite}
+.stop.marker .tl{width:12px;height:12px;margin-left:4px;border:none;background:var(--accent);box-shadow:0 0 0 0 rgba(111,191,147,.6);animation:ping 1.6s var(--ease) infinite}
 .stop .tag{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 5px;border-radius:4px;white-space:nowrap;
            margin-left:6px;color:var(--bg);background:var(--late);vertical-align:2px}
 .stop .tag.soft{background:none;color:var(--accent);border:1px solid var(--accent-deep)}
