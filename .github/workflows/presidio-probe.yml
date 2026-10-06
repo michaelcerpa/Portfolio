@@ -5,16 +5,109 @@ on:
 permissions:
   contents: write
 jobs:
-  probe:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
-      - run: mkdir -p /tmp/pfx && python3 tools/presidio_probe.py /tmp/pfx 2>&1 | tee /tmp/pfx/probe.log
-      - name: Save fixtures
+        with:
+          ref: claude/presidio-shuttle
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Live check of the branch (real feeds) + screenshots
+        run: |
+          mkdir -p /tmp/out
+          nohup node tools/bus-dev-server.js > /tmp/out/server.log 2>&1 &
+          sleep 2
+          python3 -m venv /tmp/v && /tmp/v/bin/pip -q install gtfs-realtime-bindings
+          curl -sS -o /tmp/tu.pb https://presidiobus.com/gtfs-rt/tripupdates
+          curl -sS -o /tmp/vp.pb https://presidiobus.com/gtfs-rt/vehiclepositions
+          curl -sS "http://localhost:8787/api/pgo/?from=31933&to=8894813" > /tmp/out/work.json
+          curl -sS "http://localhost:8787/api/pgo/?from=8894813&to=31980" > /tmp/out/home.json
+          /tmp/v/bin/python - <<'PY' | tee /tmp/out/raw.txt
+          import datetime, zoneinfo
+          from google.transit import gtfs_realtime_pb2 as g
+          la = zoneinfo.ZoneInfo("America/Los_Angeles")
+          t = lambda s: datetime.datetime.fromtimestamp(s, la).strftime("%H:%M:%S") if s else "-"
+          m = g.FeedMessage(); m.ParseFromString(open('/tmp/tu.pb','rb').read())
+          print('TU feed', t(m.header.timestamp), 'entities', len(m.entity))
+          for e in m.entity:
+              tu = e.trip_update
+              for u in tu.stop_time_update:
+                  if u.stop_id in ('31933', '8894813', '31980'):
+                      print(' raw', tu.trip.trip_id, tu.trip.start_date, 'veh', tu.vehicle.id, 'seq', u.stop_sequence, u.stop_id, 'arr', t(u.arrival.time), 'dep', t(u.departure.time))
+          v = g.FeedMessage(); v.ParseFromString(open('/tmp/vp.pb','rb').read())
+          for e in v.entity:
+              x = e.vehicle
+              print(' veh', x.vehicle.id, x.trip.trip_id, round(x.position.latitude, 5), round(x.position.longitude, 5), 'age', v.header.timestamp - x.timestamp, 's')
+          PY
+          node -e '
+            const t = (s) => s ? new Date(s * 1000).toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour12: false }) : "-";
+            for (const f of ["work", "home"]) {
+              const b = require("/tmp/out/" + f + ".json");
+              console.log("API", f, "feed", JSON.stringify(b.feed), "holiday", b.holiday || "-");
+              for (const d of b.departures) console.log(" ", d.trip, d.status, "sched", t(d.sched), "pred", t(d.pred), "delay", d.delay, "pass", d.pass, "dest", t(d.dest.sched), t(d.dest.pred), d.vehicle ? JSON.stringify(d.vehicle) : "");
+              for (const d of b.recent) console.log("  recent", d.trip, d.status, t(d.sched), t(d.pred));
+            }' | tee /tmp/out/api.txt
+          cd /tmp && mkdir -p pw && cd pw && npm init -y >/dev/null && npm i -s playwright@1.56.1 && npx playwright install --with-deps chromium >/dev/null
+          cat > shot.js <<'JS'
+          const { chromium } = require("playwright");
+          (async () => {
+            const b = await chromium.launch();
+            const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
+              timezoneId: "America/Los_Angeles", permissions: ["geolocation"], geolocation: { latitude: 37.79845, longitude: -122.44737, accuracy: 10 } });
+            const p = await ctx.newPage();
+            p.on("pageerror", (e) => console.log("pageerror", e.message));
+            p.on("response", (r) => { if (r.status() >= 400 && !/openstreetmap/.test(r.url())) console.log("HTTP", r.status(), r.url()); });
+            const view = async (name) => {
+              await p.waitForTimeout(3500);
+              await p.screenshot({ path: `/tmp/out/${name}.png` });
+              console.log(name, JSON.stringify(await p.evaluate(() => ({ title: document.getElementById("title").innerText, feed: document.getElementById("feed").innerText,
+                hero: document.getElementById("hero").innerText.replace(/\s+/g, " ").slice(0, 320),
+                rows: [...document.querySelectorAll(".row")].slice(0, 5).map((r) => r.innerText.replace(/\s+/g, " ").slice(0, 110)) })), null, 1));
+            };
+            await p.goto("http://localhost:8787/presidio/", { waitUntil: "networkidle" });
+            await p.click('.dirs [data-dir="work"]'); await view("0-work");
+            await p.screenshot({ path: "/tmp/out/0-work-full.png", fullPage: true });
+            await ctx.setGeolocation({ latitude: 37.79165, longitude: -122.3965, accuracy: 10 });
+            await p.click('.dirs [data-dir="home"]'); await view("0-home");
+            for (const dir of ["work", "home"]) {
+              await p.click(`.dirs [data-dir="${dir}"]`); await p.waitForTimeout(3000);
+              const trip = await p.evaluate(() => document.querySelector(".hero [data-ride]")?.dataset.ride || document.querySelector("[data-ride]")?.dataset.ride);
+              if (!trip) { console.log("no rideable shuttle for", dir); continue; }
+              const ride = await p.evaluate(async ([t, dir]) => {
+                const last = JSON.parse(localStorage.getItem("pgo:last:" + dir));
+                const d = [...last.data.departures, ...(last.data.recent || [])].find((x) => x.trip === t);
+                return (await fetch(`/api/pgo/?ride=${t}&date=${d.date}&from=${d.origin.id}&to=${d.dest.id}`)).json();
+              }, [trip, dir]);
+              console.log("ride", dir, ride.trip.id, "stops", ride.stops.map((s) => s.name + " " + s.sched + "/" + s.pred).join(" | "), "line", ride.line.length, "feed", JSON.stringify(ride.feed), "vehicle", JSON.stringify(ride.vehicle));
+              await ctx.setGeolocation({ latitude: ride.stops[0].lat, longitude: ride.stops[0].lon, accuracy: 10 });
+              await p.click(`[data-ride="${trip}"]`);
+              const S = ride.stops, n = S.length - 1;
+              const step = async (name, s) => {
+                if (s) await ctx.setGeolocation({ latitude: s.lat, longitude: s.lon, accuracy: 10 });
+                await p.waitForTimeout(2500);
+                console.log(dir, name, "→", await p.evaluate(() => document.getElementById("rideSrc").innerText + " | " + document.getElementById("rideHero").innerText.replace(/\s+/g, " ")));
+                console.log("   stops:", await p.evaluate(() => [...document.querySelectorAll("#rideStops .stop")].map((x) => x.innerText.replace(/\s+/g, " ")).join(" / ")));
+                await p.screenshot({ path: `/tmp/out/ride-${dir}-${name}.png` });
+              };
+              await step("1-start");
+              const a = S[n - 1], z = S[n];
+              await step("2-past-midway", { lat: a.lat + (z.lat - a.lat) * 0.15, lon: a.lon + (z.lon - a.lon) * 0.15 });
+              await step("3-next", { lat: a.lat + (z.lat - a.lat) * 0.6, lon: a.lon + (z.lon - a.lon) * 0.6 });
+              await step("4-arrived", z);
+              await p.click("#endRide"); await p.waitForTimeout(800);
+            }
+            // Michael's page on the same build.
+            await p.goto("http://localhost:8787/bus/", { waitUntil: "networkidle" }); await view("9-bus");
+            await b.close();
+          })();
+          JS
+          node shot.js 2>&1 | tee /tmp/out/shots.txt
+      - name: Publish
         if: always()
         run: |
-          cd /tmp/pfx 2>/dev/null || exit 0
-          ls -la
+          cd /tmp/out 2>/dev/null || exit 0
           git init -q -b claude/presidio-fixtures && git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A && git commit -qm "presidio fixtures" && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" claude/presidio-fixtures || true
+          git add -A && git commit -qm "presidio live verification" && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" claude/presidio-fixtures
