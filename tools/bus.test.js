@@ -176,3 +176,89 @@ test("real feeds: schedule + live data produce sane departures", { skip: !FX && 
   const map = c.mapLayer(model, FROM, TO);
   assert.ok(map.lines.length >= 2 && map.lines.every((l) => l.points.length > 10));
 });
+
+/* ---------- ride mode ---------- */
+
+test("recent mode lists a bus that already left your stop and is still en route", () => {
+  const tu = { trip: { tripId: "T1", startDate: DAY }, stops: [{ seq: 3, dep: { delay: 60 } }, { seq: 4, arr: { delay: 60 } }] };
+  const live = { tripUpdates: [tu], vehicles: [] };
+  assert.deepEqual(c.departures(tinyModel(), live, { from: FROM, to: TO, now: at(8, 0), recent: true }).map((d) => d.trip), ["T1"]);
+  assert.deepEqual(c.departures(tinyModel(), live, { from: FROM, to: TO, now: at(8, 0) }).map((d) => d.trip), ["T2"]);
+  // Once it has reached downtown it drops off; the 8:26 (timetable only) has now left and takes its place.
+  assert.deepEqual(c.departures(tinyModel(), live, { from: FROM, to: TO, now: at(8, 30), recent: true }).map((d) => d.trip), ["T2"]);
+});
+
+test("ride(): stops from your stop to the destination, with live predictions", () => {
+  const tu = { trip: { tripId: "T1", startDate: DAY }, stops: [{ seq: 2, dep: { delay: 120 } }] };
+  const vp = { trip: { tripId: "T1", startDate: DAY }, pos: { lat: 37.82, lon: -122.45 }, seq: 2, status: 2, ts: at(7, 50) };
+  const r = c.ride(tinyModel(), { tripUpdates: [tu], vehicles: [vp] }, { trip: "T1", date: DAY, from: FROM, to: "42203", now: at(7, 51) });
+  assert.deepEqual(r.stops.map((s) => s.id), ["40033", "X", "42203"]);
+  assert.deepEqual(r.stops.map((s) => s.pred), [at(7, 58), at(8, 7), at(8, 23)]);
+  assert.equal(r.feed.nextSeq, 2);
+  assert.equal(r.trip.route, "101");
+  assert.ok(r.line.length >= 2);
+  assert.equal(c.ride(tinyModel(), { tripUpdates: [], vehicles: [] }, { trip: "nope", date: DAY, from: FROM, to: "42203", now: at(7, 51) }), null);
+});
+
+const R = require("../bus/ride");
+// A straight north→south street with stops every ~220 m: A (origin), B, C, D (destination).
+const LINE = [[37.800, -122.42], [37.794, -122.42]];
+const STOPS = [0, 1, 2, 3].map((k) => ({ seq: 10 + k, id: "S" + k, lat: 37.800 - k * 0.002, lon: -122.42, sched: at(8, k * 2), pred: null }));
+const geo = R.geometry(LINE, STOPS);
+const T = at(8, 0);
+const phoneAt = (lat, lon = -122.42) => ({ lat, lon, acc: 10, ts: T });
+
+test("ride core: stop positions along the line", () => {
+  assert.deepEqual(geo.stopDist.map((d) => Math.round(d)), [0, 221, 442, 663]);
+});
+
+test("ride core: phone GPS between stops → counts the stops left", () => {
+  const p = R.progress(geo, STOPS, { phone: phoneAt(37.7990), now: T });
+  assert.equal(p.source, "phone");
+  assert.equal(p.state, "riding");
+  assert.equal(p.nextIdx, 1);
+  assert.equal(p.stopsLeft, 3);
+});
+
+test("ride core: past the second-to-last stop → your stop is next", () => {
+  const between = R.progress(geo, STOPS, { phone: phoneAt(37.7950), now: T });
+  assert.equal(between.state, "next");
+  assert.equal(between.stopsLeft, 1);
+  const dwelling = R.progress(geo, STOPS, { phone: phoneAt(37.7960), now: T });
+  assert.equal(dwelling.atIdx, 2);
+  assert.equal(dwelling.state, "next");
+  assert.ok(Math.abs(dwelling.metersLeft - 221) < 5);
+});
+
+test("ride core: at the destination → arrived", () => {
+  assert.equal(R.progress(geo, STOPS, { phone: phoneAt(37.7941), now: T }).state, "arrived");
+});
+
+test("ride core: phone off the route (not on this bus) falls back to the bus GPS", () => {
+  const p = R.progress(geo, STOPS, { phone: phoneAt(37.7990, -122.43), vehicle: { lat: 37.7975, lon: -122.42, ts: T - 20 }, now: T });
+  assert.equal(p.source, "bus");
+  assert.equal(p.nextIdx, 2);
+});
+
+test("ride core: standing at your stop before the bus comes is 'waiting'", () => {
+  const p = R.progress(geo, STOPS, { phone: phoneAt(37.8000), feed: { nextSeq: 8, stopped: false }, now: T });
+  assert.equal(p.state, "waiting");
+});
+
+test("ride core: feed-only progress, and it never jitters backwards", () => {
+  const f = R.progress(geo, STOPS, { feed: { nextSeq: 13, stopped: false }, now: T });
+  assert.equal(f.source, "feed");
+  assert.equal(f.state, "next");
+  const stopped = R.progress(geo, STOPS, { feed: { nextSeq: 12, stopped: true }, now: T });
+  assert.equal(stopped.atIdx, 2);
+  assert.equal(stopped.state, "next");
+  const jitter = R.progress(geo, STOPS, { phone: phoneAt(37.7962), now: T, minD: 470 });
+  assert.ok(jitter.d >= 430);
+});
+
+test("ride core: timetable fallback", () => {
+  assert.equal(R.progress(geo, STOPS, { now: at(7, 59) }).state, "waiting");
+  const p = R.progress(geo, STOPS, { now: at(8, 3) });
+  assert.equal(p.source, "timetable");
+  assert.equal(p.nextIdx, 2);
+});

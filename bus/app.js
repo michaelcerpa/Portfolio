@@ -100,7 +100,8 @@
         </div>
       </div>
       <div class="where"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg><span>${where(d)}</span></div>
-      ${alt ? `<div class="alt">Backup: <b>${esc(alt.route)}</b> at <span class="num">${clock(plan(alt).t)}</span> → at work ~<span class="num">${clock(plan(alt).atWork)}</span> (${chip(alt)[1]})</div>` : ""}`;
+      ${alt ? `<div class="alt">Backup: <b>${esc(alt.route)}</b> at <span class="num">${clock(plan(alt).t)}</span> → at work ~<span class="num">${clock(plan(alt).atWork)}</span> (${chip(alt)[1]})</div>` : ""}
+      <button class="ride-btn" data-ride="${esc(d.trip)}">I'm on this bus <span aria-hidden="true">→</span></button>`;
   }
 
   function renderRows(list, best) {
@@ -120,10 +121,22 @@
           <div class="line1"><span class="t">${clock(p.t)}</span><span class="in">${gone ? "too late to walk" : "in " + until(p.t)}</span>${best && best.d === d ? `<span class="tag">take this</span>` : ""}</div>
           <div class="line2">${sched}→ ${esc(short(d.dest))} ${clock(d.dest.pred ?? d.dest.sched)} · work ~${clock(p.atWork)}</div>
           <div class="line3">${kind ? `<i class="dot ${kind === "live" ? "live" : "est"}"></i>` : `<i class="dot sched"></i>`}${where(d)}</div>
+          ${selected === d.trip && d.status !== "canceled" ? `<button class="ride-btn small" data-ride="${esc(d.trip)}">I'm on this ${esc(d.route)} <span aria-hidden="true">→</span></button>` : ""}
         </div>
         <span class="chip ${cls}">${txt}</span>
       </li>`;
     }).join("");
+  }
+
+  // Buses that already left your stop — so you can start ride mode after boarding.
+  function renderRecent() {
+    const el = $("recent");
+    const list = (data?.recent || []).filter((d) => !settings.hidden.includes(d.route));
+    el.hidden = !list.length;
+    if (!list.length) return;
+    el.innerHTML = `<h2 class="kicker">Already on a bus?</h2>
+      <div class="recent-list">${list.map((d) => `<button class="recent-item" data-ride="${esc(d.trip)}">
+        ${badge(d)}<span>left ${clock(d.pred ?? d.sched)} · → ${esc(short(d.dest))} ${clock(d.dest.pred ?? d.dest.sched)}</span><b>Track</b></button>`).join("")}</div>`;
   }
 
   function renderFeed() {
@@ -158,6 +171,7 @@
     const best = pickBest(list);
     renderFeed();
     renderHero(list, best);
+    renderRecent();
     renderRows(list, best);
     renderMarkers(list, best);
   }
@@ -283,6 +297,176 @@
     }
   }
 
+  /* ---------- ride mode: stop by stop, alert before your stop ---------- */
+  let ride = store.get("ggt:ride", null);
+  let rideData = null, rideGeo = null, ridePhone = null, gpsError = null, rideErr = null;
+  let watchId = null, wakeLock = null, audio = null, rideTimer = null, lastNextIdx = null;
+  const RIDE_POLL_MS = 10000;
+
+  function startRide(d) {
+    ride = { trip: d.trip, date: d.date, to: d.dest.id, dest: short(d.dest), route: d.route, color: d.color,
+             textColor: d.textColor, startedAt: Date.now(), minD: null, alerted: {} };
+    store.set("ggt:ride", ride);
+    unlockAudio();
+    enterRide();
+  }
+
+  function enterRide() {
+    rideData = null; rideGeo = null; rideErr = null; lastNextIdx = null;
+    document.body.classList.add("riding");
+    $("ride").hidden = false;
+    $("ride").scrollTop = 0;
+    $("rideTitle").innerHTML = `${badge(ride)}<div><div class="eyebrow">Riding to</div><div class="ride-dest">${esc(ride.dest)}</div></div>`;
+    if ("geolocation" in navigator) {
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => { ridePhone = { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy, ts: nowSec() }; gpsError = null; renderRide(); },
+        (err) => { gpsError = err.code === 1 ? "denied" : "unavailable"; renderRide(); },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
+    } else gpsError = "unavailable";
+    keepAwake();
+    refreshRide();
+    clearInterval(rideTimer);
+    rideTimer = setInterval(() => { if (document.visibilityState === "visible") refreshRide(); }, RIDE_POLL_MS);
+    renderRide();
+  }
+
+  function endRide() {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    watchId = null; ridePhone = null;
+    clearInterval(rideTimer);
+    try { wakeLock?.release(); } catch {}
+    wakeLock = null;
+    ride = null;
+    try { localStorage.removeItem("ggt:ride"); } catch {}
+    $("ride").hidden = true;
+    document.body.classList.remove("riding");
+    refresh();
+  }
+
+  async function keepAwake() {
+    try { if (navigator.wakeLock && document.visibilityState === "visible") wakeLock = await navigator.wakeLock.request("screen"); } catch {}
+  }
+
+  // Sound needs a tap to unlock on phones; "I'm on this bus" is that tap (or any tap after reopening).
+  function unlockAudio() {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      audio.resume();
+      const src = audio.createBufferSource();
+      src.buffer = audio.createBuffer(1, 1, 22050);
+      src.connect(audio.destination);
+      src.start(0);
+    } catch {}
+  }
+  function chime(times) {
+    try { navigator.vibrate?.(Array.from({ length: times * 2 - 1 }, (_, i) => (i % 2 ? 120 : 300))); } catch {}
+    if (!audio) return;
+    const t0 = audio.currentTime + 0.05;
+    for (let i = 0; i < times; i++) {
+      const o = audio.createOscillator(), g = audio.createGain(), t = t0 + i * 0.32;
+      o.type = "sine";
+      o.frequency.value = i % 2 ? 1318 : 988;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.6, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+      o.connect(g).connect(audio.destination);
+      o.start(t); o.stop(t + 0.3);
+    }
+  }
+
+  async function refreshRide() {
+    if (!ride) return;
+    try {
+      const url = `${apiBase}?ride=${encodeURIComponent(ride.trip)}&date=${ride.date}&from=${CONFIG.from}&to=${encodeURIComponent(ride.to)}`;
+      const r = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(12000) });
+      const body = await r.json();
+      if (r.status === 404) { rideErr = "Golden Gate no longer lists this trip."; renderRide(); return; }
+      if (!r.ok) throw new Error(body.error || "HTTP " + r.status);
+      rideData = body; rideErr = null;
+      rideGeo = RideCore.geometry(body.line, body.stops);
+    } catch (e) {
+      rideErr = rideData ? null : "Can't reach the bus feed yet — retrying…";
+    }
+    renderRide();
+  }
+
+  function renderRide() {
+    if (!ride) return;
+    const hero = $("rideHero"), list = $("rideStops"), src = $("rideSrc");
+    if (!rideData || !rideGeo) {
+      hero.className = "ride-hero";
+      hero.innerHTML = `<div class="ride-lead">${esc(rideErr || "Loading your trip…")}</div>`;
+      list.innerHTML = "";
+      return;
+    }
+    const stops = rideData.stops, last = stops.length - 1, now = nowSec();
+    const p = RideCore.progress(rideGeo, stops, { phone: ridePhone, vehicle: rideData.vehicle, feed: rideData.feed, now, minD: ride.minD });
+    if (p.d !== null && (ride.minD == null || p.d > ride.minD)) { ride.minD = p.d; store.set("ggt:ride", ride); }
+
+    // Alerts fire once each.
+    const alert = (key, times) => { if (!ride.alerted[key]) { ride.alerted[key] = Date.now(); store.set("ggt:ride", ride); chime(times); } };
+    if (p.state === "riding" && p.stopsLeft === 2) alert("two", 1);
+    if (p.state === "next") alert("next", 4);
+    if (p.state === "arrived") alert("arrived", 2);
+
+    const dest = stops[last];
+    const destT = dest.pred ?? dest.sched;
+    const destDelay = dest.pred ? dest.pred - dest.sched : null;
+    const [dcls, dtxt] = chip({ status: rideData.trip.canceled ? "canceled" : "", delay: destDelay });
+    const atWork = destT + (settings.walkFrom[dest.id] ?? 6) * 60;
+    const miles = p.metersLeft != null ? (p.metersLeft / 1609.34) : null;
+
+    src.innerHTML = (() => {
+      if (p.source === "phone") return `<i class="dot live"></i>tracking with your phone's GPS`;
+      if (p.source === "bus") return `<i class="dot live"></i>tracking with the bus's GPS${gpsError === "denied" ? " · location is off for this site" : ""}`;
+      if (p.source === "feed") return `<i class="dot est"></i>tracking with Golden Gate's predictions${gpsError ? "" : " · waiting for GPS"}`;
+      return `<i class="dot sched"></i>no live data — following the timetable`;
+    })();
+
+    hero.className = "ride-hero " + p.state;
+    if (rideData.trip.canceled) {
+      hero.innerHTML = `<div class="ride-lead">Golden Gate canceled this trip.</div><div class="ride-sub">Go back and pick another bus.</div>`;
+    } else if (p.state === "waiting") {
+      const t0 = stops[0].pred ?? stops[0].sched;
+      hero.innerHTML = `<div class="ride-lead">Waiting for the ${esc(ride.route)}</div>
+        <div class="ride-big"><span class="num">${Math.max(0, Math.round((t0 - now) / 60))}</span><span class="unit">min</span></div>
+        <div class="ride-sub">at ${esc(SHORT[stops[0].id] || stops[0].name)} ~<span class="num">${clock(t0)}</span> · then ${last} stops to ${esc(ride.dest)}</div>`;
+    } else if (p.state === "next") {
+      hero.innerHTML = `<div class="ride-lead">Your stop is next</div>
+        <div class="ride-alert-text">Pull the cord now</div>
+        <div class="ride-sub">Get off at <b>${esc(dest.name)}</b> · ~<span class="num">${clock(destT)}</span>${miles != null ? ` · ${miles < 0.1 ? Math.round(p.metersLeft * 3.281) + " ft" : miles.toFixed(1) + " mi"}` : ""}</div>`;
+    } else if (p.state === "arrived") {
+      hero.innerHTML = `<div class="ride-lead">You're at ${esc(ride.dest)}</div>
+        <div class="ride-sub">~${settings.walkFrom[dest.id] ?? 6} min walk · at work ~<span class="num">${clock(now + (settings.walkFrom[dest.id] ?? 6) * 60)}</span></div>
+        <button class="ride-btn" id="rideDone">Done</button>`;
+    } else {
+      hero.innerHTML = `<div class="ride-big"><span class="num">${p.stopsLeft}</span><span class="unit">stops left</span></div>
+        <div class="ride-sub">Get off at <b>${esc(dest.name)}</b> · ~<span class="num">${clock(destT)}</span> · in ${until(destT)} <span class="chip ${dcls}">${dtxt}</span></div>
+        <div class="ride-sub2">${miles != null ? `${miles.toFixed(1)} mi to go · ` : ""}at work ~<span class="num">${clock(atWork)}</span> · we'll alert you one stop before</div>`;
+    }
+
+    // Stop-by-stop list with a "you are here" marker.
+    const here = p.state === "waiting" ? -1 : p.atIdx >= 0 ? p.atIdx : p.nextIdx - 0.5;
+    let html = "";
+    stops.forEach((s, i) => {
+      if (here === i - 0.5 && p.state !== "arrived") html += `<li class="stop marker" id="rideHere"><span class="tl"></span><span class="nm">${p.source === "phone" ? "You are here" : "Bus is here"}</span></li>`;
+      const passed = p.state !== "waiting" && (i < p.nextIdx && i !== p.atIdx);
+      const cls = ["stop", passed ? "passed" : "", i === p.atIdx ? "at" : "", i === p.nextIdx && p.state !== "waiting" ? "next" : "",
+                   i === last ? "dest" : "", s.skipped ? "skipped" : ""].join(" ");
+      const t = s.pred ?? s.sched;
+      const tag = i === last ? `<span class="tag">get off</span>` : i === p.nextIdx && p.state !== "waiting" ? `<span class="tag soft">next</span>` : i === p.atIdx ? `<span class="tag soft">here</span>` : "";
+      html += `<li class="${cls}" ${i === p.atIdx ? 'id="rideHere"' : ""}><span class="tl"></span>
+        <span class="nm">${esc(s.name)} ${tag}</span><span class="tm num">${passed ? "✓" : clock(t)}</span></li>`;
+    });
+    list.innerHTML = html;
+    if (p.nextIdx !== lastNextIdx) {
+      lastNextIdx = p.nextIdx;
+      // Keep "you are here" just below the pinned header, with a couple of passed stops above it.
+      const el = document.getElementById("rideHere"), box = $("ride");
+      if (el) box.scrollTo({ top: Math.max(0, $("rideStops").offsetTop + el.offsetTop - $("rideHead").offsetHeight - 90), behavior: "smooth" });
+    }
+  }
+
   /* ---------- settings ---------- */
   const byRoute = (a, b) => parseInt(a) - parseInt(b) || a.localeCompare(b);
   function rememberRoutes() {
@@ -318,15 +502,31 @@
   renderFoot();
   refresh();
 
-  setInterval(() => document.visibilityState === "visible" && refresh(), CONFIG.pollMs);
-  setInterval(() => document.visibilityState === "visible" && render(), 5000);
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
+  setInterval(() => document.visibilityState === "visible" && !ride && refresh(), CONFIG.pollMs);
+  setInterval(() => document.visibilityState === "visible" && (ride ? renderRide() : render()), 5000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    if (ride) { keepAwake(); refreshRide(); } else refresh();
+  });
   addEventListener("pageshow", (e) => { if (e.persisted) refresh(); });
 
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-ride]");
+    if (!btn) return;
+    e.stopPropagation();
+    const d = [...(data?.departures || []), ...(data?.recent || [])].find((x) => x.trip === btn.dataset.ride);
+    if (d) startRide(d);
+  }, true);
   $("rows").addEventListener("click", (e) => { const li = e.target.closest(".row"); if (li) select(li.dataset.trip); });
+  $("endRide").addEventListener("click", endRide);
+  $("ride").addEventListener("click", (e) => { unlockAudio(); if (e.target.id === "rideDone") endRide(); });
   $("fit").addEventListener("click", fit);
   $("openSettings").addEventListener("click", openSettings);
   $("settings").addEventListener("close", () => { if ($("settings").returnValue === "save") saveSettings(); });
+
+  // Reopened mid-ride: pick up where we left off (rides older than 3 hours are stale).
+  if (ride && Date.now() - ride.startedAt < 3 * 3600 * 1000) enterRide();
+  else if (ride) { ride = null; try { localStorage.removeItem("ggt:ride"); } catch {} }
 
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();

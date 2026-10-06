@@ -40,6 +40,8 @@
     <div class="hero-empty">Loading departures…</div>
   </section>
 
+  <section class="recent" id="recent" hidden></section>
+
   <section class="map-wrap">
     <div id="map" aria-label="Map of buses heading to your stop"></div>
     <button class="map-fit" id="fit" aria-label="Show all buses">fit</button>
@@ -73,7 +75,21 @@
   </form>
 </dialog>
 
+<section class="ride" id="ride" hidden aria-live="polite">
+  <div class="ride-head" id="rideHead">
+    <header class="ride-top">
+      <div class="ride-title" id="rideTitle"></div>
+      <button class="ghost" id="endRide">End ride</button>
+    </header>
+    <div class="ride-src" id="rideSrc"></div>
+    <div class="ride-hero" id="rideHero"></div>
+  </div>
+  <ol class="stops" id="rideStops"></ol>
+  <p class="fine ride-fine">Your location stays on this phone. The screen stays awake while you ride so the alert can go off — keep this open.</p>
+</section>
+
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="ride.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
