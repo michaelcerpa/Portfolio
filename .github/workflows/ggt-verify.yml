@@ -54,6 +54,7 @@ jobs:
             await p.screenshot({ path: "/tmp/out/0-work.png" });
             console.log("work view:", await p.evaluate(() => document.getElementById("title").innerText + " | " + document.getElementById("hero").innerText.replace(/\s+/g, " ").slice(0, 200)));
             console.log("work routes:", await p.evaluate(() => [...document.querySelectorAll(".row .badge")].map((b) => b.innerText).join(",")));
+            await ctx.setGeolocation({ latitude: 37.787856, longitude: -122.39989, accuracy: 10 }); // at Mission & 2nd
             await p.click('.dirs [data-dir="home"]');
             await p.waitForTimeout(4000);
             await p.screenshot({ path: "/tmp/out/0-home.png" });
