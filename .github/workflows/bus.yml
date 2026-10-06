@@ -46,3 +46,9 @@ jobs:
             if (!Array.isArray(b.departures) || !b.origin) throw new Error("bad API body: " + JSON.stringify(b).slice(0, 300));
             console.log("feed ok:", b.feed.ok, "| departures:", b.departures.length, "| timetable valid until", b.schedule.validUntil);
             for (const d of b.departures.slice(0, 5)) console.log(d.route, d.status, new Date(d.sched * 1000).toISOString(), d.delay);'
+          # The evening direction: Mission & 2nd / Pine & Battery → Lombard & Fillmore northbound.
+          curl -fsS --retry 3 "https://mcerpa.com/api/ggt/?from=42207,40069,42237&to=40034" > /tmp/home.json
+          node -e '
+            const b = require("/tmp/home.json");
+            if (!Array.isArray(b.departures) || !b.origins?.length) throw new Error("bad home API body: " + JSON.stringify(b).slice(0, 300));
+            console.log("home departures:", b.departures.length, b.later ? "| next later: " + b.later.route : "");'

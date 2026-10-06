@@ -1,25 +1,48 @@
-/* Commute — Golden Gate Transit, Lombard & Fillmore → Montgomery St.
+/* Commute — Golden Gate Transit between Lombard & Fillmore and Montgomery St, both ways.
    Data: /api/ggt (Golden Gate's own GTFS + GTFS-Realtime feeds, merged server-side).
    Every time shown is labeled live (bus GPS), estimated, or timetable — never faked. */
 (function () {
   "use strict";
 
-  const CONFIG = {
-    from: "40033",                 // Lombard St & Fillmore St, southbound
-    to: ["42203", "40053"],        // Mission St & 2nd St (101, 120) · Battery St & Pine St (114, 132, 154, 172, 172X)
-    work: [37.7894, -122.4021],    // Montgomery St, Financial District
-    pollMs: 15000,
+  // Boarding (`from`) and alighting (`to`) stops for each direction, best first.
+  const DIRS = {
+    work: { label: "To work", title: "Lombard &amp; Fillmore <span class=\"arrow\">→</span> Montgomery", arrive: "at work",
+            from: ["40033"],                   // Lombard St & Fillmore St, southbound
+            to: ["40053"] },                   // Battery St & Pine St (114, 132, 154, 172, 172X — no 101/120 in the morning)
+    home: { label: "To home", title: "Montgomery <span class=\"arrow\">→</span> Lombard &amp; Fillmore", arrive: "home",
+            from: ["42207", "40069", "42237"], // Mission & 2nd (101, 120) · Pine & Battery (114, 132) · Pine & Battery (154, 172, 172X)
+            to: ["40034"] },                   // Lombard St & Fillmore St, northbound
   };
-  const SHORT = { "40033": "Lombard & Fillmore", "42203": "Mission & 2nd", "40053": "Battery & Pine" };
-  const DEFAULTS = { walkTo: 4, walkFrom: { "42203": 6, "40053": 6 }, hidden: [] };
+  const OFFICE = [37.7894, -122.4021];        // Montgomery St, Financial District
+  const POLL_MS = 15000;
+  const SHORT = { "40033": "Lombard & Fillmore", "40034": "Lombard & Fillmore", "40053": "Battery & Pine",
+                  "42207": "Mission & 2nd", "40069": "Pine & Battery", "42237": "Pine & Battery" };
+  // Walk minutes per stop; both Pine & Battery stops share one setting.
+  const WALKS = [["40033", "Home → Lombard & Fillmore"], ["40053", "Battery & Pine → office"],
+                 ["42207", "Office → Mission & 2nd"], ["pine", "Office → Pine & Battery"], ["40034", "Lombard & Fillmore → home"]];
+  const DEFAULTS = { walk: { "40033": 4, "40053": 6, "42207": 4, pine: 5, "40034": 4 }, hidden: { work: [], home: [] } };
 
   /* ---------- storage (best effort: private mode etc. may throw) ---------- */
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
-  const settings = Object.assign({}, DEFAULTS, store.get("ggt:settings", {}));
-  settings.walkFrom = Object.assign({}, DEFAULTS.walkFrom, settings.walkFrom);
+  const saved = store.get("ggt:settings", {});
+  const settings = {
+    walk: Object.assign({}, DEFAULTS.walk, saved.walk),
+    hidden: Object.assign({ work: [], home: [] }, Array.isArray(saved.hidden) ? { work: saved.hidden } : saved.hidden),
+  };
+  // Carry over settings saved before the "to home" view existed.
+  if (saved.walkTo != null && !saved.walk) settings.walk["40033"] = saved.walkTo;
+  if (saved.walkFrom?.["40053"] != null && !saved.walk) settings.walk["40053"] = saved.walkFrom["40053"];
+  const walkMin = (id) => settings.walk[id === "40069" || id === "42237" ? "pine" : id] ?? 5;
+
+  // Direction: mornings default to work, afternoons/evenings to home; a tap overrides for 4 hours.
+  const laHour = () => +new Date().toLocaleString("en-US", { hour: "numeric", hourCycle: "h23", timeZone: "America/Los_Angeles" });
+  const autoDir = () => (laHour() >= 4 && laHour() < 12 ? "work" : "home");
+  const pinned = store.get("ggt:dir", null);
+  let dir = pinned && Date.now() < pinned.until ? pinned.dir : autoDir();
+  const cfg = () => DIRS[dir];
 
   /* ---------- state ---------- */
   let data = null, receivedAt = 0, skewMs = 0, fetchError = null, selected = null, didFit = false;
@@ -28,7 +51,7 @@
   const nowSec = () => (Date.now() + skewMs) / 1000;
   const clock = (t) => new Date(t * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" }).replace(/\s?[AP]M$/, "");
   const ago = (s) => (s < 60 ? `${Math.max(0, Math.round(s))}s` : `${Math.round(s / 60)} min`);
-  const short = (d) => SHORT[d.id] || d.name;
+  const short = (d) => SHORT[d?.id] || d?.name || "";
 
   function until(t) {
     const m = Math.floor((t - nowSec()) / 60);
@@ -45,7 +68,7 @@
   function plan(d) {
     const t = d.pred ?? d.sched;
     const destT = d.dest.pred ?? d.dest.sched;
-    return { t, leaveBy: t - settings.walkTo * 60, atWork: destT + (settings.walkFrom[d.dest.id] ?? 6) * 60 };
+    return { t, leaveBy: t - walkMin(d.origin?.id ?? cfg().from[0]) * 60, atWork: destT + walkMin(d.dest.id) * 60 };
   }
   function milesTo(lat, lon, o) {
     const r = Math.PI / 180, a = Math.sin(((o.lat - lat) * r) / 2) ** 2 +
@@ -60,11 +83,12 @@
     if (v.stopsAway === 0) return v.status === "stopped" ? "Bus is at your stop." : "Bus is approaching your stop.";
     const near = v.near ? `next stop ${esc(v.near)}` : "en route";
     // Express runs skip southern Marin, so "2 stops away" can mean 20 miles; say the distance instead.
-    const mi = data?.origin ? milesTo(v.lat, v.lon, data.origin) : null;
+    const o = d.origin?.lat != null ? d.origin : data?.origin;
+    const mi = o ? milesTo(v.lat, v.lon, o) : null;
     if (mi != null && mi >= 1) return `${mi < 10 ? mi.toFixed(1) : Math.round(mi)} mi away · ${near}`;
     return v.stopsAway != null ? `${v.stopsAway} stop${v.stopsAway === 1 ? "" : "s"} away · ${near}` : near;
   }
-  const visible = () => (data?.departures || []).filter((d) => !settings.hidden.includes(d.route));
+  const visible = () => (data?.departures || []).filter((d) => !settings.hidden[dir].includes(d.route));
   const badge = (d) => `<span class="badge" style="background:${esc(d.color)};color:${esc(d.textColor || "#fff")}">${esc(d.route)}</span>`;
 
   /* ---------- rendering ---------- */
@@ -84,7 +108,16 @@
     const hero = $("hero");
     if (!data) { hero.innerHTML = `<div class="hero-empty">${fetchError ? "Can't reach the bus feed. Retrying…" : "Loading departures…"}</div>`; return; }
     if (!best) {
-      hero.innerHTML = `<div class="hero-empty">No Golden Gate buses from Lombard &amp; Fillmore in the next two hours.</div>`;
+      const l = data.later;
+      const when = l ? (() => {
+        const opt = { timeZone: "America/Los_Angeles" };
+        const day = (t) => new Date(t * 1000).toLocaleDateString("en-US", { ...opt, weekday: "long" });
+        const d = day(l.sched) === day(nowSec()) ? "today" : day(l.sched) === day(nowSec() + 86400) ? "tomorrow" : day(l.sched);
+        return `${new Date(l.sched * 1000).toLocaleTimeString("en-US", { ...opt, hour: "numeric", minute: "2-digit" })} ${d}`;
+      })() : "";
+      hero.innerHTML = `<div class="hero-empty">No Golden Gate buses for this trip in the next two hours.</div>
+        ${l ? `<div class="bus">${badge(l)}<div class="times"><div class="dep">Next: ${esc(when)}</div>
+          <div class="sub">from ${esc(short(l.origin))} · timetable</div></div></div>` : ""}`;
       return;
     }
     const { d, p } = best;
@@ -99,16 +132,16 @@
       <div class="leave ${mins <= 0 ? "now" : ""}">
         <span class="big">${mins <= 0 ? "now" : mins}</span>${mins > 0 ? `<span class="unit">min</span>` : ""}
       </div>
-      <div class="leave-by">Leave by <b class="num">${clock(p.leaveBy)}</b> · ${settings.walkTo} min walk to the stop</div>
+      <div class="leave-by">Leave by <b class="num">${clock(p.leaveBy)}</b> · ${walkMin(d.origin?.id)} min walk to ${esc(short(d.origin) || "the stop")}</div>
       <div class="bus">
         ${badge(d)}
         <div class="times">
           <div class="dep">Departs <span class="num">${clock(p.t)}</span> <span class="chip ${cls}">${txt}</span></div>
-          <div class="sub">${sched}${esc(short(d.dest))} <span class="num">${clock(d.dest.pred ?? d.dest.sched)}</span> · at work ~<span class="num">${clock(p.atWork)}</span></div>
+          <div class="sub">${sched}${esc(short(d.dest))} <span class="num">${clock(d.dest.pred ?? d.dest.sched)}</span> · ${cfg().arrive} ~<span class="num">${clock(p.atWork)}</span></div>
         </div>
       </div>
       <div class="where"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg><span>${where(d)}</span></div>
-      ${alt ? `<div class="alt">Backup: <b>${esc(alt.route)}</b> at <span class="num">${clock(plan(alt).t)}</span> → at work ~<span class="num">${clock(plan(alt).atWork)}</span> (${chip(alt)[1]})</div>` : ""}
+      ${alt ? `<div class="alt">Backup: <b>${esc(alt.route)}</b> at <span class="num">${clock(plan(alt).t)}</span>${cfg().from.length > 1 ? ` from ${esc(short(alt.origin))}` : ""} → ${cfg().arrive} ~<span class="num">${clock(plan(alt).atWork)}</span> (${chip(alt)[1]})</div>` : ""}
       <button class="ride-btn" data-ride="${esc(d.trip)}">I'm on this bus <span aria-hidden="true">→</span></button>`;
   }
 
@@ -127,7 +160,7 @@
         ${badge(d)}
         <div class="main">
           <div class="line1"><span class="t">${clock(p.t)}</span><span class="in">${gone ? "too late to walk" : "in " + until(p.t)}</span>${best && best.d === d ? `<span class="tag">take this</span>` : ""}</div>
-          <div class="line2">${sched}→ ${esc(short(d.dest))} ${clock(d.dest.pred ?? d.dest.sched)} · work ~${clock(p.atWork)}</div>
+          <div class="line2">${cfg().from.length > 1 ? `from ${esc(short(d.origin))} · ` : ""}${sched}→ ${esc(short(d.dest))} ${clock(d.dest.pred ?? d.dest.sched)} · ${cfg().arrive} ~${clock(p.atWork)}</div>
           <div class="line3">${kind ? `<i class="dot ${kind === "live" ? "live" : "est"}"></i>` : `<i class="dot sched"></i>`}${where(d)}</div>
           ${selected === d.trip && d.status !== "canceled" ? `<button class="ride-btn small" data-ride="${esc(d.trip)}">I'm on this ${esc(d.route)} <span aria-hidden="true">→</span></button>` : ""}
         </div>
@@ -140,7 +173,7 @@
   let recentOpen = false;
   function renderRecent() {
     const el = $("recent");
-    const list = (data?.recent || []).filter((d) => !settings.hidden.includes(d.route));
+    const list = (data?.recent || []).filter((d) => !settings.hidden[dir].includes(d.route));
     el.hidden = !list.length;
     if (!list.length) return;
     el.innerHTML = `<details ${recentOpen ? "open" : ""}><summary><span>Already on a bus?</span>
@@ -173,7 +206,7 @@
     const vu = data.schedule?.validUntil;
     const until = vu ? new Date(+vu.slice(0, 4), +vu.slice(4, 6) - 1, +vu.slice(6, 8)).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
     $("foot").innerHTML = `Live positions and predictions come straight from Golden Gate Transit's public real-time feed, refreshed every 15 s.
-      "At work" adds your walk from the stop. Timetable ${until ? `valid through ${until}` : "from Golden Gate"} — it refreshes on its own when GGT publishes a new one.`;
+      Arrival times add your walk from the stop. Timetable ${until ? `valid through ${until}` : "from Golden Gate"} — it refreshes on its own when GGT publishes a new one.`;
   }
 
   function render() {
@@ -187,7 +220,7 @@
   }
 
   /* ---------- map ---------- */
-  let map = null, busLayer = null;
+  let map = null, busLayer = null, routeLayer = null;
   const markers = new Map();
   const pin = (kind) => L.divIcon({ className: "pin-host", iconSize: [16, 16], iconAnchor: [8, 8], html: `<div class="stop-pin ${kind}"></div>` });
   function initMap() {
@@ -199,27 +232,35 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
     map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
+    routeLayer = L.layerGroup().addTo(map);
     busLayer = L.layerGroup().addTo(map);
-    const work = L.marker(CONFIG.work, { icon: pin("work"), keyboard: false }).addTo(map);
+    const work = L.marker(OFFICE, { icon: pin("work"), keyboard: false }).addTo(map);
     work.bindTooltip("Office", { className: "lbl", direction: "top", offset: [0, -8] });
     loadMapLayer();
   }
 
   async function loadMapLayer() {
-    let layer = store.get("ggt:map", null);
+    const forDir = dir, key = "ggt:map:" + forDir;
+    const draw = (layer) => {
+      if (!layer || !map || forDir !== dir) return;
+      routeLayer.clearLayers();
+      for (const line of layer.lines) {
+        L.polyline(line.points, { color: line.color, weight: 3, opacity: 0.45, interactive: false }).addTo(routeLayer);
+      }
+      const labeled = new Set();
+      for (const s of layer.stops) {
+        const origin = cfg().from.includes(s.id), name = SHORT[s.id] || s.name;
+        const label = origin && !labeled.has(name);  // one label per corner (Pine & Battery has two stops)
+        labeled.add(name);
+        L.marker([s.lat, s.lon], { icon: pin(origin ? "" : "dest"), keyboard: false, zIndexOffset: origin ? 500 : 0 }).addTo(routeLayer)
+          .bindTooltip(dir === "work" && origin ? "Your stop" : name, { className: "lbl", direction: "top", offset: [0, -8], permanent: label });
+      }
+    };
+    draw(store.get(key, null));
     try {
       const r = await apiFetch(true);
-      if (r.ok) { layer = (await r.json()).map; store.set("ggt:map", layer); }
+      if (r.ok) { const layer = (await r.json()).map; store.set(key, layer); draw(layer); }
     } catch {}
-    if (!layer || !map) return;
-    for (const line of layer.lines) {
-      L.polyline(line.points, { color: line.color, weight: 3, opacity: 0.45, interactive: false }).addTo(map).bringToBack();
-    }
-    for (const s of layer.stops) {
-      const origin = s.id === CONFIG.from;
-      L.marker([s.lat, s.lon], { icon: pin(origin ? "" : "dest"), keyboard: false, zIndexOffset: origin ? 500 : 0 })
-        .addTo(map).bindTooltip(origin ? "Your stop" : SHORT[s.id] || s.name, { className: "lbl", direction: "top", offset: [0, -8], permanent: origin });
-    }
   }
 
   function ringColor(d) {
@@ -257,8 +298,9 @@
 
   function fit() {
     if (!map || !data) return;
-    const origin = data.origin ? [data.origin.lat, data.origin.lon] : [37.7998, -122.4358];
-    const pts = [origin, CONFIG.work];
+    const origins = (data.origins || [data.origin]).filter(Boolean).map((o) => [o.lat, o.lon]);
+    const origin = origins[0] || [37.7998, -122.4358];
+    const pts = [...origins, OFFICE];
     for (const d of visible().slice(0, 5)) {
       const v = d.vehicle;
       if (v && Math.abs(v.lat - origin[0]) < 0.3 && Math.abs(v.lon - origin[1]) < 0.3) pts.push([v.lat, v.lon]);
@@ -283,20 +325,22 @@
     return r;
   }
   function api(withMap) {
-    return `${apiBase}?from=${CONFIG.from}&to=${CONFIG.to.join(",")}${withMap ? "&map=1" : ""}`;
+    return `${apiBase}?from=${cfg().from.join(",")}&to=${cfg().to.join(",")}${withMap ? "&map=1" : ""}`;
   }
 
   let inflight = false;
   async function refresh() {
     if (inflight) return;
     inflight = true;
+    const forDir = dir;
     try {
       const r = await apiFetch(false, { cache: "no-store", signal: AbortSignal.timeout(12000) });
       const body = await r.json();
       if (!r.ok) throw new Error(body.error || "HTTP " + r.status);
+      if (forDir !== dir) return;  // switched direction while this was in flight
       data = body; receivedAt = Date.now(); fetchError = null;
       skewMs = Math.abs(body.now * 1000 - Date.now()) > 90000 ? body.now * 1000 - Date.now() : 0;
-      store.set("ggt:last", { data, receivedAt });
+      store.set("ggt:last:" + dir, { data, receivedAt });
       renderFoot();
       rememberRoutes();
     } catch (e) {
@@ -314,7 +358,7 @@
   const RIDE_POLL_MS = 10000;
 
   function startRide(d) {
-    ride = { trip: d.trip, date: d.date, to: d.dest.id, dest: short(d.dest), route: d.route, color: d.color,
+    ride = { trip: d.trip, date: d.date, from: d.origin?.id ?? cfg().from[0], to: d.dest.id, dest: short(d.dest), dir, route: d.route, color: d.color,
              textColor: d.textColor, startedAt: Date.now(), minD: null, alerted: {} };
     store.set("ggt:ride", ride);
     unlockAudio();
@@ -387,7 +431,7 @@
   async function refreshRide() {
     if (!ride) return;
     try {
-      const url = `${apiBase}?ride=${encodeURIComponent(ride.trip)}&date=${ride.date}&from=${CONFIG.from}&to=${encodeURIComponent(ride.to)}`;
+      const url = `${apiBase}?ride=${encodeURIComponent(ride.trip)}&date=${ride.date}&from=${encodeURIComponent(ride.from || "40033")}&to=${encodeURIComponent(ride.to)}`;
       const r = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(12000) });
       const body = await r.json();
       if (r.status === 404) { rideErr = "Golden Gate no longer lists this trip."; renderRide(); return; }
@@ -423,7 +467,8 @@
     const destT = dest.pred ?? dest.sched;
     const destDelay = dest.pred ? dest.pred - dest.sched : null;
     const [dcls, dtxt] = chip({ status: rideData.trip.canceled ? "canceled" : "", delay: destDelay });
-    const atWork = destT + (settings.walkFrom[dest.id] ?? 6) * 60;
+    const atWork = destT + walkMin(dest.id) * 60;
+    const arrive = DIRS[ride.dir || "work"].arrive;
     const miles = p.metersLeft != null ? (p.metersLeft / 1609.34) : null;
 
     src.innerHTML = (() => {
@@ -447,12 +492,12 @@
         <div class="ride-sub">Get off at <b>${esc(dest.name)}</b> · ~<span class="num">${clock(destT)}</span>${miles != null ? ` · ${miles < 0.1 ? Math.round(p.metersLeft * 3.281) + " ft" : miles.toFixed(1) + " mi"}` : ""}</div>`;
     } else if (p.state === "arrived") {
       hero.innerHTML = `<div class="ride-lead">You're at ${esc(ride.dest)}</div>
-        <div class="ride-sub">~${settings.walkFrom[dest.id] ?? 6} min walk · at work ~<span class="num">${clock(now + (settings.walkFrom[dest.id] ?? 6) * 60)}</span></div>
+        <div class="ride-sub">~${walkMin(dest.id)} min walk · ${arrive} ~<span class="num">${clock(now + walkMin(dest.id) * 60)}</span></div>
         <button class="ride-btn" id="rideDone">Done</button>`;
     } else {
       hero.innerHTML = `<div class="ride-big"><span class="num">${p.stopsLeft}</span><span class="unit">stops left</span></div>
         <div class="ride-sub">Get off at <b>${esc(dest.name)}</b> · ~<span class="num">${clock(destT)}</span> · in ${until(destT)} <span class="chip ${dcls}">${dtxt}</span></div>
-        <div class="ride-sub2">${miles != null ? `${miles.toFixed(1)} mi to go · ` : ""}at work ~<span class="num">${clock(atWork)}</span> · we'll alert you one stop before</div>`;
+        <div class="ride-sub2">${miles != null ? `${miles.toFixed(1)} mi to go · ` : ""}${arrive} ~<span class="num">${clock(atWork)}</span> · we'll alert you one stop before</div>`;
     }
 
     // Stop-by-stop list with a "you are here" marker.
@@ -480,40 +525,69 @@
   /* ---------- settings ---------- */
   const byRoute = (a, b) => parseInt(a) - parseInt(b) || a.localeCompare(b);
   function rememberRoutes() {
-    const all = new Set(store.get("ggt:routes", []).concat((data?.departures || []).map((d) => d.route)));
-    store.set("ggt:routes", [...all].sort(byRoute));
+    const all = new Set(store.get("ggt:routes:" + dir, []).concat((data?.departures || []).map((d) => d.route)));
+    store.set("ggt:routes:" + dir, [...all].sort(byRoute));
   }
   function buildChips() {
-    const all = [...new Set(store.get("ggt:routes", []).concat(settings.hidden, (data?.departures || []).map((d) => d.route)))].sort(byRoute);
-    $("routeChips").innerHTML = all.map((r) => `<label><input type="checkbox" value="${esc(r)}" ${settings.hidden.includes(r) ? "" : "checked"}> ${esc(r)}</label>`).join("");
+    const all = [...new Set(store.get("ggt:routes:" + dir, []).concat(settings.hidden[dir], (data?.departures || []).map((d) => d.route)))].sort(byRoute);
+    $("routesFor").textContent = cfg().label.toLowerCase();
+    $("routeChips").innerHTML = all.map((r) => `<label><input type="checkbox" value="${esc(r)}" ${settings.hidden[dir].includes(r) ? "" : "checked"}> ${esc(r)}</label>`).join("");
   }
   function openSettings() {
-    $("walkTo").value = settings.walkTo;
-    $("walkMission").value = settings.walkFrom["42203"];
-    $("walkBattery").value = settings.walkFrom["40053"];
+    $("walks").innerHTML = WALKS.map(([k, label]) => `<label>${esc(label)} <span><input type="number" data-walk="${k}" min="0" max="30" inputmode="numeric" value="${settings.walk[k]}"> min</span></label>`).join("");
     buildChips();
     $("settings").showModal();
   }
   function saveSettings() {
-    const n = (id, d) => { const v = parseInt($(id).value, 10); return Number.isFinite(v) && v >= 0 && v <= 60 ? v : d; };
-    settings.walkTo = n("walkTo", DEFAULTS.walkTo);
-    settings.walkFrom["42203"] = n("walkMission", DEFAULTS.walkFrom["42203"]);
-    settings.walkFrom["40053"] = n("walkBattery", DEFAULTS.walkFrom["40053"]);
-    settings.hidden = [...$("routeChips").querySelectorAll("input")].filter((i) => !i.checked).map((i) => i.value);
+    for (const input of $("walks").querySelectorAll("input[data-walk]")) {
+      const v = parseInt(input.value, 10), k = input.dataset.walk;
+      settings.walk[k] = Number.isFinite(v) && v >= 0 && v <= 60 ? v : DEFAULTS.walk[k];
+    }
+    settings.hidden[dir] = [...$("routeChips").querySelectorAll("input")].filter((i) => !i.checked).map((i) => i.value);
     store.set("ggt:settings", settings);
     render();
   }
 
+  /* ---------- direction switch ---------- */
+  function renderDir() {
+    $("title").innerHTML = cfg().title;
+    for (const b of document.querySelectorAll(".dirs button")) b.setAttribute("aria-selected", String(b.dataset.dir === dir));
+  }
+  function setDir(next, byTap) {
+    if (byTap) store.set("ggt:dir", { dir: next, until: Date.now() + 4 * 3600 * 1000 });
+    if (next === dir) return;
+    dir = next;
+    const c = store.get("ggt:last:" + dir, null);
+    data = c && Date.now() - c.receivedAt < 10 * 60 * 1000 ? c.data : null;
+    receivedAt = c?.receivedAt || 0;
+    selected = null; didFit = false; recentOpen = false;
+    for (const m of markers.values()) busLayer?.removeLayer(m);
+    markers.clear();
+    renderDir();
+    loadMapLayer();
+    render();
+    renderFoot();
+    refresh();
+  }
+
   /* ---------- boot ---------- */
-  const cached = store.get("ggt:last", null);
+  const cached = store.get("ggt:last:" + dir, null);
   if (cached && Date.now() - cached.receivedAt < 10 * 60 * 1000) { data = cached.data; receivedAt = cached.receivedAt; }
+  renderDir();
   initMap();
   render();
   renderFoot();
   refresh();
 
-  setInterval(() => document.visibilityState === "visible" && !ride && refresh(), CONFIG.pollMs);
-  setInterval(() => document.visibilityState === "visible" && (ride ? renderRide() : render()), 5000);
+  setInterval(() => document.visibilityState === "visible" && !ride && refresh(), POLL_MS);
+  setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    if (ride) return renderRide();
+    // Left open past noon (or into the next morning): follow the time of day unless a tap pinned it.
+    const p = store.get("ggt:dir", null);
+    if (!(p && Date.now() < p.until) && autoDir() !== dir) setDir(autoDir(), false);
+    render();
+  }, 5000);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") return;
     if (ride) { keepAwake(); refreshRide(); } else refresh();
@@ -532,6 +606,7 @@
   $("endRide").addEventListener("click", endRide);
   $("ride").addEventListener("click", (e) => { unlockAudio(); if (e.target.id === "rideDone") endRide(); });
   $("fit").addEventListener("click", fit);
+  document.querySelector(".dirs").addEventListener("click", (e) => { const b = e.target.closest("[data-dir]"); if (b) setDir(b.dataset.dir, true); });
   $("openSettings").addEventListener("click", openSettings);
   $("settings").addEventListener("close", () => { if ($("settings").returnValue === "save") saveSettings(); });
 

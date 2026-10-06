@@ -1,8 +1,8 @@
-// GET /api/ggt/?from=40033&to=42203,40053[&map=1]
+// GET /api/ggt/?from=40033&to=40053[&map=1]   (from/to: stop ids, best first)
 //   Next Golden Gate Transit buses from one stop to another, merged with the live feed,
 //   plus the ones that just left (`recent`) for "I'm already on it".
 // GET /api/ggt/?ride=<trip_id>&date=<YYYYMMDD>&from=40033&to=42203
-//   One bus, stop by stop, for ride mode.
+//   One bus, stop by stop, for ride mode (from/to: the single stops you board and leave at).
 "use strict";
 const { departures, ride, mapLayer, getModel, getLive } = require("./_lib/commute");
 
@@ -10,10 +10,10 @@ const ID = /^[A-Za-z0-9_-]{1,20}$/;
 
 module.exports = async (req, res) => {
   const q = new URL(req.url, "http://x").searchParams;
-  const from = q.get("from") || "40033";
-  const to = (q.get("to") || "42203,40053").split(",").filter(Boolean).slice(0, 8);
+  const from = (q.get("from") || "40033").split(",").filter(Boolean).slice(0, 8);
+  const to = (q.get("to") || "40053").split(",").filter(Boolean).slice(0, 8);
   const rideTrip = q.get("ride"), rideDate = q.get("date");
-  if (!ID.test(from) || !to.every((t) => ID.test(t)) || (rideTrip && (!ID.test(rideTrip) || !/^\d{8}$/.test(rideDate || "")))) {
+  if (!from.length || !to.length || ![...from, ...to].every((t) => ID.test(t)) || (rideTrip && (!ID.test(rideTrip) || !/^\d{8}$/.test(rideDate || "")))) {
     res.status(400).json({ error: "bad request" });
     return;
   }
@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
     const [model, live] = await Promise.all([getModel(), getLive()]);
     const feed = { ok: !live.errors.length, ts: live.ts, errors: live.errors };
     if (rideTrip) {
-      const r = ride(model, live, { trip: rideTrip, date: rideDate, from, to: to[0], now });
+      const r = ride(model, live, { trip: rideTrip, date: rideDate, from: from[0], to: to[0], now });
       if (!r) { res.setHeader("Cache-Control", "no-store"); res.status(404).json({ now, error: "unknown trip" }); return; }
       res.setHeader("Cache-Control", "public, s-maxage=8, stale-while-revalidate=20");
       res.status(200).json({ now, feed, ...r });
@@ -31,10 +31,16 @@ module.exports = async (req, res) => {
     const body = {
       now, feed,
       schedule: { updated: model.lastModified, validUntil: model.validUntil },
-      origin: model.stops[from] || null,
+      origin: model.stops[from[0]] || null,
+      origins: from.map((id) => model.stops[id]).filter(Boolean),
       departures: departures(model, live, { from, to, now }),
       recent: departures(model, live, { from, to, now, recent: true }),
     };
+    // Nothing soon (late night, weekends for the commute-only routes): say when the next one is.
+    if (!body.departures.length) {
+      const next = departures(model, { tripUpdates: [], vehicles: [] }, { from, to, now, windowMin: 4 * 24 * 60, limit: 1, days: [0, 1, 2, 3, 4] })[0];
+      body.later = next ? { route: next.route, color: next.color, textColor: next.textColor, sched: next.sched, origin: next.origin } : null;
+    }
     if (q.get("map")) body.map = mapLayer(model, from, to);
     res.setHeader("Cache-Control", q.get("map") ? "public, s-maxage=3600, stale-while-revalidate=86400"
                                                 : "public, s-maxage=8, stale-while-revalidate=20");

@@ -175,6 +175,18 @@ test("real feeds: schedule + live data produce sane departures", { skip: !FX && 
   }
   const map = c.mapLayer(model, FROM, TO);
   assert.ok(map.lines.length >= 2 && map.lines.every((l) => l.points.length > 10));
+
+  // Weekday 5pm home: 101/120 from Mission & 2nd and the commute routes from Pine & Battery, to Lombard & Fillmore northbound.
+  const HOME_FROM = ["42207", "40069", "42237"], HOME_TO = ["40034"];
+  for (const id of [...HOME_FROM, ...HOME_TO]) assert.ok(model.stops[id], `evening stop ${id} still exists`);
+  const evening = c.departures(model, { tripUpdates: [], vehicles: [] }, { from: HOME_FROM, to: HOME_TO, now: c.serviceDayBase(ymd) + 17 * 3600 });
+  assert.ok(evening.length >= 8, `expected a busy evening, got ${evening.length}`);
+  assert.ok(evening.some((d) => d.origin.id === "42207") && evening.some((d) => d.origin.id !== "42207"), "both corridors home");
+  for (const d of evening) assert.ok(d.dest.id === "40034" && d.dest.sched > d.sched);
+  // Mornings to Battery & Pine never offer the 101/120.
+  assert.ok(morning.every((d) => d.dest.id === "40053" || d.dest.id === "42203"));
+  const workOnly = c.departures(model, { tripUpdates: [], vehicles: [] }, { from: FROM, to: ["40053"], now: c.serviceDayBase(ymd) + 7.5 * 3600 });
+  assert.ok(workOnly.length >= 6 && workOnly.every((d) => !["101", "120"].includes(d.route)));
 });
 
 /* ---------- ride mode ---------- */
@@ -261,4 +273,17 @@ test("ride core: timetable fallback", () => {
   const p = R.progress(geo, STOPS, { now: at(8, 3) });
   assert.equal(p.source, "timetable");
   assert.equal(p.nextIdx, 2);
+});
+
+test("ranked boarding stops: a trip boards at the best-ranked stop it serves", () => {
+  const live = { tripUpdates: [], vehicles: [] };
+  // Both trips serve A and 40033; preferring 40033 boards there, preferring A boards earlier at A.
+  const at40033 = c.departures(tinyModel(), live, { from: ["40033", "A"], to: ["42203"], now: at(7, 0) });
+  assert.deepEqual(at40033.map((d) => [d.trip, d.origin.id]), [["T1", "40033"], ["T2", "40033"]]);
+  const atA = c.departures(tinyModel(), live, { from: ["A", "40033"], to: ["42203"], now: at(7, 0) });
+  assert.deepEqual(atA.map((d) => [d.trip, d.origin.id, d.sched]), [["T1", "A", at(7, 30)], ["T2", "A", at(8, 0)]]);
+  // A boarding stop after the destination doesn't count.
+  assert.equal(c.departures(tinyModel(), live, { from: ["42203"], to: ["X"], now: at(7, 0) }).length, 0);
+  const map = c.mapLayer(tinyModel(), ["A", "40033"], ["42203"]);
+  assert.deepEqual(map.stops.map((x) => x.id), ["A", "40033", "42203"]);
 });

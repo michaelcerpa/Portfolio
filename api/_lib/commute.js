@@ -135,31 +135,42 @@ function indexLive(live) {
   return { tuByTrip, vpByTrip, vpById, lookup };
 }
 
+// Where a trip boards and alights for this commute: the best-ranked `from` stop it picks up at,
+// then the best-ranked `to` stop it drops off at after that. Null if it doesn't make the trip.
+function legOf(trip, fromRank, toRank) {
+  let i = -1;
+  trip.stops.forEach((s, k) => {
+    if (fromRank.has(s.stop) && s.pickup !== "1" && (i < 0 || fromRank.get(s.stop) < fromRank.get(trip.stops[i].stop))) i = k;
+  });
+  if (i < 0 || i === trip.stops.length - 1) return null;
+  let dest = null;
+  for (const s of trip.stops.slice(i + 1)) {
+    if (!toRank.has(s.stop) || s.dropoff === "1") continue;
+    if (!dest || toRank.get(s.stop) < toRank.get(dest.stop)) dest = s;
+  }
+  return dest ? { i, origin: trip.stops[i], dest } : null;
+}
+const rankOf = (ids) => new Map([].concat(ids).map((id, i) => [id, i]));
+
+// `from` and `to` are stop ids in order of preference (a single id works too).
 // opts.recent: instead of upcoming buses, list ones that already left `from` and are still on
 // their way to `to` — for "I'm already on the bus".
 function departures(model, live, opts) {
-  const { from, to, now, windowMin = 120, limit = 14, recent = false } = opts;
-  const toRank = new Map(to.map((id, i) => [id, i]));
+  const { now, windowMin = 120, limit = 14, recent = false, days = [-1, 0, 1] } = opts;
+  const fromRank = rankOf(opts.from), toRank = rankOf(opts.to);
   const { tuByTrip, vpByTrip, vpById, lookup } = indexLive(live);
 
   const today = ymdOf(now);
   const out = [];
-  for (const ymd of [addDays(today, -1), today]) {
+  for (const ymd of days.map((n) => addDays(today, n))) {
     const base = serviceDayBase(ymd);
     for (const trip of Object.values(model.trips)) {
-      const i = trip.stops.findIndex((s) => s.stop === from && s.pickup !== "1");
-      if (i < 0 || i === trip.stops.length - 1) continue;
-      const origin = trip.stops[i];
+      const leg = legOf(trip, fromRank, toRank);
+      if (!leg) continue;
+      const { origin, dest } = leg;
       const sched = base + origin.dep;
       if (sched < now - 3600 || sched > now + windowMin * 60) continue;
       if (!runsOn(model, trip.service, ymd)) continue;
-
-      let dest = null;
-      for (const s of trip.stops.slice(i + 1)) {
-        if (!toRank.has(s.stop) || s.dropoff === "1") continue;
-        if (!dest || toRank.get(s.stop) < toRank.get(dest.stop)) dest = s;
-      }
-      if (!dest) continue;
 
       const tu = lookup(tuByTrip, trip.id, ymd);
       const vp = lookup(vpByTrip, trip.id, ymd);
@@ -202,6 +213,7 @@ function departures(model, live, opts) {
         headsign: trip.headsign, shape: trip.shape,
         status: canceled ? "canceled" : atOrigin?.skipped ? "skipped" : vehicle && !onEarlierTrip ? "live" : pred ? "estimated" : "scheduled",
         sched, pred, delay: pred !== null ? pred - sched : null,
+        origin: { id: origin.stop, name: model.stops[origin.stop]?.name, lat: model.stops[origin.stop]?.lat, lon: model.stops[origin.stop]?.lon },
         dest: { id: dest.stop, name: model.stops[dest.stop]?.name, sched: base + dest.arr, pred: atDest?.time ?? null },
         vehicle,
       });
@@ -326,10 +338,10 @@ function simplify(pts, tol) {
 
 // One line per route serving `from` → `to` (its most common pattern), plus the stops involved.
 function mapLayer(model, from, to) {
+  const fromRank = rankOf(from), toRank = rankOf(to);
   const counts = {};
   for (const t of Object.values(model.trips)) {
-    const i = t.stops.findIndex((s) => s.stop === from);
-    if (i < 0 || !t.stops.slice(i + 1).some((s) => to.includes(s.stop))) continue;
+    if (!legOf(t, fromRank, toRank)) continue;
     const key = t.route + "|" + t.shape;
     counts[key] = (counts[key] || 0) + 1;
   }
@@ -342,7 +354,7 @@ function mapLayer(model, from, to) {
     route: model.routes[route]?.short || route, color: model.routes[route]?.color || "#6FBF93",
     points: simplify(model.shapes[shape] || [], 0.00008),
   }));
-  const stops = [from, ...to].map((id) => model.stops[id]).filter(Boolean);
+  const stops = [...new Set([].concat(from, to))].map((id) => model.stops[id]).filter(Boolean);
   return { lines, stops };
 }
 
