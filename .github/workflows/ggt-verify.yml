@@ -12,9 +12,16 @@ jobs:
       TARGET: ${{ vars.GGT_TARGET || 'https://portfolio-git-claude-ggt-bus-tracker-michael-cerpa-s-projects.vercel.app' }}
     steps:
       - uses: actions/checkout@v5
-      - name: Probe endpoints
+      - uses: actions/checkout@v5
+        with:
+          ref: claude/ggt-ride-mode
+          path: app
+      - name: Serve the branch locally against live Golden Gate data
         run: |
-          sleep 75; T=$(cat tools/verify-target.txt 2>/dev/null || echo "$TARGET")
+          (cd app && PORT=8787 nohup node tools/bus-dev-server.js > /tmp/dev.log 2>&1 &)
+          sleep 2; echo "http://localhost:8787" > tools/verify-target.txt; cat /tmp/dev.log
+        run: |
+          T=$(cat tools/verify-target.txt 2>/dev/null || echo "$TARGET")
           echo "TARGET=$T" >> $GITHUB_ENV
           for p in "/bus/" "/bus" "/api/ggt/?from=40033&to=42203,40053" "/api/ggt?from=40033&to=42203,40053" "/api/ggt/?from=40033&to=42203,40053&map=1" "/bus/app.js" "/bus/sw.js" "/bus/manifest.webmanifest" "/tools/bus.test.js" "/tools/verify-target.txt" "/"; do
             echo "=== $p"; curl -sS -o /tmp/body -D /tmp/h -w "status=%{http_code} time=%{time_total}s size=%{size_download}\n" "$T$p"
@@ -43,16 +50,37 @@ jobs:
           const { chromium } = require("playwright");
           (async () => {
             const b = await chromium.launch();
-            const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, timezoneId: "America/Los_Angeles" });
+            const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
+              timezoneId: "America/Los_Angeles", permissions: ["geolocation"], geolocation: { latitude: 37.79976, longitude: -122.43583, accuracy: 10 } });
             const p = await ctx.newPage();
-            p.on("console", (m) => console.log("console", m.type(), m.text()));
             p.on("pageerror", (e) => console.log("pageerror", e.message));
             p.on("response", (r) => { if (r.status() >= 400) console.log("HTTP", r.status(), r.url()); });
             await p.goto(process.env.TARGET + "/bus/", { waitUntil: "networkidle" });
-            await p.waitForTimeout(4000);
-            await p.screenshot({ path: "/tmp/out/top.png" });
-            await p.screenshot({ path: "/tmp/out/full.png", fullPage: true });
-            console.log(await p.evaluate(() => document.getElementById("feedText").textContent + " | " + document.getElementById("hero").innerText.replace(/\s+/g, " ").slice(0, 300)));
+            await p.waitForTimeout(3000);
+            await p.screenshot({ path: "/tmp/out/0-home.png" });
+            const pick = await p.$("[data-ride]");
+            if (!pick) { console.log("no rideable bus right now"); await b.close(); return; }
+            const trip = await pick.getAttribute("data-ride");
+            await pick.click();
+            await p.waitForTimeout(3000);
+            const ride = await p.evaluate(async (t) => {
+              const d = [...(JSON.parse(localStorage.getItem("ggt:last")).data.departures), ...(JSON.parse(localStorage.getItem("ggt:last")).data.recent || [])].find((x) => x.trip === t);
+              const r = await fetch(`/api/ggt/?ride=${t}&date=${d.date}&from=40033&to=${d.dest.id}`);
+              return r.json();
+            }, trip);
+            console.log("ride", ride.trip.route, ride.trip.id, "stops", ride.stops.length, "line", ride.line.length, "feed", JSON.stringify(ride.feed), "vehicle", JSON.stringify(ride.vehicle));
+            const S = ride.stops, n = S.length - 1;
+            const step = async (name, s) => {
+              if (s) await ctx.setGeolocation({ latitude: s.lat, longitude: s.lon, accuracy: 10 });
+              await p.waitForTimeout(2500);
+              console.log(name, "→", await p.evaluate(() => document.getElementById("rideSrc").innerText + " | " + document.getElementById("rideHero").innerText.replace(/\s+/g, " ")));
+              await p.screenshot({ path: `/tmp/out/${name}.png` });
+            };
+            await step("1-start");
+            await step("2-midway", S[Math.floor(n / 2)]);
+            const a = S[n - 1], z = S[n];
+            await step("3-next", { lat: a.lat + (z.lat - a.lat) * 0.4, lon: a.lon + (z.lon - a.lon) * 0.4 });
+            await step("4-arrived", z);
             await b.close();
           })();
           JS
