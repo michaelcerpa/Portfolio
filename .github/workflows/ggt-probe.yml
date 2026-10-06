@@ -1,0 +1,12 @@
+name: ggt-probe
+on:
+  push:
+    branches: [claude/ggt-bus-tracker]
+    paths: ["tools/ggt_probe*.py", ".github/workflows/ggt-probe.yml"]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/ggt_probe.py
