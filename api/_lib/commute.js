@@ -208,7 +208,7 @@ function departures(model, live, opts) {
     }
   }
   out.sort((a, b) => (recent ? -1 : 1) * ((a.pred ?? a.sched) - (b.pred ?? b.sched)));
-  return out.slice(0, recent ? 4 : limit);
+  return out.slice(0, recent ? 3 : limit);
 }
 
 /* ---------- ride mode: one trip, stop by stop ---------- */
