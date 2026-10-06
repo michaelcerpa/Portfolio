@@ -11,20 +11,20 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: claude/presidio-shuttle
+          ref: main
       - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Live check of the branch (real feeds) + screenshots
         run: |
           mkdir -p /tmp/out
-          nohup node tools/bus-dev-server.js > /tmp/out/server.log 2>&1 &
-          sleep 2
+          # Production: wait for the merged deploy to be live.
+          for i in $(seq 1 30); do curl -fsS https://mcerpa.com/presidio/ 2>/dev/null | grep -q 'id="hasPass"' && break; sleep 10; done
           python3 -m venv /tmp/v && /tmp/v/bin/pip -q install gtfs-realtime-bindings
           curl -sS -o /tmp/tu.pb https://presidiobus.com/gtfs-rt/tripupdates
           curl -sS -o /tmp/vp.pb https://presidiobus.com/gtfs-rt/vehiclepositions
-          curl -sS "http://localhost:8787/api/pgo/?from=31933&to=8894813" > /tmp/out/work.json
-          curl -sS "http://localhost:8787/api/pgo/?from=8894813&to=31980" > /tmp/out/home.json
+          curl -sS "https://mcerpa.com/api/pgo/?from=31933&to=8894813" > /tmp/out/work.json
+          curl -sS "https://mcerpa.com/api/pgo/?from=8894813&to=31980" > /tmp/out/home.json
           /tmp/v/bin/python - <<'PY' | tee /tmp/out/raw.txt
           import datetime, zoneinfo
           from google.transit import gtfs_realtime_pb2 as g
@@ -67,7 +67,7 @@ jobs:
                 hero: document.getElementById("hero").innerText.replace(/\s+/g, " ").slice(0, 320),
                 rows: [...document.querySelectorAll(".row")].slice(0, 5).map((r) => r.innerText.replace(/\s+/g, " ").slice(0, 110)) })), null, 1));
             };
-            await p.goto("http://localhost:8787/presidio/", { waitUntil: "networkidle" });
+            await p.goto("https://mcerpa.com/presidio/", { waitUntil: "networkidle" });
             await p.click('.dirs [data-dir="work"]'); await view("0-work");
             await p.screenshot({ path: "/tmp/out/0-work-full.png", fullPage: true });
             await ctx.setGeolocation({ latitude: 37.79165, longitude: -122.3965, accuracy: 10 });
@@ -100,7 +100,7 @@ jobs:
               await p.click("#endRide"); await p.waitForTimeout(800);
             }
             // Michael's page on the same build.
-            await p.goto("http://localhost:8787/bus/", { waitUntil: "networkidle" }); await view("9-bus");
+            await p.goto("https://mcerpa.com/bus/", { waitUntil: "networkidle" }); await view("9-bus");
             await b.close();
           })();
           JS
