@@ -440,15 +440,18 @@
 
   async function refreshRide() {
     if (!ride) return;
+    const forRide = ride;
     try {
       const url = `${apiBase}?ride=${encodeURIComponent(ride.trip)}&date=${ride.date}&from=${encodeURIComponent(ride.from || DIRS.work.from[0])}&to=${encodeURIComponent(ride.to)}`;
       const r = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(12000) });
       const body = await r.json();
+      if (ride !== forRide) return;  // ended, or another ride started, while this was in flight
       if (r.status === 404) { rideErr = "Presidio GO no longer lists this trip."; renderRide(); return; }
       if (!r.ok) throw new Error(body.error || "HTTP " + r.status);
       rideData = body; rideErr = null;
       rideGeo = RideCore.geometry(body.line, body.stops);
     } catch (e) {
+      if (ride !== forRide) return;
       rideErr = rideData ? null : "Can't reach the shuttle feed yet — retrying…";
     }
     renderRide();

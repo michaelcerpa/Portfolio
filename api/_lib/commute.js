@@ -145,6 +145,14 @@ function predictAt(tu, s, base) {
   return null;
 }
 
+// The next stop the live data says the bus is heading to: the trip update lists only stops still ahead, and
+// the vehicle feed names the stop it is heading to (but reports 0 on stretches like the bridge). Trust the
+// further one. stop_sequence may start at 0 (Presidio GO), so "unknown" is null, never 0.
+function nextSeqOf(tu, vp) {
+  const seqs = [tu?.stops?.[0]?.seq, vp?.seq > 0 ? vp.seq : undefined].filter((x) => x !== undefined);
+  return seqs.length ? Math.max(...seqs) : null;
+}
+
 // True when the live data says the bus has already left stop `s`.
 function passed(tu, vp, s) {
   if (vp && vp.seq !== undefined && vp.seq > s.seq) return true;
@@ -228,9 +236,7 @@ function departures(model, live, opts) {
       const fresh = bus && bus.ts && now - bus.ts < 300;
       let vehicle = null;
       if (bus?.pos && fresh) {
-        // Next stop: the trip update lists only stops still ahead, and the vehicle feed names the
-        // stop it is heading to (but reports 0 on stretches like the bridge). Trust the further one.
-        const nextSeq = onEarlierTrip ? null : Math.max(tu?.stops?.[0]?.seq || 0, bus.seq > 0 ? bus.seq : 0) || null;
+        const nextSeq = onEarlierTrip ? null : nextSeqOf(tu, bus);
         const nextStop = nextSeq !== null ? trip.stops.find((s) => s.seq === nextSeq) : null;
         const stopsAway = nextStop ? trip.stops.filter((s) => s.seq >= nextStop.seq && s.seq < origin.seq).length : null;
         vehicle = {
@@ -337,9 +343,9 @@ function ride(model, live, { trip: tripId, date, from, to, now, holdAt = [] }) {
     trip: { id: trip.id, date, route: route.short, color: route.color, textColor: route.text, headsign: trip.headsign, canceled },
     stops,
     line: rideLine(model, trip, i, j),
-    // The feed's view of progress: the next stop it is heading to (see departures() for why max()).
+    // The feed's view of progress: the next stop it is heading to.
     feed: {
-      nextSeq: tu || fresh ? Math.max(tu?.stops?.[0]?.seq || 0, fresh && vp.seq > 0 ? vp.seq : 0) || null : null,
+      nextSeq: nextSeqOf(tu, fresh ? vp : null),
       stopped: !!(fresh && vp.status === 1),
       done: !!tu && !tu.stops.length,
     },

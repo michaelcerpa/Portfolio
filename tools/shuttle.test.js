@@ -99,6 +99,23 @@ test("turnaround: a shuttle there early still leaves on schedule; arriving there
   assert.equal(back.stops[0].pred, at(TUE, 8, 0));
 });
 
+test("a trip that hasn't started (next stop is sequence 0) reads as waiting, not riding", () => {
+  const m = loopModel();
+  const t = (h, mi) => ({ time: at(TUE, h, mi) });
+  // PD0800 is predicted from its first stop (sequence 0); its shuttle is still finishing PD0730.
+  const tu = { trip: { tripId: "PD0800", startDate: TUE }, stops: [{ seq: 0, arr: t(8, 1), dep: t(8, 1) }, { seq: 1, arr: t(8, 4), dep: t(8, 4) }] };
+  const r = c.ride(m, { tripUpdates: [tu], vehicles: [] }, { trip: "PD0800", date: TUE, from: "L", to: "B", now: at(TUE, 7, 55) });
+  assert.equal(r.feed.nextSeq, 0);
+  const R = require("../bus/ride");
+  const geo = R.geometry(r.line, r.stops);
+  const phone = { lat: r.stops[0].lat, lon: r.stops[0].lon, acc: 10, ts: at(TUE, 7, 55) };
+  assert.equal(R.progress(geo, r.stops, { phone, feed: r.feed, now: at(TUE, 7, 55) }).state, "waiting");
+  // Live on this trip, still at its first stop: one stop before Lombard Gate.
+  const vp = { trip: { tripId: "PD0800", startDate: TUE }, pos: { lat: 37.8018, lon: -122.4559 }, ts: at(TUE, 7, 59) };
+  const [d] = c.departures(m, { tripUpdates: [tu], vehicles: [vp] }, { from: ["L"], to: ["B"], now: at(TUE, 8, 0) });
+  assert.deepEqual([d.trip, d.status, d.vehicle.near, d.vehicle.stopsAway], ["PD0800", "live", "Transit Center", 1]);
+});
+
 /* ---------- real Presidio GO data, through the API handler (CI downloads a fresh snapshot) ---------- */
 
 async function api(url, now) {
