@@ -139,3 +139,70 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 .primary{background:var(--accent);color:var(--bg);border:none;border-radius:12px;padding:13px;font-weight:600;font-size:15px;cursor:pointer}
 
 @media (prefers-reduced-motion:reduce){.feed.ok .beacon{animation:none}}
+
+/* ---------- "I'm on this bus" ---------- */
+.ride-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px;padding:13px;
+          border-radius:12px;border:none;background:var(--accent);color:var(--bg);font-weight:600;font-size:15px;cursor:pointer}
+.ride-btn.small{width:auto;margin-top:10px;padding:9px 14px;font-size:14px}
+.ride-btn:active{transform:scale(.98)}
+.recent{margin-top:14px}
+.recent-list{display:grid;gap:8px;margin-top:8px}
+.recent-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;
+             border:1px solid var(--rule-strong);background:var(--panel);font-size:13.5px;color:var(--ink-soft);cursor:pointer}
+.recent-item span:not(.badge){flex:1;min-width:0}
+.recent-item b{color:var(--accent);font-weight:600;font-size:13px}
+
+/* ---------- ride mode (full screen) ---------- */
+body.riding{overflow:hidden}
+.ride{position:fixed;inset:0;z-index:2000;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;
+      padding:0 var(--gutter) calc(env(safe-area-inset-bottom) + 28px)}
+/* Header + status stay pinned so the "your stop is next" alert is always on screen. */
+.ride-head{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 16px) 0 12px;
+           box-shadow:0 10px 14px -10px rgba(0,0,0,.7)}
+.ride>*{max-width:560px;margin-left:auto;margin-right:auto}
+.ride-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ride-title{display:flex;align-items:center;gap:12px}
+.ride-dest{font-size:19px;font-weight:500;margin-top:2px}
+.ghost{background:none;border:1px solid var(--rule-strong);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink-soft);cursor:pointer}
+.ride-src{margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+.ride-hero{margin-top:14px;border-radius:18px;padding:20px 18px;border:1px solid var(--rule-strong);
+           background:linear-gradient(160deg,var(--panel-2),var(--panel))}
+.ride-lead{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.ride-big{display:flex;align-items:baseline;gap:10px;margin-top:4px}
+.ride-big .num{font-size:64px;line-height:1;font-weight:600;letter-spacing:-.03em}
+.ride-big .unit{font-size:20px;color:var(--ink-soft)}
+.ride-sub{font-size:15px;color:var(--ink-soft);margin-top:10px;line-height:1.6}
+.ride-sub .chip{display:inline-block;margin-left:4px;vertical-align:1px}
+.ride-sub b{color:var(--ink);font-weight:500}
+.ride-sub2{font-size:13px;color:var(--ink-faint);margin-top:6px}
+.ride-hero.next{background:var(--late);border-color:var(--late);color:var(--bg);animation:pulse 1.4s var(--ease) infinite}
+.ride-hero.next .ride-lead,.ride-hero.next .ride-sub,.ride-hero.next .ride-sub b{color:var(--bg)}
+.ride-alert-text{font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1.05;margin-top:6px}
+.ride-hero.arrived{border-color:var(--accent);background:linear-gradient(160deg,rgba(111,191,147,.22),var(--panel))}
+.ride-hero.arrived .ride-lead{color:var(--accent);font-size:14px}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,176,75,.55)}50%{box-shadow:0 0 0 10px rgba(232,176,75,0)}}
+
+.stops{list-style:none;margin-top:6px;position:relative}
+.stop{display:flex;align-items:center;gap:12px;padding:11px 0;position:relative;font-size:15px}
+.stop .tl{flex:none;width:14px;height:14px;border-radius:50%;border:2px solid var(--ink-faint);background:var(--bg);margin-left:3px;position:relative;z-index:1}
+.stop::before{content:"";position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--rule-strong)}
+.stop:first-child::before{top:50%}
+.stop:last-child::before{bottom:50%}
+.stop .nm{flex:1;min-width:0}
+.stop .tm{color:var(--ink-soft);font-size:14px}
+.stop.passed{color:var(--ink-faint)}
+.stop.passed .tl{background:var(--ink-faint);border-color:var(--ink-faint)}
+.stop.passed .tm{color:var(--accent)}
+.stop.next .nm{color:var(--ink);font-weight:500}
+.stop.next .tl{border-color:var(--accent)}
+.stop.at .tl{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px rgba(111,191,147,.25)}
+.stop.dest .tl{width:18px;height:18px;margin-left:1px;border-radius:5px;border-color:var(--late);background:var(--late)}
+.stop.dest .nm{font-weight:600;color:var(--ink)}
+.stop.skipped .nm{text-decoration:line-through}
+.stop.marker{padding:4px 0;font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.04em;text-transform:uppercase}
+.stop.marker .tl{width:12px;height:12px;margin-left:4px;border:none;background:var(--accent);box-shadow:0 0 0 0 rgba(111,191,147,.6);animation:ping 1.6s var(--ease) infinite}
+.stop .tag{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 5px;border-radius:4px;
+           margin-left:6px;color:var(--bg);background:var(--late);vertical-align:2px}
+.stop .tag.soft{background:none;color:var(--accent);border:1px solid var(--accent-deep)}
+.ride-fine{margin-top:18px}
+@media (prefers-reduced-motion:reduce){.ride-hero.next,.stop.marker .tl{animation:none}}
