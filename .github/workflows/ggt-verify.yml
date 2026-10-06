@@ -51,7 +51,14 @@ jobs:
             p.on("response", (r) => { if (r.status() >= 400) console.log("HTTP", r.status(), r.url()); });
             await p.goto(process.env.TARGET + "/bus/", { waitUntil: "networkidle" });
             await p.waitForTimeout(3000);
+            await p.screenshot({ path: "/tmp/out/0-work.png" });
+            console.log("work view:", await p.evaluate(() => document.getElementById("title").innerText + " | " + document.getElementById("hero").innerText.replace(/\s+/g, " ").slice(0, 200)));
+            console.log("work routes:", await p.evaluate(() => [...document.querySelectorAll(".row .badge")].map((b) => b.innerText).join(",")));
+            await p.click('.dirs [data-dir="home"]');
+            await p.waitForTimeout(4000);
             await p.screenshot({ path: "/tmp/out/0-home.png" });
+            console.log("home view:", await p.evaluate(() => document.getElementById("title").innerText + " | " + document.getElementById("hero").innerText.replace(/\s+/g, " ").slice(0, 260)));
+            console.log("home rows:", await p.evaluate(() => [...document.querySelectorAll(".row")].slice(0, 6).map((r) => r.innerText.replace(/\s+/g, " ").slice(0, 80)).join(" || ")));
             console.log("home where:", await p.evaluate(() => [...document.querySelectorAll(".where span, .line3")].slice(0, 6).map((e) => e.innerText).join(" || ")));
             console.log("recent:", await p.evaluate(() => document.querySelector("#recent summary")?.innerText.replace(/\s+/g, " ") || "none"));
             const pick = await p.$("[data-ride]");
@@ -60,8 +67,9 @@ jobs:
             await pick.click();
             await p.waitForTimeout(3000);
             const ride = await p.evaluate(async (t) => {
-              const d = [...(JSON.parse(localStorage.getItem("ggt:last")).data.departures), ...(JSON.parse(localStorage.getItem("ggt:last")).data.recent || [])].find((x) => x.trip === t);
-              const r = await fetch(`/api/ggt/?ride=${t}&date=${d.date}&from=40033&to=${d.dest.id}`);
+              const last = JSON.parse(localStorage.getItem("ggt:last:home"));
+              const d = [...last.data.departures, ...(last.data.recent || [])].find((x) => x.trip === t);
+              const r = await fetch(`/api/ggt/?ride=${t}&date=${d.date}&from=${d.origin.id}&to=${d.dest.id}`);
               return r.json();
             }, trip);
             console.log("ride", ride.trip.route, ride.trip.id, "stops", ride.stops.length, "line", ride.line.length, "feed", JSON.stringify(ride.feed), "vehicle", JSON.stringify(ride.vehicle));
