@@ -10,7 +10,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - run: python3 tools/presidio_probe.py /tmp/pfx
+      - run: mkdir -p /tmp/pfx && python3 tools/presidio_probe.py /tmp/pfx 2>&1 | tee /tmp/pfx/probe.log
       - name: Save fixtures
         if: always()
         run: |
