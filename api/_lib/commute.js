@@ -1,14 +1,11 @@
-// Turns Golden Gate Transit's schedule (GTFS) + live feeds (GTFS-RT) into
+// Turns a transit agency's schedule (GTFS) + live feeds (GTFS-RT) into
 // "the next buses from stop X that reach stop Y" with live vs scheduled times.
 "use strict";
 const { unzip, parseCsv, decodeFeed } = require("./gtfs");
+const AGENCIES = require("./agencies");
 
 const TZ = "America/Los_Angeles";
-const SOURCES = {
-  schedule: "https://realtime.goldengate.org/gtfsstatic/GTFSTransitData.zip",
-  tripUpdates: "https://realtime.goldengate.org/gtfsrealtime/TripUpdates",
-  vehicles: "https://realtime.goldengate.org/gtfsrealtime/VehiclePositions",
-};
+const SOURCES = AGENCIES.ggt.sources;
 
 /* ---------- time ---------- */
 
@@ -75,6 +72,39 @@ function buildModel(zipBuf, lastModified) {
   for (const c of Object.values(weekly)) if (c.end_date > validUntil) validUntil = c.end_date;
 
   return { routes, stops, trips, shapes, weekly, exceptions, lastModified, validUntil, loadedAt: Date.now() };
+}
+
+// US federal holidays as observed (Saturday → the Friday before, Sunday → the Monday after): YYYYMMDD → name.
+function federalHolidays(year) {
+  const ymd = (m, d) => new Date(Date.UTC(year, m - 1, d)).toISOString().slice(0, 10).replace(/-/g, "");
+  const weekday = (m, d) => new Date(Date.UTC(year, m - 1, d)).getUTCDay();
+  const nth = (m, wd, n) => ymd(m, 1 + ((wd - weekday(m, 1) + 7) % 7) + 7 * (n - 1));
+  const last = (m, wd) => { const end = new Date(Date.UTC(year, m, 0)).getUTCDate(); return ymd(m, end - ((weekday(m, end) - wd + 7) % 7)); };
+  const fixed = (m, d) => ymd(m, d + ({ 6: -1, 0: 1 }[weekday(m, d)] || 0));
+  return {
+    [fixed(1, 1)]: "New Year's Day", [nth(1, 1, 3)]: "Martin Luther King Jr. Day", [nth(2, 1, 3)]: "Presidents' Day",
+    [last(5, 1)]: "Memorial Day", [fixed(6, 19)]: "Juneteenth", [fixed(7, 4)]: "Independence Day",
+    [nth(9, 1, 1)]: "Labor Day", [nth(10, 1, 2)]: "Columbus Day", [fixed(11, 11)]: "Veterans Day",
+    [nth(11, 4, 4)]: "Thanksgiving", [fixed(12, 25)]: "Christmas Day",
+  };
+}
+
+// For agencies that run their weekend timetable on federal holidays: on those dates, weekday-only services
+// stop and weekend-only ones run, unless the feed's own calendar_dates already says what runs that day.
+function weekendOnHolidays(model, years) {
+  const wk = ["monday", "tuesday", "wednesday", "thursday", "friday"], we = ["saturday", "sunday"];
+  const only = (c, on, off) => on.every((d) => c[d] === "1") && off.every((d) => c[d] === "0");
+  const ids = Object.keys(model.weekly);
+  const weekday = ids.filter((id) => only(model.weekly[id], wk, we)), weekend = ids.filter((id) => only(model.weekly[id], we, wk));
+  model.holidays = {};
+  for (const y of years) {
+    for (const [ymd, name] of Object.entries(federalHolidays(y))) {
+      model.holidays[ymd] = name;
+      for (const id of weekday) (model.exceptions[id] ||= {})[ymd] ??= "2";
+      for (const id of weekend) (model.exceptions[id] ||= {})[ymd] ??= "1";
+    }
+  }
+  return model;
 }
 
 function runsOn(model, serviceId, ymd) {
@@ -155,9 +185,10 @@ const rankOf = (ids) => new Map([].concat(ids).map((id, i) => [id, i]));
 // `from` and `to` are stop ids in order of preference (a single id works too).
 // opts.recent: instead of upcoming buses, list ones that already left `from` and are still on
 // their way to `to` — for "I'm already on the bus".
+// opts.holdAt: stops where buses wait for their timetable time (a turnaround), so they never leave early.
 function departures(model, live, opts) {
   const { now, windowMin = 120, limit = 14, recent = false, days = [-1, 0, 1] } = opts;
-  const fromRank = rankOf(opts.from), toRank = rankOf(opts.to);
+  const fromRank = rankOf(opts.from), toRank = rankOf(opts.to), hold = new Set([].concat(opts.holdAt || []));
   const { tuByTrip, vpByTrip, vpById, lookup } = indexLive(live);
 
   const today = ymdOf(now);
@@ -177,7 +208,9 @@ function departures(model, live, opts) {
       const canceled = tu?.trip?.rel === 3;
       const atOrigin = canceled ? null : predictAt(tu, origin, base);
       const atDest = canceled ? null : predictAt(tu, dest, base);
-      const pred = atOrigin?.time ?? null;
+      let pred = atOrigin?.time ?? null;
+      // The feed's time there is when the bus arrives; at a turnaround it then waits to leave on schedule.
+      if (pred !== null && pred < sched && hold.has(origin.stop)) pred = sched;
       const effective = pred ?? sched;
       // A bus has left once the live data says so, or (live-predicted) its prediction is past,
       // or (untracked) it is two minutes past its scheduled time.
@@ -276,7 +309,7 @@ function rideLine(model, trip, i, j) {
   return simplify(out, 0.00003);
 }
 
-function ride(model, live, { trip: tripId, date, from, to, now }) {
+function ride(model, live, { trip: tripId, date, from, to, now, holdAt = [] }) {
   const trip = model.trips[tripId];
   if (!trip) return null;
   const base = serviceDayBase(date);
@@ -290,11 +323,13 @@ function ride(model, live, { trip: tripId, date, from, to, now }) {
   if (j < 0) j = trip.stops.length - 1;
 
   const canceled = tu?.trip?.rel === 3;
-  const stops = trip.stops.slice(i, j + 1).map((s) => {
+  const stops = trip.stops.slice(i, j + 1).map((s, k) => {
     const st = model.stops[s.stop] || {};
     const p = canceled ? null : predictAt(tu, s, base);
+    let pred = p?.time ?? null;
+    if (k === 0 && pred !== null && pred < base + s.dep && [].concat(holdAt).includes(s.stop)) pred = base + s.dep; // see departures()
     return { id: s.stop, seq: s.seq, name: st.name, lat: st.lat, lon: st.lon,
-             sched: base + s.arr, pred: p?.time ?? null, skipped: !!p?.skipped };
+             sched: base + s.arr, pred, skipped: !!p?.skipped };
   });
   const fresh = vp?.pos && vp.ts && now - vp.ts < 300;
   const route = model.routes[trip.route] || { short: trip.route.split("-")[0], color: "#6FBF93", text: "#FFFFFF" };
@@ -358,42 +393,47 @@ function mapLayer(model, from, to) {
   return { lines, stops };
 }
 
-/* ---------- fetching with in-memory caches ---------- */
+/* ---------- fetching with in-memory caches (one set per agency, see agencies.js) ---------- */
 
-let modelCache = null, modelPromise = null;
-async function getModel(fetchImpl = fetch) {
-  const fresh = modelCache && Date.now() - modelCache.loadedAt < 6 * 3600 * 1000;
-  if (fresh) return modelCache;
-  if (!modelPromise) {
-    modelPromise = (async () => {
-      const r = await fetchImpl(SOURCES.schedule, { signal: AbortSignal.timeout(15000) });
+const caches = {};
+async function getModel(fetchImpl = fetch, key = "ggt") {
+  const agency = AGENCIES[key], c = (caches[key] ||= {});
+  const fresh = c.model && Date.now() - c.model.loadedAt < 6 * 3600 * 1000;
+  if (fresh) return c.model;
+  if (!c.modelPromise) {
+    c.modelPromise = (async () => {
+      const r = await fetchImpl(agency.sources.schedule, { signal: AbortSignal.timeout(15000) });
       if (!r.ok) throw new Error("schedule HTTP " + r.status);
       const buf = Buffer.from(await r.arrayBuffer());
-      modelCache = buildModel(buf, r.headers.get("last-modified"));
-      return modelCache;
-    })().catch((e) => { if (modelCache) return modelCache; throw e; })
-       .finally(() => { modelPromise = null; });
+      const model = buildModel(buf, r.headers.get("last-modified"));
+      const y = new Date().getUTCFullYear();
+      if (agency.holidaySchedule === "weekend") weekendOnHolidays(model, [y - 1, y, y + 1]);
+      c.model = model;
+      return model;
+    })().catch((e) => { if (c.model) return c.model; throw e; })
+       .finally(() => { c.modelPromise = null; });
   }
-  return modelPromise;
+  return c.modelPromise;
 }
 
-let liveCache = null;
-async function getLive(fetchImpl = fetch) {
-  if (liveCache && Date.now() - liveCache.at < 8000) return liveCache.data;
+async function getLive(fetchImpl = fetch, key = "ggt") {
+  const { sources } = AGENCIES[key], c = (caches[key] ||= {});
+  if (c.live && Date.now() - c.live.at < 8000) return c.live.data;
   const grab = async (url) => {
     const r = await fetchImpl(url, { signal: AbortSignal.timeout(6000) });
     if (!r.ok) throw new Error(url.split("/").pop() + " HTTP " + r.status);
     return decodeFeed(Buffer.from(await r.arrayBuffer()));
   };
-  const [tu, vp] = await Promise.allSettled([grab(SOURCES.tripUpdates), grab(SOURCES.vehicles)]);
+  const [tu, vp] = await Promise.allSettled([grab(sources.tripUpdates), grab(sources.vehicles)]);
   const data = {
     tripUpdates: tu.status === "fulfilled" ? tu.value.tripUpdates : [],
     vehicles: vp.status === "fulfilled" ? vp.value.vehicles : [],
     ts: Math.max(tu.value?.header.ts || 0, vp.value?.header.ts || 0) || null,
     errors: [tu, vp].filter((x) => x.status === "rejected").map((x) => String(x.reason?.message || x.reason)),
   };
-  if (!data.errors.length) liveCache = { at: Date.now(), data };
+  if (!data.errors.length) c.live = { at: Date.now(), data };
   return data;
 }
 
-module.exports = { departures, ride, mapLayer, buildModel, getModel, getLive, serviceDayBase, ymdOf, runsOn, SOURCES };
+module.exports = { departures, ride, mapLayer, buildModel, getModel, getLive, serviceDayBase, ymdOf, runsOn,
+                   federalHolidays, weekendOnHolidays, SOURCES, AGENCIES };
