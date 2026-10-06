@@ -14,13 +14,14 @@ jobs:
       - uses: actions/checkout@v5
       - name: Probe endpoints
         run: |
-          T=$(cat tools/verify-target.txt 2>/dev/null || echo "$TARGET")
+          sleep 45; T=$(cat tools/verify-target.txt 2>/dev/null || echo "$TARGET")
           echo "TARGET=$T" >> $GITHUB_ENV
           for p in "/bus/" "/bus" "/api/ggt/?from=40033&to=42203,40053" "/api/ggt?from=40033&to=42203,40053" "/api/ggt/?from=40033&to=42203,40053&map=1" "/bus/app.js" "/bus/sw.js" "/bus/manifest.webmanifest" "/tools/bus.test.js" "/tools/verify-target.txt" "/"; do
             echo "=== $p"; curl -sS -o /tmp/body -D /tmp/h -w "status=%{http_code} time=%{time_total}s size=%{size_download}\n" "$T$p"
             grep -iE "^(location|cache-control|x-vercel-cache|content-type|age):" /tmp/h || true
             head -c 600 /tmp/body; echo
           done
+          curl -sS "$T/bus/app.js" | grep -c "milesTo" | sed 's/^/new build live (milesTo refs): /'
           curl -sS "$T/api/ggt/?from=40033&to=42203,40053" -o /tmp/api.json || true
           node -e 'try{const b=require("/tmp/api.json");console.log(JSON.stringify(b,null,1).slice(0,5000))}catch(e){console.log("no json",e.message)}'
       - name: Raw feed comparison
@@ -51,6 +52,8 @@ jobs:
             await p.goto(process.env.TARGET + "/bus/", { waitUntil: "networkidle" });
             await p.waitForTimeout(3000);
             await p.screenshot({ path: "/tmp/out/0-home.png" });
+            console.log("home where:", await p.evaluate(() => [...document.querySelectorAll(".where span, .line3")].slice(0, 6).map((e) => e.innerText).join(" || ")));
+            console.log("recent:", await p.evaluate(() => document.querySelector("#recent summary")?.innerText.replace(/\s+/g, " ") || "none"));
             const pick = await p.$("[data-ride]");
             if (!pick) { console.log("no rideable bus right now"); await b.close(); return; }
             const trip = await pick.getAttribute("data-ride");
