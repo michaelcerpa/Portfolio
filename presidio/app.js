@@ -276,7 +276,7 @@
 
   function ringColor(d) {
     const c = chip(d)[0];
-    return { ontime: "#5CCFC0", late: "#E8B04B", verylate: "#F07A5A", early: "#93B4FF", canceled: "#F07A5A" }[c] || "#A0B0C4";
+    return { ontime: "#6FBF93", late: "#E8B04B", verylate: "#F07A5A", early: "#86B8FF", canceled: "#F07A5A" }[c] || "#9DB0A4";
   }
 
   function renderMarkers(list, best) {
