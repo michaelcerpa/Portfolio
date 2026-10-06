@@ -1,12 +1,12 @@
-# /bus/ commute tracker: test against a fresh Golden Gate Transit snapshot, and check the live app weekly
-# (a failure email here usually means Golden Gate changed its feed or timetable format).
+# /bus/ (Golden Gate Transit) and /presidio/ (Presidio GO) commute trackers: test against fresh snapshots of both
+# agencies' feeds, and check the live apps weekly (a failure email here usually means an agency changed its feed or timetable).
 name: bus
 on:
   push:
     branches: [main]
-    paths: ["bus/**", "api/**", "tools/bus*", ".github/workflows/bus.yml"]
+    paths: ["bus/**", "presidio/**", "api/**", "tools/bus*", "tools/shuttle*", ".github/workflows/bus.yml"]
   pull_request:
-    paths: ["bus/**", "api/**", "tools/bus*", ".github/workflows/bus.yml"]
+    paths: ["bus/**", "presidio/**", "api/**", "tools/bus*", "tools/shuttle*", ".github/workflows/bus.yml"]
   schedule:
     - cron: "11 14 * * 1"   # Mondays, before the morning commute
   workflow_dispatch:
@@ -30,13 +30,23 @@ jobs:
       - run: node --test tools/bus.test.js
         env:
           GGT_FIXTURES: /tmp/ggt
+      - name: Download a live Presidio GO snapshot
+        run: |
+          mkdir -p /tmp/pgo && cd /tmp/pgo
+          curl -fsS --retry 3 -o GTFSTransitData.zip https://presidiobus.com/gtfs.zip
+          curl -fsS --retry 3 -o TripUpdates-now.pb https://presidiobus.com/gtfs-rt/tripupdates
+          curl -fsS --retry 3 -o VehiclePositions-now.pb https://presidiobus.com/gtfs-rt/vehiclepositions
+      - run: node --test tools/shuttle.test.js
+        env:
+          PGO_FIXTURES: /tmp/pgo
       - name: Check the deployed app
         if: github.event_name != 'pull_request'
         run: |
-          # A push to main races Vercel's deploy, so give the page and the API up to 5 minutes to come up.
+          # A push to main races Vercel's deploy, so give the pages and the APIs up to 5 minutes to come up.
           API="https://mcerpa.com/api/ggt/?from=40033&to=42203,40053"
           for i in $(seq 1 30); do
-            curl -fsS https://mcerpa.com/bus/ 2>/dev/null | grep -q 'id="rows"' && curl -fsS "$API" -o /tmp/api.json 2>/dev/null && break
+            curl -fsS https://mcerpa.com/bus/ 2>/dev/null | grep -q 'id="rows"' && curl -fsS "$API" -o /tmp/api.json 2>/dev/null &&
+              curl -fsS https://mcerpa.com/presidio/ 2>/dev/null | grep -q 'id="hasPass"' && curl -fsS "https://mcerpa.com/api/pgo/" -o /dev/null 2>/dev/null && break
             sleep 10
           done
           curl -fsS https://mcerpa.com/bus/ | grep -q 'id="rows"'
@@ -52,3 +62,12 @@ jobs:
             const b = require("/tmp/home.json");
             if (!Array.isArray(b.departures) || !b.origins?.length) throw new Error("bad home API body: " + JSON.stringify(b).slice(0, 300));
             console.log("home departures:", b.departures.length, b.later ? "| next later: " + b.later.route : "");'
+          # The Presidio GO shuttle page and its API (both directions).
+          curl -fsS --retry 3 https://mcerpa.com/presidio/ | grep -q 'id="hasPass"'
+          for q in "from=31933&to=8894813" "from=8894813&to=31980"; do
+            curl -fsS --retry 3 "https://mcerpa.com/api/pgo/?$q" > /tmp/pgo.json
+            node -e '
+              const b = require("/tmp/pgo.json");
+              if (!Array.isArray(b.departures) || !b.origin) throw new Error("bad shuttle API body: " + JSON.stringify(b).slice(0, 300));
+              console.log("shuttle from", b.origin.name, "| feed ok:", b.feed.ok, "| departures:", b.departures.length, b.holiday ? "| " + b.holiday : "");'
+          done

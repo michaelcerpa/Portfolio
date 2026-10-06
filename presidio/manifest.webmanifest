@@ -1,0 +1,16 @@
+{
+  "name": "Shuttle — Presidio GO",
+  "short_name": "Shuttle",
+  "description": "Live Presidio GO shuttle departures between Lombard Gate and 50 Beale St.",
+  "start_url": "/presidio/",
+  "scope": "/presidio/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A101C",
+  "theme_color": "#0A101C",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
