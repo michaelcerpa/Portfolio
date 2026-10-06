@@ -1,0 +1,20 @@
+name: presidio-probe
+on:
+  push:
+    branches: [claude/presidio-probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - run: python3 tools/presidio_probe.py /tmp/pfx
+      - name: Save fixtures
+        if: always()
+        run: |
+          cd /tmp/pfx 2>/dev/null || exit 0
+          ls -la
+          git init -q -b claude/presidio-fixtures && git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "presidio fixtures" && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" claude/presidio-fixtures || true
