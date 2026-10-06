@@ -14,9 +14,9 @@ jobs:
       - uses: actions/checkout@v5
       - name: Probe endpoints
         run: |
-          T=$(cat tools/verify-target.txt 2>/dev/null || echo "$TARGET")
+          sleep 60; T=$(cat tools/verify-target.txt 2>/dev/null || echo "$TARGET")
           echo "TARGET=$T" >> $GITHUB_ENV
-          for p in "/bus/" "/bus" "/api/ggt/?from=40033&to=42203,40053" "/api/ggt?from=40033&to=42203,40053" "/api/ggt/?from=40033&to=42203,40053&map=1" "/bus/app.js" "/bus/sw.js" "/bus/manifest.webmanifest" "/tools/bus.test.js" "/"; do
+          for p in "/bus/" "/bus" "/api/ggt/?from=40033&to=42203,40053" "/api/ggt?from=40033&to=42203,40053" "/api/ggt/?from=40033&to=42203,40053&map=1" "/bus/app.js" "/bus/sw.js" "/bus/manifest.webmanifest" "/tools/bus.test.js" "/tools/verify-target.txt" "/"; do
             echo "=== $p"; curl -sS -o /tmp/body -D /tmp/h -w "status=%{http_code} time=%{time_total}s size=%{size_download}\n" "$T$p"
             grep -iE "^(location|cache-control|x-vercel-cache|content-type|age):" /tmp/h || true
             head -c 600 /tmp/body; echo
