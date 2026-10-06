@@ -145,10 +145,16 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
           border-radius:12px;border:none;background:var(--accent);color:var(--bg);font-weight:600;font-size:15px;cursor:pointer}
 .ride-btn.small{width:auto;margin-top:10px;padding:9px 14px;font-size:14px}
 .ride-btn:active{transform:scale(.98)}
-.recent{margin-top:14px}
-.recent-list{display:grid;gap:8px;margin-top:8px}
-.recent-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;
-             border:1px solid var(--rule-strong);background:var(--panel);font-size:13.5px;color:var(--ink-soft);cursor:pointer}
+.recent{margin-top:12px;border:1px solid var(--rule-strong);border-radius:14px;background:var(--panel)}
+.recent summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;
+                cursor:pointer;font-size:14px}
+.recent summary::-webkit-details-marker{display:none}
+.recent summary::after{content:"▾";color:var(--ink-faint);transition:transform .2s var(--ease)}
+.recent details[open] summary::after{transform:rotate(180deg)}
+.recent-n{flex:1;text-align:right;font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
+.recent-list{display:grid;gap:6px;padding:0 10px 10px}
+.recent-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:10px;
+             border:1px solid var(--rule);background:var(--bg);font-size:13px;color:var(--ink-soft);cursor:pointer}
 .recent-item span:not(.badge){flex:1;min-width:0}
 .recent-item b{color:var(--accent);font-weight:600;font-size:13px}
 

@@ -47,6 +47,11 @@
     const destT = d.dest.pred ?? d.dest.sched;
     return { t, leaveBy: t - settings.walkTo * 60, atWork: destT + (settings.walkFrom[d.dest.id] ?? 6) * 60 };
   }
+  function milesTo(lat, lon, o) {
+    const r = Math.PI / 180, a = Math.sin(((o.lat - lat) * r) / 2) ** 2 +
+      Math.cos(lat * r) * Math.cos(o.lat * r) * Math.sin(((o.lon - lon) * r) / 2) ** 2;
+    return 7917.5 * Math.asin(Math.sqrt(a));
+  }
   function where(d) {
     const v = d.vehicle;
     if (d.status === "canceled") return "Golden Gate has canceled this trip.";
@@ -54,6 +59,9 @@
     if (v.onEarlierTrip) return "Bus is finishing an earlier run · Golden Gate's estimate";
     if (v.stopsAway === 0) return v.status === "stopped" ? "Bus is at your stop." : "Bus is approaching your stop.";
     const near = v.near ? `next stop ${esc(v.near)}` : "en route";
+    // Express runs skip southern Marin, so "2 stops away" can mean 20 miles; say the distance instead.
+    const mi = data?.origin ? milesTo(v.lat, v.lon, data.origin) : null;
+    if (mi != null && mi >= 1) return `${mi < 10 ? mi.toFixed(1) : Math.round(mi)} mi away · ${near}`;
     return v.stopsAway != null ? `${v.stopsAway} stop${v.stopsAway === 1 ? "" : "s"} away · ${near}` : near;
   }
   const visible = () => (data?.departures || []).filter((d) => !settings.hidden.includes(d.route));
@@ -128,15 +136,17 @@
     }).join("");
   }
 
-  // Buses that already left your stop — so you can start ride mode after boarding.
+  // Buses that already left your stop — so you can start ride mode after boarding. Folded by default.
+  let recentOpen = false;
   function renderRecent() {
     const el = $("recent");
     const list = (data?.recent || []).filter((d) => !settings.hidden.includes(d.route));
     el.hidden = !list.length;
     if (!list.length) return;
-    el.innerHTML = `<h2 class="kicker">Already on a bus?</h2>
+    el.innerHTML = `<details ${recentOpen ? "open" : ""}><summary><span>Already on a bus?</span>
+        <span class="recent-n">${list.length} just left your stop</span></summary>
       <div class="recent-list">${list.map((d) => `<button class="recent-item" data-ride="${esc(d.trip)}">
-        ${badge(d)}<span>left ${clock(d.pred ?? d.sched)} · → ${esc(short(d.dest))} ${clock(d.dest.pred ?? d.dest.sched)}</span><b>Track</b></button>`).join("")}</div>`;
+        ${badge(d)}<span>left ${clock(d.pred ?? d.sched)} · → ${esc(short(d.dest))} ${clock(d.dest.pred ?? d.dest.sched)}</span><b>Track</b></button>`).join("")}</div></details>`;
   }
 
   function renderFeed() {
@@ -518,6 +528,7 @@
     if (d) startRide(d);
   }, true);
   $("rows").addEventListener("click", (e) => { const li = e.target.closest(".row"); if (li) select(li.dataset.trip); });
+  $("recent").addEventListener("toggle", (e) => { recentOpen = e.target.open; }, true);
   $("endRide").addEventListener("click", endRide);
   $("ride").addEventListener("click", (e) => { unlockAudio(); if (e.target.id === "rideDone") endRide(); });
   $("fit").addEventListener("click", fit);
