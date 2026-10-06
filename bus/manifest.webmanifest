@@ -1,0 +1,16 @@
+{
+  "name": "Commute — Golden Gate Transit",
+  "short_name": "Commute",
+  "description": "Live Golden Gate Transit departures from Lombard & Fillmore to Montgomery St.",
+  "start_url": "/bus/",
+  "scope": "/bus/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08130D",
+  "theme_color": "#08130D",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

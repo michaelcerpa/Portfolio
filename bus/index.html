@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Commute</title>
+  <meta name="description" content="Golden Gate Transit, Lombard &amp; Fillmore → Montgomery St — live departures.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#08130D">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Commute">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preload" href="../fonts/SpaceGrotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="route-title">
+    <div class="eyebrow">Golden Gate Transit</div>
+    <h1>Lombard &amp; Fillmore <span class="arrow">→</span> Montgomery</h1>
+  </div>
+  <button class="icon-btn" id="openSettings" aria-label="Settings">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Zm7.43-2.53a7.8 7.8 0 0 0 0-1.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.4 7.4 0 0 0-1.68-.97l-.36-2.54A.5.5 0 0 0 14.13 2h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.6.24-1.17.57-1.68.97l-2.39-.96a.5.5 0 0 0-.6.22L2.84 8.51a.5.5 0 0 0 .12.64l2.03 1.58a7.8 7.8 0 0 0 0 1.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.51.4 1.08.73 1.68.97l.36 2.54c.04.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54c.6-.24 1.17-.57 1.68-.97l2.39.96c.22.08.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58Z"/></svg>
+  </button>
+</header>
+
+<div class="feed" id="feed" role="status" aria-live="polite">
+  <span class="beacon" aria-hidden="true"></span><span id="feedText">connecting to Golden Gate's live feed…</span>
+</div>
+
+<main>
+  <section class="hero" id="hero" aria-live="polite">
+    <div class="hero-empty">Loading departures…</div>
+  </section>
+
+  <section class="map-wrap">
+    <div id="map" aria-label="Map of buses heading to your stop"></div>
+    <button class="map-fit" id="fit" aria-label="Show all buses">fit</button>
+  </section>
+
+  <section class="list">
+    <h2 class="kicker">Next buses from your stop</h2>
+    <ol id="rows"></ol>
+    <p class="legend">
+      <span><i class="dot live"></i>live — bus GPS</span>
+      <span><i class="dot est"></i>estimated — Golden Gate prediction, bus not on this trip yet</span>
+      <span><i class="dot sched"></i>timetable only</span>
+    </p>
+  </section>
+</main>
+
+<footer class="foot" id="foot"></footer>
+
+<dialog id="settings">
+  <form method="dialog" class="sheet">
+    <h2>Settings</h2>
+    <label>Walk from home to the stop <span><input type="number" id="walkTo" min="0" max="30" inputmode="numeric"> min</span></label>
+    <label>Walk from Mission &amp; 2nd to the office <span><input type="number" id="walkMission" min="0" max="30" inputmode="numeric"> min</span></label>
+    <label>Walk from Battery &amp; Pine to the office <span><input type="number" id="walkBattery" min="0" max="30" inputmode="numeric"> min</span></label>
+    <fieldset>
+      <legend>Routes to show</legend>
+      <div class="chips" id="routeChips"></div>
+    </fieldset>
+    <p class="fine">Saved on this phone only.</p>
+    <button value="save" class="primary">Done</button>
+  </form>
+</dialog>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
