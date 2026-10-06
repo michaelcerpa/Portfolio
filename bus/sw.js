@@ -1,5 +1,5 @@
 // Network-first service worker: always fresh online, still opens offline (last good copy).
-const CACHE = "commute-v1";
+const CACHE = "commute-v2";
 const SHELL = ["./", "app.css", "app.js", "manifest.webmanifest", "icon-192.png",
                "vendor/leaflet/leaflet.css", "vendor/leaflet/leaflet.js",
                "../fonts/SpaceGrotesk-var.woff2", "../fonts/JetBrainsMono-var.woff2"];
