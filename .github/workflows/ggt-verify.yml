@@ -20,6 +20,7 @@ jobs:
         run: |
           (cd app && PORT=8787 nohup node tools/bus-dev-server.js > /tmp/dev.log 2>&1 &)
           sleep 2; echo "http://localhost:8787" > tools/verify-target.txt; cat /tmp/dev.log
+      - name: Probe endpoints
         run: |
           T=$(cat tools/verify-target.txt 2>/dev/null || echo "$TARGET")
           echo "TARGET=$T" >> $GITHUB_ENV
