@@ -1,0 +1,44 @@
+# /bus/ commute tracker: test against a fresh Golden Gate Transit snapshot, and check the live app weekly
+# (a failure email here usually means Golden Gate changed its feed or timetable format).
+name: bus
+on:
+  push:
+    branches: [main]
+    paths: ["bus/**", "api/**", "tools/bus*", ".github/workflows/bus.yml"]
+  pull_request:
+    paths: ["bus/**", "api/**", "tools/bus*", ".github/workflows/bus.yml"]
+  schedule:
+    - cron: "11 14 * * 1"   # Mondays, before the morning commute
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Download a live Golden Gate snapshot
+        run: |
+          mkdir -p /tmp/ggt && cd /tmp/ggt
+          curl -fsS --retry 3 -o GTFSTransitData.zip https://realtime.goldengate.org/gtfsstatic/GTFSTransitData.zip
+          curl -fsS --retry 3 -o TripUpdates-now.pb https://realtime.goldengate.org/gtfsrealtime/TripUpdates
+          curl -fsS --retry 3 -o VehiclePositions-now.pb https://realtime.goldengate.org/gtfsrealtime/VehiclePositions
+      - run: node --test tools/bus.test.js
+        env:
+          GGT_FIXTURES: /tmp/ggt
+      - name: Check the deployed app
+        if: github.event_name != 'pull_request'
+        run: |
+          # A push to main races Vercel's deploy, so wait up to 5 minutes for /bus/ to be live.
+          for i in $(seq 1 30); do curl -fsS https://mcerpa.com/bus/ 2>/dev/null | grep -q 'id="rows"' && break; sleep 10; done
+          curl -fsS https://mcerpa.com/bus/ | grep -q 'id="rows"'
+          curl -fsS --retry 3 "https://mcerpa.com/api/ggt/?from=40033&to=42203,40053" > /tmp/api.json
+          node -e '
+            const b = require("/tmp/api.json");
+            if (!Array.isArray(b.departures) || !b.origin) throw new Error("bad API body: " + JSON.stringify(b).slice(0, 300));
+            console.log("feed ok:", b.feed.ok, "| departures:", b.departures.length, "| timetable valid until", b.schedule.validUntil);
+            for (const d of b.departures.slice(0, 5)) console.log(d.route, d.status, new Date(d.sched * 1000).toISOString(), d.delay);'
