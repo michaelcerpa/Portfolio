@@ -1,0 +1,66 @@
+name: ggt-verify
+on:
+  push:
+    branches: [claude/ggt-verify]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TARGET: ${{ vars.GGT_TARGET || 'https://portfolio-git-claude-ggt-bus-tracker-michael-cerpa-s-projects.vercel.app' }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Probe endpoints
+        run: |
+          T=$(cat tools/verify-target.txt 2>/dev/null || echo "$TARGET")
+          echo "TARGET=$T" >> $GITHUB_ENV
+          for p in "/bus/" "/bus" "/api/ggt/?from=40033&to=42203,40053" "/api/ggt?from=40033&to=42203,40053" "/api/ggt/?from=40033&to=42203,40053&map=1" "/bus/app.js" "/bus/sw.js" "/bus/manifest.webmanifest" "/tools/bus.test.js" "/"; do
+            echo "=== $p"; curl -sS -o /tmp/body -D /tmp/h -w "status=%{http_code} time=%{time_total}s size=%{size_download}\n" "$T$p"
+            grep -iE "^(location|cache-control|x-vercel-cache|content-type|age):" /tmp/h || true
+            head -c 600 /tmp/body; echo
+          done
+          curl -sS "$T/api/ggt/?from=40033&to=42203,40053" -o /tmp/api.json || true
+          node -e 'try{const b=require("/tmp/api.json");console.log(JSON.stringify(b,null,1).slice(0,5000))}catch(e){console.log("no json",e.message)}'
+      - name: Raw feed comparison
+        run: |
+          python3 -m venv /tmp/v && /tmp/v/bin/pip -q install gtfs-realtime-bindings
+          curl -sS -o /tmp/tu.pb https://realtime.goldengate.org/gtfsrealtime/TripUpdates
+          /tmp/v/bin/python - <<'PY'
+          from google.transit import gtfs_realtime_pb2 as g
+          m = g.FeedMessage(); m.ParseFromString(open('/tmp/tu.pb','rb').read())
+          print('feed ts', m.header.timestamp, 'entities', len(m.entity))
+          for e in m.entity:
+              for u in e.trip_update.stop_time_update:
+                  if u.stop_id == '40033':
+                      print('trip', e.trip_update.trip.trip_id, 'route', e.trip_update.trip.route_id, 'Lombard dep', u.departure.time, 'delay', u.departure.delay)
+          PY
+      - name: Screenshots
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm init -y >/dev/null && npm i -s playwright@1.56.1 && npx playwright install --with-deps chromium >/dev/null
+          cat > shot.js <<'JS'
+          const { chromium } = require("playwright");
+          (async () => {
+            const b = await chromium.launch();
+            const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, timezoneId: "America/Los_Angeles" });
+            const p = await ctx.newPage();
+            p.on("console", (m) => console.log("console", m.type(), m.text()));
+            p.on("pageerror", (e) => console.log("pageerror", e.message));
+            p.on("response", (r) => { if (r.status() >= 400) console.log("HTTP", r.status(), r.url()); });
+            await p.goto(process.env.TARGET + "/bus/", { waitUntil: "networkidle" });
+            await p.waitForTimeout(4000);
+            await p.screenshot({ path: "/tmp/out/top.png" });
+            await p.screenshot({ path: "/tmp/out/full.png", fullPage: true });
+            console.log(await p.evaluate(() => document.getElementById("feedText").textContent + " | " + document.getElementById("hero").innerText.replace(/\s+/g, " ").slice(0, 300)));
+            await b.close();
+          })();
+          JS
+          mkdir -p /tmp/out && node shot.js
+      - name: Publish screenshots
+        if: always()
+        run: |
+          cd /tmp/out 2>/dev/null || exit 0
+          cp /tmp/api.json . 2>/dev/null || true
+          git init -q -b claude/ggt-shots && git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "verification screenshots" && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" claude/ggt-shots
