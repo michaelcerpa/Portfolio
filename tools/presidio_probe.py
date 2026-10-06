@@ -1,63 +1,43 @@
-"""Probe 2: find the Syncromatics portal API behind presidiobus.com + the official Downtown timetable."""
-import json, re, sys, urllib.parse, urllib.request, os, html as H
-UA = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-      "Accept": "application/json, text/plain, */*"}
-def get(url, quiet=False, headers=None):
+"""Probe 3: Presidio GO GTFS + GTFS-RT from presidiobus.com — save as fixtures and summarize."""
+import csv, io, math, os, sys, urllib.request, zipfile, datetime
+OUT = sys.argv[1]; os.makedirs(OUT, exist_ok=True)
+UA = {"User-Agent": "Mozilla/5.0"}
+def get(url):
     try:
-        req = urllib.request.Request(url, headers={**UA, **(headers or {})})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            b = r.read().decode("utf-8", "replace")
-            if not quiet: print(f"  GET {url} -> {r.status} {len(b)}B ct={r.headers.get('content-type')} ACAO={r.headers.get('access-control-allow-origin')} cache={r.headers.get('cache-control')}", flush=True)
+        with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=40) as r:
+            b = r.read()
+            print(f"  GET {url} -> {r.status} {len(b)}B ct={r.headers.get('content-type')} ACAO={r.headers.get('access-control-allow-origin')} lm={r.headers.get('last-modified')} cache={r.headers.get('cache-control')}", flush=True)
             return b
     except Exception as e:
-        if not quiet: print(f"  GET {url} -> ERROR {e}", flush=True)
-        return None
-def sec(t): print("\n==== " + t, flush=True)
-OUT = sys.argv[1]; os.makedirs(OUT, exist_ok=True)
-BASE = "https://presidiobus.com"
-
-sec("portal JS: endpoints")
-home = get(BASE + "/")
-assets = sorted(set(re.findall(r'"(/assets/[^"]+\.js)"', home or "")))
-print("  assets:", len(assets))
-found = set()
-for a in assets:
-    s = get(BASE + a, quiet=True) or ""
-    for m in re.findall(r"""[`"'](/(?:api|Api|Route|Region|Stop|Vehicle|portal)[A-Za-z0-9_\-./${}?=&:]*)[`"']""", s): found.add(("path", m, a))
-    for m in re.findall(r"""https?://[A-Za-z0-9.\-]*(?:syncromatics|presidiobus)[A-Za-z0-9_\-./${}?=&:]*""", s): found.add(("url", m, a))
-    for m in re.finditer(r"fetch\(|axios|\.get\(|apiBase|baseUrl|baseURL|/api/", s):
-        ctx = s[max(0, m.start()-120): m.end()+220].replace("\n", " ")
-        if re.search(r"route|stop|vehicle|arriv|predict|api", ctx, re.I): found.add(("ctx", ctx[:340], a))
-for kind, v, a in sorted(found)[:160]: print(f"  {kind:4} {v}   [{a.split('/')[-1]}]")
-
-sec("candidate endpoints")
-cands = ["/api/routes", "/api/v1/routes", "/api/route/66", "/api/routes/66", "/api/routes/66/vehicles", "/api/routes/66/stops",
-         "/api/routes/66/directions", "/api/vehicles", "/api/stops", "/api/alerts", "/api/messages",
-         "/Region/0/Routes", "/Route/66/Directions", "/Route/66/Vehicles", "/Route/66/Waypoints", "/Route/66/Direction/0/Stops",
-         "/Route/66/Direction/1/Stops", "/transit.data", "/_root.data", "/map.data", "/__manifest?p=/&version=1"]
-for c in cands:
-    b = get(BASE + c)
-    if b: print("     ", b[:700].replace("\n", " "))
-
-sec("official Downtown timetable (presidio.gov)")
-h = get("https://presidio.gov/visit/getting-to-and-around-the-park/presidio-go-shuttle/presidio-go-downtown-shuttle-schedule/") or ""
-open(f"{OUT}/downtown_schedule.html", "w").write(h)
-for t in re.findall(r"<table.*?</table>", h, re.S | re.I)[:6]:
-    rows = []
-    for tr in re.findall(r"<tr.*?</tr>", t, re.S | re.I):
-        cells = [H.unescape(re.sub(r"<[^>]+>", " ", c)).strip() for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S | re.I)]
-        rows.append(" | ".join(re.sub(r"\s+", " ", c) for c in cells))
-    print("  TABLE rows:", len(rows))
-    for r in rows: print("   ", r)
-# also the escaped JSON copy inside Next/ReactRouter payload
-for m in re.finditer(r"\\u003ctable.*?\\u003c/table\\u003e", h, re.S):
-    t = m.group(0).encode().decode("unicode_escape", "ignore")
-    rows = []
-    for tr in re.findall(r"<tr.*?</tr>", t, re.S | re.I):
-        cells = [H.unescape(re.sub(r"<[^>]+>", " ", c)).strip() for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S | re.I)]
-        rows.append(" | ".join(re.sub(r"\s+", " ", c) for c in cells))
-    print("  JSON-TABLE rows:", len(rows))
-    for r in rows[:80]: print("   ", r)
-txt = re.sub(r"\s+", " ", H.unescape(re.sub(r"<[^>]+>", " ", h)))
-for kw in ["Weekday", "Monday", "Weekend", "Lombard Gate", "Letterman", "Stop ID", "Transbay", "Beale", "Fremont", "Drumm", "Main St"]:
-    for m in list(re.finditer(kw, txt))[:2]: print("  CTX", kw, "→", txt[max(0, m.start()-200): m.end()+300])
+        print(f"  GET {url} -> ERROR {e}", flush=True); return None
+stamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+z = get("https://presidiobus.com/gtfs.zip") or get("https://presidiobus.com/gtfs")
+for name, path in [("TripUpdates", "tripupdates"), ("VehiclePositions", "vehiclepositions"), ("Alerts", "alerts")]:
+    b = get(f"https://presidiobus.com/gtfs-rt/{path}")
+    if b: open(f"{OUT}/{name}-{stamp}.pb", "wb").write(b); print("    first bytes", b[:80])
+if not z or z[:2] != b"PK":
+    print("NO ZIP", z[:300] if z else None); sys.exit(0)
+open(f"{OUT}/GTFSTransitData.zip", "wb").write(z)
+zf = zipfile.ZipFile(io.BytesIO(z))
+def table(n):
+    with zf.open(n) as f: return list(csv.DictReader(io.TextIOWrapper(f, "utf-8-sig")))
+names = zf.namelist(); print("files", [(i.filename, i.file_size) for i in zf.infolist()])
+for n in ["agency.txt", "feed_info.txt", "routes.txt", "calendar.txt", "calendar_dates.txt"]:
+    if n in names:
+        rows = table(n); print(f"== {n} ({len(rows)})"); [print("  ", r) for r in rows[:25]]
+stops = {s["stop_id"]: s for s in table("stops.txt")}
+print("== stops"); [print("  ", s) for s in stops.values()]
+trips = table("trips.txt"); print("== trips", len(trips), "cols", list(trips[0].keys()))
+st = {}
+for r in table("stop_times.txt"): st.setdefault(r["trip_id"], []).append(r)
+print("== stop_times cols", list(next(iter(st.values()))[0].keys()))
+pats = {}
+for t in trips:
+    rows = sorted(st.get(t["trip_id"], []), key=lambda r: int(r["stop_sequence"]))
+    key = (t["route_id"], t.get("direction_id"), tuple(r["stop_id"] for r in rows))
+    pats.setdefault(key, []).append((t, rows))
+for (rid, d, seq), lst in pats.items():
+    t, rows = lst[0]
+    print(f"== PATTERN route={rid} dir={d} trips={len(lst)} headsign={t.get('trip_headsign')} shortname={t.get('trip_short_name')} services={sorted(set(x[0]['service_id'] for x in lst))}")
+    for r in rows: print(f"     {r['stop_sequence']:>3} {r['arrival_time']} {r['departure_time']} pu={r.get('pickup_type')} do={r.get('drop_off_type')} tp={r.get('timepoint')} {r['stop_id']} {stops[r['stop_id']]['stop_name']}")
+    print("     first departures:", sorted(x[1][0]["departure_time"] for x in lst)[:40])
