@@ -1,0 +1,235 @@
+header {
+  gtfs_realtime_version: "2.0"
+  incrementality: FULL_DATASET
+  timestamp: 1791265538
+}
+entity {
+  id: "1911"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9503223"
+      start_time: "22:40:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    position {
+      latitude: 37.7863159
+      longitude: -122.401817
+    }
+    current_stop_sequence: 4
+    current_status: IN_TRANSIT_TO
+    timestamp: 1791265512
+    vehicle {
+      id: "1911"
+    }
+    occupancy_status: EMPTY
+  }
+}
+entity {
+  id: "1908"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9502675"
+      start_time: "22:38:00"
+      start_date: "20261005"
+      route_id: "120"
+    }
+    position {
+      latitude: 37.784668
+      longitude: -122.404053
+    }
+    current_stop_sequence: 5
+    current_status: IN_TRANSIT_TO
+    timestamp: 1791265527
+    vehicle {
+      id: "1908"
+    }
+    occupancy_status: MANY_SEATS_AVAILABLE
+  }
+}
+entity {
+  id: "2002"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9502863"
+      start_time: "22:28:00"
+      start_date: "20261005"
+      route_id: "35"
+    }
+    position {
+      latitude: 37.9709
+      longitude: -122.522614
+    }
+    current_stop_sequence: 10
+    current_status: STOPPED_AT
+    timestamp: 1791265531
+    vehicle {
+      id: "2002"
+    }
+    occupancy_status: EMPTY
+  }
+}
+entity {
+  id: "2403"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9502753"
+      start_time: "22:08:00"
+      start_date: "20261005"
+      route_id: "23"
+    }
+    position {
+      latitude: 37.9866486
+      longitude: -122.579735
+    }
+    current_stop_sequence: 28
+    current_status: IN_TRANSIT_TO
+    timestamp: 1791265528
+    vehicle {
+      id: "2403"
+    }
+    occupancy_status: EMPTY
+  }
+}
+entity {
+  id: "1910"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9502999"
+      start_time: "22:21:00"
+      start_date: "20261005"
+      route_id: "580"
+    }
+    position {
+      latitude: 37.9585
+      longitude: -122.50798
+    }
+    current_stop_sequence: 10
+    current_status: IN_TRANSIT_TO
+    timestamp: 1791265534
+    vehicle {
+      id: "1910"
+    }
+    occupancy_status: MANY_SEATS_AVAILABLE
+  }
+}
+entity {
+  id: "1917"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9503201"
+      start_time: "22:05:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    position {
+      latitude: 37.9457
+      longitude: -122.514366
+    }
+    current_stop_sequence: 0
+    current_status: IN_TRANSIT_TO
+    timestamp: 1791265530
+    vehicle {
+      id: "1917"
+    }
+    occupancy_status: MANY_SEATS_AVAILABLE
+  }
+}
+entity {
+  id: "1904"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9503217"
+      start_time: "21:35:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    position {
+      latitude: 38.0403328
+      longitude: -122.53685
+    }
+    current_stop_sequence: 20
+    current_status: IN_TRANSIT_TO
+    timestamp: 1791265529
+    vehicle {
+      id: "1904"
+    }
+    occupancy_status: MANY_SEATS_AVAILABLE
+  }
+}
+entity {
+  id: "2003"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9502834"
+      start_time: "22:28:00"
+      start_date: "20261005"
+      route_id: "17"
+    }
+    position {
+      latitude: 37.8725
+      longitude: -122.510284
+    }
+    current_stop_sequence: 10
+    current_status: IN_TRANSIT_TO
+    timestamp: 1791265523
+    vehicle {
+      id: "2003"
+    }
+    occupancy_status: EMPTY
+  }
+}
+entity {
+  id: "1905"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9503170"
+      start_time: "22:05:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    position {
+      latitude: 37.8200836
+      longitude: -122.4786
+    }
+    current_stop_sequence: 0
+    current_status: IN_TRANSIT_TO
+    timestamp: 1791265530
+    vehicle {
+      id: "1905"
+    }
+    occupancy_status: MANY_SEATS_AVAILABLE
+  }
+}
+entity {
+  id: "1907"
+  is_deleted: false
+  vehicle {
+    trip {
+      trip_id: "9502625"
+      start_time: "22:08:00"
+      start_date: "20261005"
+      route_id: "120"
+    }
+    position {
+      latitude: 37.7990837
+      longitude: -122.441719
+    }
+    current_stop_sequence: 19
+    current_status: IN_TRANSIT_TO
+    timestamp: 1791265527
+    vehicle {
+      id: "1907"
+    }
+    occupancy_status: MANY_SEATS_AVAILABLE
+  }
+}

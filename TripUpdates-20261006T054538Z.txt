@@ -1,0 +1,4044 @@
+header {
+  gtfs_realtime_version: "2.0"
+  incrementality: FULL_DATASET
+  timestamp: 1791265538
+}
+entity {
+  id: "9502629"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9502629"
+      start_time: "23:08:00"
+      start_date: "20261005"
+      route_id: "120"
+    }
+    stop_time_update {
+      stop_sequence: 1
+      arrival {
+        delay: 1496
+        time: 1791268376
+      }
+      departure {
+        delay: 1496
+        time: 1791268376
+      }
+      stop_id: "41366"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 2
+      arrival {
+        delay: 1496
+        time: 1791268397
+      }
+      departure {
+        delay: 1497
+        time: 1791268398
+      }
+      stop_id: "42130"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 3
+      arrival {
+        delay: 1507
+        time: 1791268518
+      }
+      departure {
+        delay: 1512
+        time: 1791268523
+      }
+      stop_id: "40184"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 4
+      arrival {
+        delay: 1513
+        time: 1791268595
+      }
+      departure {
+        delay: 1519
+        time: 1791268601
+      }
+      stop_id: "40186"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 5
+      arrival {
+        delay: 1428
+        time: 1791268668
+      }
+      departure {
+        delay: 1518
+        time: 1791268758
+      }
+      stop_id: "40162"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 6
+      arrival {
+        delay: 1445
+        time: 1791268925
+      }
+      departure {
+        delay: 1529
+        time: 1791269009
+      }
+      stop_id: "44113"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 7
+      arrival {
+        delay: 1511
+        time: 1791269199
+      }
+      departure {
+        delay: 1519
+        time: 1791269207
+      }
+      stop_id: "40090"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 8
+      arrival {
+        delay: 1490
+        time: 1791269252
+      }
+      departure {
+        delay: 1496
+        time: 1791269258
+      }
+      stop_id: "42103"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: 1481
+        time: 1791269281
+      }
+      departure {
+        delay: 1486
+        time: 1791269286
+      }
+      stop_id: "40093"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: 1446
+        time: 1791269348
+      }
+      departure {
+        delay: 1463
+        time: 1791269365
+      }
+      stop_id: "40094"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: 1433
+        time: 1791269404
+      }
+      departure {
+        delay: 1437
+        time: 1791269408
+      }
+      stop_id: "40096"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: 1417
+        time: 1791269458
+      }
+      departure {
+        delay: 1439
+        time: 1791269480
+      }
+      stop_id: "40098"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: 1446
+        time: 1791269586
+      }
+      departure {
+        delay: 1552
+        time: 1791269692
+      }
+      stop_id: "40101"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: 1579
+        time: 1791269806
+      }
+      departure {
+        delay: 1589
+        time: 1791269816
+      }
+      stop_id: "40104"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: 1596
+        time: 1791269890
+      }
+      departure {
+        delay: 1601
+        time: 1791269895
+      }
+      stop_id: "40106"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: 1572
+        time: 1791269966
+      }
+      departure {
+        delay: 1572
+        time: 1791269966
+      }
+      stop_id: "40108"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: 1572
+        time: 1791270328
+      }
+      departure {
+        delay: 1572
+        time: 1791270328
+      }
+      stop_id: "40037"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: 1572
+        time: 1791270596
+      }
+      departure {
+        delay: 1587
+        time: 1791270611
+      }
+      stop_id: "40035"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 1637
+        time: 1791270765
+      }
+      departure {
+        delay: 1654
+        time: 1791270782
+      }
+      stop_id: "40033"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 1753
+        time: 1791271047
+      }
+      departure {
+        delay: 1774
+        time: 1791271068
+      }
+      stop_id: "40031"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 1766
+        time: 1791271105
+      }
+      departure {
+        delay: 1772
+        time: 1791271111
+      }
+      stop_id: "40079"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 1766
+        time: 1791271172
+      }
+      departure {
+        delay: 1775
+        time: 1791271181
+      }
+      stop_id: "42246"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 1742
+        time: 1791271212
+      }
+      departure {
+        delay: 1769
+        time: 1791271239
+      }
+      stop_id: "40029"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 1743
+        time: 1791271304
+      }
+      departure {
+        delay: 1766
+        time: 1791271327
+      }
+      stop_id: "40027"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 25
+      arrival {
+        delay: 1747
+        time: 1791271376
+      }
+      departure {
+        delay: 1767
+        time: 1791271396
+      }
+      stop_id: "40025"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 26
+      arrival {
+        delay: 1756
+        time: 1791271431
+      }
+      departure {
+        delay: 1769
+        time: 1791271444
+      }
+      stop_id: "42245"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 27
+      arrival {
+        delay: 1765
+        time: 1791271525
+      }
+      departure {
+        delay: 1770
+        time: 1791271530
+      }
+      stop_id: "40023"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 28
+      arrival {
+        delay: 1747
+        time: 1791271647
+      }
+      departure {
+        delay: 1769
+        time: 1791271669
+      }
+      stop_id: "40083"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 29
+      arrival {
+        delay: 1773
+        time: 1791271745
+      }
+      departure {
+        delay: 1777
+        time: 1791271749
+      }
+      stop_id: "42210"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 30
+      arrival {
+        delay: 1762
+        time: 1791271804
+      }
+      departure {
+        delay: 1767
+        time: 1791271809
+      }
+      stop_id: "42200"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 31
+      arrival {
+        delay: 1719
+        time: 1791271889
+      }
+      departure {
+        delay: 1735
+        time: 1791271905
+      }
+      stop_id: "42201"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 32
+      arrival {
+        delay: 1712
+        time: 1791271964
+      }
+      departure {
+        delay: 1722
+        time: 1791271974
+      }
+      stop_id: "42202"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 33
+      arrival {
+        delay: 1710
+        time: 1791272033
+      }
+      departure {
+        delay: 1714
+        time: 1791272037
+      }
+      stop_id: "41191"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 34
+      arrival {
+        delay: 1701
+        time: 1791272081
+      }
+      departure {
+        delay: 1707
+        time: 1791272087
+      }
+      stop_id: "42203"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 35
+      arrival {
+        delay: 1691
+        time: 1791272171
+      }
+      departure {
+        delay: 1691
+        time: 1791272171
+      }
+      stop_id: "42204"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1943"
+    }
+    timestamp: 1791265530
+  }
+}
+entity {
+  id: "9502625"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9502625"
+      start_time: "22:08:00"
+      start_date: "20261005"
+      route_id: "120"
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 99
+        time: 1791265627
+      }
+      departure {
+        delay: 121
+        time: 1791265649
+      }
+      stop_id: "40033"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 226
+        time: 1791265920
+      }
+      departure {
+        delay: 250
+        time: 1791265944
+      }
+      stop_id: "40031"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 245
+        time: 1791265984
+      }
+      departure {
+        delay: 255
+        time: 1791265994
+      }
+      stop_id: "40079"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 248
+        time: 1791266054
+      }
+      departure {
+        delay: 260
+        time: 1791266066
+      }
+      stop_id: "42246"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 232
+        time: 1791266102
+      }
+      departure {
+        delay: 263
+        time: 1791266133
+      }
+      stop_id: "40029"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 239
+        time: 1791266200
+      }
+      departure {
+        delay: 266
+        time: 1791266227
+      }
+      stop_id: "40027"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 25
+      arrival {
+        delay: 251
+        time: 1791266280
+      }
+      departure {
+        delay: 276
+        time: 1791266305
+      }
+      stop_id: "40025"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 26
+      arrival {
+        delay: 270
+        time: 1791266345
+      }
+      departure {
+        delay: 288
+        time: 1791266363
+      }
+      stop_id: "42245"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 27
+      arrival {
+        delay: 288
+        time: 1791266448
+      }
+      departure {
+        delay: 295
+        time: 1791266455
+      }
+      stop_id: "40023"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 28
+      arrival {
+        delay: 281
+        time: 1791266581
+      }
+      departure {
+        delay: 308
+        time: 1791266608
+      }
+      stop_id: "40083"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 29
+      arrival {
+        delay: 321
+        time: 1791266693
+      }
+      departure {
+        delay: 326
+        time: 1791266698
+      }
+      stop_id: "42210"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 30
+      arrival {
+        delay: 312
+        time: 1791266754
+      }
+      departure {
+        delay: 319
+        time: 1791266761
+      }
+      stop_id: "42200"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 31
+      arrival {
+        delay: 276
+        time: 1791266846
+      }
+      departure {
+        delay: 296
+        time: 1791266866
+      }
+      stop_id: "42201"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 32
+      arrival {
+        delay: 276
+        time: 1791266928
+      }
+      departure {
+        delay: 289
+        time: 1791266941
+      }
+      stop_id: "42202"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 33
+      arrival {
+        delay: 278
+        time: 1791267001
+      }
+      departure {
+        delay: 284
+        time: 1791267007
+      }
+      stop_id: "41191"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 34
+      arrival {
+        delay: 275
+        time: 1791267055
+      }
+      departure {
+        delay: 283
+        time: 1791267063
+      }
+      stop_id: "42203"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 35
+      arrival {
+        delay: 285
+        time: 1791267165
+      }
+      departure {
+        delay: 285
+        time: 1791267165
+      }
+      stop_id: "42204"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1907"
+    }
+    timestamp: 1791265470
+  }
+}
+entity {
+  id: "9502834"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9502834"
+      start_time: "22:28:00"
+      start_date: "20261005"
+      route_id: "17"
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: 446
+        time: 1791265765
+      }
+      departure {
+        delay: 450
+        time: 1791265769
+      }
+      stop_id: "40169"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: 451
+        time: 1791265891
+      }
+      departure {
+        delay: 466
+        time: 1791265906
+      }
+      stop_id: "40156"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: 463
+        time: 1791265939
+      }
+      departure {
+        delay: 465
+        time: 1791265941
+      }
+      stop_id: "40154"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: 437
+        time: 1791265980
+      }
+      departure {
+        delay: 439
+        time: 1791265982
+      }
+      stop_id: "40152"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: 406
+        time: 1791266086
+      }
+      departure {
+        delay: 429
+        time: 1791266109
+      }
+      stop_id: "40150"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: 413
+        time: 1791266144
+      }
+      departure {
+        delay: 419
+        time: 1791266150
+      }
+      stop_id: "40148"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: 412
+        time: 1791266214
+      }
+      departure {
+        delay: 424
+        time: 1791266226
+      }
+      stop_id: "40146"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: 396
+        time: 1791266268
+      }
+      departure {
+        delay: 400
+        time: 1791266272
+      }
+      stop_id: "40144"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: 365
+        time: 1791266345
+      }
+      departure {
+        delay: 480
+        time: 1791266460
+      }
+      stop_id: "40157"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 467
+        time: 1791266519
+      }
+      departure {
+        delay: 475
+        time: 1791266527
+      }
+      stop_id: "40141"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 430
+        time: 1791266576
+      }
+      departure {
+        delay: 433
+        time: 1791266579
+      }
+      stop_id: "40140"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 414
+        time: 1791266607
+      }
+      departure {
+        delay: 415
+        time: 1791266608
+      }
+      stop_id: "40138"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 367
+        time: 1791266654
+      }
+      departure {
+        delay: 371
+        time: 1791266658
+      }
+      stop_id: "40136"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 353
+        time: 1791266696
+      }
+      departure {
+        delay: 355
+        time: 1791266698
+      }
+      stop_id: "40134"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 371
+        time: 1791266757
+      }
+      departure {
+        delay: 429
+        time: 1791266815
+      }
+      stop_id: "40132"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 25
+      arrival {
+        delay: 347
+        time: 1791266927
+      }
+      departure {
+        delay: 376
+        time: 1791266956
+      }
+      stop_id: "40130"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 26
+      arrival {
+        delay: 353
+        time: 1791267013
+      }
+      departure {
+        delay: 353
+        time: 1791267013
+      }
+      stop_id: "40172"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 27
+      arrival {
+        delay: 345
+        time: 1791267055
+      }
+      departure {
+        delay: 345
+        time: 1791267055
+      }
+      stop_id: "40182"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 28
+      arrival {
+        delay: 335
+        time: 1791267095
+      }
+      departure {
+        delay: 395
+        time: 1791267155
+      }
+      stop_id: "40158"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 29
+      arrival {
+        delay: 407
+        time: 1791267181
+      }
+      departure {
+        delay: 408
+        time: 1791267182
+      }
+      stop_id: "42130"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 30
+      arrival {
+        delay: 432
+        time: 1791267297
+      }
+      departure {
+        delay: 443
+        time: 1791267308
+      }
+      stop_id: "40184"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 31
+      arrival {
+        delay: 406
+        time: 1791267406
+      }
+      departure {
+        delay: 418
+        time: 1791267418
+      }
+      stop_id: "40170"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 32
+      arrival {
+        delay: 381
+        time: 1791267561
+      }
+      departure {
+        delay: 458
+        time: 1791267638
+      }
+      stop_id: "40296"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 33
+      arrival {
+        delay: 432
+        time: 1791267732
+      }
+      departure {
+        delay: 446
+        time: 1791267746
+      }
+      stop_id: "40268"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 34
+      arrival {
+        delay: 469
+        time: 1791267829
+      }
+      departure {
+        delay: 474
+        time: 1791267834
+      }
+      stop_id: "40471"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 35
+      arrival {
+        delay: 487
+        time: 1791267902
+      }
+      departure {
+        delay: 488
+        time: 1791267903
+      }
+      stop_id: "41333"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 36
+      arrival {
+        delay: 498
+        time: 1791267963
+      }
+      departure {
+        delay: 502
+        time: 1791267967
+      }
+      stop_id: "41334"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 37
+      arrival {
+        delay: 356
+        time: 1791268256
+      }
+      departure {
+        delay: 356
+        time: 1791268256
+      }
+      stop_id: "44002"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "2003"
+    }
+    timestamp: 1791265527
+  }
+}
+entity {
+  id: "9502999"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9502999"
+      start_time: "22:21:00"
+      start_date: "20261005"
+      route_id: "580"
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: 98
+        time: 1791265478
+      }
+      departure {
+        delay: 139
+        time: 1791265519
+      }
+      stop_id: "41036"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: 119
+        time: 1791265598
+      }
+      departure {
+        delay: 122
+        time: 1791265601
+      }
+      stop_id: "40436"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: 83
+        time: 1791265660
+      }
+      departure {
+        delay: 89
+        time: 1791265666
+      }
+      stop_id: "40438"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: 52
+        time: 1791265852
+      }
+      departure {
+        delay: 52
+        time: 1791265852
+      }
+      stop_id: "44003"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1910"
+    }
+    timestamp: 1791265523
+  }
+}
+entity {
+  id: "9502676"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9502676"
+      start_time: "23:38:00"
+      start_date: "20261005"
+      route_id: "120"
+    }
+    stop_time_update {
+      stop_sequence: 1
+      arrival {
+        delay: 0
+        time: 1791268680
+      }
+      departure {
+        delay: 0
+        time: 1791268680
+      }
+      stop_id: "40003"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 2
+      arrival {
+        delay: 0
+        time: 1791268726
+      }
+      departure {
+        delay: 9
+        time: 1791268735
+      }
+      stop_id: "42206"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 3
+      arrival {
+        delay: 13
+        time: 1791268821
+      }
+      departure {
+        delay: 20
+        time: 1791268828
+      }
+      stop_id: "42207"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 4
+      arrival {
+        delay: 22
+        time: 1791268905
+      }
+      departure {
+        delay: 33
+        time: 1791268916
+      }
+      stop_id: "42208"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 5
+      arrival {
+        delay: -35
+        time: 1791268920
+      }
+      departure {
+        delay: -20
+        time: 1791268935
+      }
+      stop_id: "42199"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 6
+      arrival {
+        delay: -46
+        time: 1791268980
+      }
+      departure {
+        delay: -30
+        time: 1791268996
+      }
+      stop_id: "42209"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 7
+      arrival {
+        delay: -111
+        time: 1791269258
+      }
+      departure {
+        delay: -84
+        time: 1791269285
+      }
+      stop_id: "42253"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 8
+      arrival {
+        delay: -103
+        time: 1791269357
+      }
+      departure {
+        delay: -91
+        time: 1791269369
+      }
+      stop_id: "40024"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: -112
+        time: 1791269447
+      }
+      departure {
+        delay: -101
+        time: 1791269458
+      }
+      stop_id: "42243"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: -120
+        time: 1791269513
+      }
+      departure {
+        delay: -101
+        time: 1791269532
+      }
+      stop_id: "40026"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: -131
+        time: 1791269575
+      }
+      departure {
+        delay: -114
+        time: 1791269592
+      }
+      stop_id: "40028"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: -166
+        time: 1791269637
+      }
+      departure {
+        delay: -150
+        time: 1791269653
+      }
+      stop_id: "40030"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: -134
+        time: 1791269738
+      }
+      departure {
+        delay: -122
+        time: 1791269750
+      }
+      stop_id: "42250"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: -135
+        time: 1791269793
+      }
+      departure {
+        delay: -131
+        time: 1791269797
+      }
+      stop_id: "40078"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: -149
+        time: 1791269822
+      }
+      departure {
+        delay: -131
+        time: 1791269840
+      }
+      stop_id: "40032"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: -131
+        time: 1791270024
+      }
+      departure {
+        delay: -111
+        time: 1791270044
+      }
+      stop_id: "40034"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: -45
+        time: 1791270206
+      }
+      departure {
+        delay: -45
+        time: 1791270206
+      }
+      stop_id: "40036"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: -45
+        time: 1791270481
+      }
+      departure {
+        delay: -45
+        time: 1791270481
+      }
+      stop_id: "40038"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: -45
+        time: 1791270807
+      }
+      departure {
+        delay: -45
+        time: 1791270807
+      }
+      stop_id: "41000"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: -45
+        time: 1791270941
+      }
+      departure {
+        delay: -41
+        time: 1791270945
+      }
+      stop_id: "40107"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 22
+        time: 1791271069
+      }
+      departure {
+        delay: 31
+        time: 1791271078
+      }
+      stop_id: "40105"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 13
+        time: 1791271153
+      }
+      departure {
+        delay: 105
+        time: 1791271245
+      }
+      stop_id: "40102"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 112
+        time: 1791271304
+      }
+      departure {
+        delay: 119
+        time: 1791271311
+      }
+      stop_id: "40100"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 115
+        time: 1791271348
+      }
+      departure {
+        delay: 129
+        time: 1791271362
+      }
+      stop_id: "40099"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 25
+      arrival {
+        delay: 106
+        time: 1791271398
+      }
+      departure {
+        delay: 110
+        time: 1791271402
+      }
+      stop_id: "40097"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 26
+      arrival {
+        delay: 89
+        time: 1791271432
+      }
+      departure {
+        delay: 94
+        time: 1791271437
+      }
+      stop_id: "40095"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 27
+      arrival {
+        delay: 29
+        time: 1791271469
+      }
+      departure {
+        delay: 33
+        time: 1791271473
+      }
+      stop_id: "40092"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 28
+      arrival {
+        delay: 8
+        time: 1791271512
+      }
+      departure {
+        delay: 12
+        time: 1791271516
+      }
+      stop_id: "41042"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 29
+      arrival {
+        delay: -6
+        time: 1791271547
+      }
+      departure {
+        delay: -2
+        time: 1791271551
+      }
+      stop_id: "40091"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 30
+      arrival {
+        delay: 3
+        time: 1791271683
+      }
+      departure {
+        delay: 99
+        time: 1791271779
+      }
+      stop_id: "40113"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 31
+      arrival {
+        delay: -22
+        time: 1791271927
+      }
+      departure {
+        delay: -16
+        time: 1791271933
+      }
+      stop_id: "40169"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 32
+      arrival {
+        delay: -11
+        time: 1791271969
+      }
+      departure {
+        delay: 0
+        time: 1791271980
+      }
+      stop_id: "40162"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 33
+      arrival {
+        delay: 101
+        time: 1791272279
+      }
+      departure {
+        delay: 109
+        time: 1791272287
+      }
+      stop_id: "40188"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 34
+      arrival {
+        delay: 109
+        time: 1791272451
+      }
+      departure {
+        delay: 117
+        time: 1791272459
+      }
+      stop_id: "40172"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 35
+      arrival {
+        delay: 117
+        time: 1791272517
+      }
+      departure {
+        delay: 117
+        time: 1791272517
+      }
+      stop_id: "41366"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1907"
+    }
+    timestamp: 1791265470
+  }
+}
+entity {
+  id: "9502731"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9502731"
+      start_time: "21:57:00"
+      start_date: "20261005"
+      route_id: "23"
+    }
+    stop_time_update {
+      stop_sequence: 32
+      arrival {
+        delay: 0
+        time: 1791265620
+      }
+      departure {
+        delay: 0
+        time: 1791265620
+      }
+      stop_id: "41332"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "2001"
+    }
+    timestamp: 1791265302
+  }
+}
+entity {
+  id: "9502753"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9502753"
+      start_time: "22:08:00"
+      start_date: "20261005"
+      route_id: "23"
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: -68
+        time: 1791265428
+      }
+      departure {
+        delay: -68
+        time: 1791265428
+      }
+      stop_id: "40480"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 25
+      arrival {
+        delay: -100
+        time: 1791265459
+      }
+      departure {
+        delay: -100
+        time: 1791265459
+      }
+      stop_id: "40478"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 26
+      arrival {
+        delay: -122
+        time: 1791265477
+      }
+      departure {
+        delay: -122
+        time: 1791265477
+      }
+      stop_id: "40475"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 27
+      arrival {
+        delay: -145
+        time: 1791265502
+      }
+      departure {
+        delay: -132
+        time: 1791265515
+      }
+      stop_id: "40473"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 28
+      arrival {
+        delay: -143
+        time: 1791265564
+      }
+      departure {
+        delay: -125
+        time: 1791265582
+      }
+      stop_id: "40527"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 29
+      arrival {
+        delay: -137
+        time: 1791265662
+      }
+      departure {
+        delay: -57
+        time: 1791265742
+      }
+      stop_id: "40523"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 30
+      arrival {
+        delay: -62
+        time: 1791265806
+      }
+      departure {
+        delay: -52
+        time: 1791265816
+      }
+      stop_id: "40525"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 31
+      arrival {
+        delay: -85
+        time: 1791265854
+      }
+      departure {
+        delay: -83
+        time: 1791265856
+      }
+      stop_id: "40521"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 32
+      arrival {
+        delay: -97
+        time: 1791265883
+      }
+      departure {
+        delay: -78
+        time: 1791265902
+      }
+      stop_id: "40519"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 33
+      arrival {
+        delay: -89
+        time: 1791265926
+      }
+      departure {
+        delay: -77
+        time: 1791265938
+      }
+      stop_id: "40517"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 34
+      arrival {
+        delay: -98
+        time: 1791265962
+      }
+      departure {
+        delay: -91
+        time: 1791265969
+      }
+      stop_id: "40515"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 35
+      arrival {
+        delay: -109
+        time: 1791265990
+      }
+      departure {
+        delay: -109
+        time: 1791265990
+      }
+      stop_id: "40513"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "2403"
+    }
+    timestamp: 1791265519
+  }
+}
+entity {
+  id: "9502863"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9502863"
+      start_time: "22:28:00"
+      start_date: "20261005"
+      route_id: "35"
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: -297
+        time: 1791265203
+      }
+      departure {
+        delay: -88
+        time: 1791266311
+      }
+      stop_id: "44001"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: -9
+        time: 1791266522
+      }
+      departure {
+        delay: 7
+        time: 1791266539
+      }
+      stop_id: "40399"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: -12
+        time: 1791266582
+      }
+      departure {
+        delay: -3
+        time: 1791266591
+      }
+      stop_id: "40397"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: -2
+        time: 1791266648
+      }
+      departure {
+        delay: 3
+        time: 1791266654
+      }
+      stop_id: "40395"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: -16
+        time: 1791266688
+      }
+      departure {
+        delay: -3
+        time: 1791266701
+      }
+      stop_id: "40393"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: -25
+        time: 1791266734
+      }
+      departure {
+        delay: -9
+        time: 1791266750
+      }
+      stop_id: "40391"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: 20
+        time: 1791266913
+      }
+      departure {
+        delay: 39
+        time: 1791266932
+      }
+      stop_id: "40578"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: 51
+        time: 1791267014
+      }
+      departure {
+        delay: 61
+        time: 1791267024
+      }
+      stop_id: "40585"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: 68
+        time: 1791267068
+      }
+      departure {
+        delay: 74
+        time: 1791267074
+      }
+      stop_id: "41330"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: 62
+        time: 1791267182
+      }
+      departure {
+        delay: 68
+        time: 1791267188
+      }
+      stop_id: "40587"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 43
+        time: 1791267283
+      }
+      departure {
+        delay: 62
+        time: 1791267302
+      }
+      stop_id: "40565"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 82
+        time: 1791267428
+      }
+      departure {
+        delay: 90
+        time: 1791267436
+      }
+      stop_id: "40569"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 93
+        time: 1791267513
+      }
+      departure {
+        delay: 93
+        time: 1791267513
+      }
+      stop_id: "40556"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "2002"
+    }
+    timestamp: 1791265206
+  }
+}
+entity {
+  id: "9502675"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9502675"
+      start_time: "22:38:00"
+      start_date: "20261005"
+      route_id: "120"
+    }
+    stop_time_update {
+      stop_sequence: 4
+      arrival {
+        delay: 175
+        time: 1791265458
+      }
+      departure {
+        delay: 213
+        time: 1791265496
+      }
+      stop_id: "42208"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 5
+      arrival {
+        delay: 190
+        time: 1791265545
+      }
+      departure {
+        delay: 208
+        time: 1791265563
+      }
+      stop_id: "42199"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 6
+      arrival {
+        delay: 185
+        time: 1791265611
+      }
+      departure {
+        delay: 204
+        time: 1791265630
+      }
+      stop_id: "42209"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 7
+      arrival {
+        delay: 142
+        time: 1791265911
+      }
+      departure {
+        delay: 174
+        time: 1791265943
+      }
+      stop_id: "42253"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 8
+      arrival {
+        delay: 175
+        time: 1791266035
+      }
+      departure {
+        delay: 191
+        time: 1791266051
+      }
+      stop_id: "40024"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: 188
+        time: 1791266147
+      }
+      departure {
+        delay: 203
+        time: 1791266162
+      }
+      stop_id: "42243"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: 188
+        time: 1791266221
+      }
+      departure {
+        delay: 211
+        time: 1791266244
+      }
+      stop_id: "40026"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: 185
+        time: 1791266291
+      }
+      departure {
+        delay: 206
+        time: 1791266312
+      }
+      stop_id: "40028"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: 169
+        time: 1791266372
+      }
+      departure {
+        delay: 189
+        time: 1791266392
+      }
+      stop_id: "40030"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: 169
+        time: 1791266441
+      }
+      departure {
+        delay: 187
+        time: 1791266459
+      }
+      stop_id: "42250"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: 174
+        time: 1791266502
+      }
+      departure {
+        delay: 178
+        time: 1791266506
+      }
+      stop_id: "40078"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: 164
+        time: 1791266535
+      }
+      departure {
+        delay: 184
+        time: 1791266555
+      }
+      stop_id: "40032"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: 184
+        time: 1791266739
+      }
+      departure {
+        delay: 210
+        time: 1791266765
+      }
+      stop_id: "40034"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: 269
+        time: 1791266920
+      }
+      departure {
+        delay: 269
+        time: 1791266920
+      }
+      stop_id: "40036"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: 269
+        time: 1791267195
+      }
+      departure {
+        delay: 269
+        time: 1791267195
+      }
+      stop_id: "40038"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 269
+        time: 1791267521
+      }
+      departure {
+        delay: 269
+        time: 1791267521
+      }
+      stop_id: "41000"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 269
+        time: 1791267655
+      }
+      departure {
+        delay: 273
+        time: 1791267659
+      }
+      stop_id: "40107"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 314
+        time: 1791267761
+      }
+      departure {
+        delay: 323
+        time: 1791267770
+      }
+      stop_id: "40105"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 315
+        time: 1791267855
+      }
+      departure {
+        delay: 426
+        time: 1791267966
+      }
+      stop_id: "40102"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 414
+        time: 1791268006
+      }
+      departure {
+        delay: 422
+        time: 1791268014
+      }
+      stop_id: "40100"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 424
+        time: 1791268057
+      }
+      departure {
+        delay: 440
+        time: 1791268073
+      }
+      stop_id: "40099"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 25
+      arrival {
+        delay: 421
+        time: 1791268113
+      }
+      departure {
+        delay: 426
+        time: 1791268118
+      }
+      stop_id: "40097"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 26
+      arrival {
+        delay: 408
+        time: 1791268151
+      }
+      departure {
+        delay: 415
+        time: 1791268158
+      }
+      stop_id: "40095"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 27
+      arrival {
+        delay: 369
+        time: 1791268209
+      }
+      departure {
+        delay: 373
+        time: 1791268213
+      }
+      stop_id: "40092"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 28
+      arrival {
+        delay: 353
+        time: 1791268257
+      }
+      departure {
+        delay: 358
+        time: 1791268262
+      }
+      stop_id: "41042"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 29
+      arrival {
+        delay: 341
+        time: 1791268294
+      }
+      departure {
+        delay: 346
+        time: 1791268299
+      }
+      stop_id: "40091"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 30
+      arrival {
+        delay: 355
+        time: 1791268435
+      }
+      departure {
+        delay: 438
+        time: 1791268518
+      }
+      stop_id: "40113"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 31
+      arrival {
+        delay: 390
+        time: 1791268739
+      }
+      departure {
+        delay: 396
+        time: 1791268745
+      }
+      stop_id: "40169"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 32
+      arrival {
+        delay: 389
+        time: 1791268769
+      }
+      departure {
+        delay: 403
+        time: 1791268783
+      }
+      stop_id: "40162"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 33
+      arrival {
+        delay: 397
+        time: 1791268975
+      }
+      departure {
+        delay: 405
+        time: 1791268983
+      }
+      stop_id: "40188"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 34
+      arrival {
+        delay: 405
+        time: 1791269147
+      }
+      departure {
+        delay: 414
+        time: 1791269156
+      }
+      stop_id: "40172"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 35
+      arrival {
+        delay: 441
+        time: 1791269241
+      }
+      departure {
+        delay: 441
+        time: 1791269241
+      }
+      stop_id: "41366"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1908"
+    }
+    timestamp: 1791265500
+  }
+}
+entity {
+  id: "9503217"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9503217"
+      start_time: "21:35:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 852
+        time: 1791266300
+      }
+      departure {
+        delay: 856
+        time: 1791266304
+      }
+      stop_id: "41098"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 877
+        time: 1791266348
+      }
+      departure {
+        delay: 890
+        time: 1791266361
+      }
+      stop_id: "40699"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 929
+        time: 1791266429
+      }
+      departure {
+        delay: 976
+        time: 1791266476
+      }
+      stop_id: "40697"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 975
+        time: 1791266575
+      }
+      departure {
+        delay: 994
+        time: 1791266594
+      }
+      stop_id: "40695"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 981
+        time: 1791266661
+      }
+      departure {
+        delay: 981
+        time: 1791266661
+      }
+      stop_id: "41051"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1904"
+    }
+    timestamp: 1791265533
+  }
+}
+entity {
+  id: "9503201"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9503201"
+      start_time: "22:05:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: -330
+        time: 1791265770
+      }
+      departure {
+        delay: -330
+        time: 1791265770
+      }
+      stop_id: "44002"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1917"
+    }
+    timestamp: 1791265519
+  }
+}
+entity {
+  id: "9503223"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9503223"
+      start_time: "22:40:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    stop_time_update {
+      stop_sequence: 4
+      arrival {
+        delay: 149
+        time: 1791265536
+      }
+      departure {
+        delay: 158
+        time: 1791265545
+      }
+      stop_id: "42208"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 5
+      arrival {
+        delay: 134
+        time: 1791265588
+      }
+      departure {
+        delay: 151
+        time: 1791265605
+      }
+      stop_id: "42199"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 6
+      arrival {
+        delay: 127
+        time: 1791265647
+      }
+      departure {
+        delay: 144
+        time: 1791265664
+      }
+      stop_id: "42209"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 7
+      arrival {
+        delay: 80
+        time: 1791265916
+      }
+      departure {
+        delay: 118
+        time: 1791265954
+      }
+      stop_id: "42253"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 8
+      arrival {
+        delay: 121
+        time: 1791266041
+      }
+      departure {
+        delay: 154
+        time: 1791266074
+      }
+      stop_id: "40024"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: 154
+        time: 1791266163
+      }
+      departure {
+        delay: 185
+        time: 1791266194
+      }
+      stop_id: "42243"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: 170
+        time: 1791266246
+      }
+      departure {
+        delay: 205
+        time: 1791266281
+      }
+      stop_id: "40026"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: 184
+        time: 1791266326
+      }
+      departure {
+        delay: 213
+        time: 1791266355
+      }
+      stop_id: "40028"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: 178
+        time: 1791266407
+      }
+      departure {
+        delay: 203
+        time: 1791266432
+      }
+      stop_id: "40030"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: 187
+        time: 1791266478
+      }
+      departure {
+        delay: 205
+        time: 1791266496
+      }
+      stop_id: "42250"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: 193
+        time: 1791266534
+      }
+      departure {
+        delay: 201
+        time: 1791266542
+      }
+      stop_id: "40078"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: 191
+        time: 1791266570
+      }
+      departure {
+        delay: 213
+        time: 1791266592
+      }
+      stop_id: "40032"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: 213
+        time: 1791266724
+      }
+      departure {
+        delay: 242
+        time: 1791266753
+      }
+      stop_id: "40034"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: 242
+        time: 1791266804
+      }
+      departure {
+        delay: 242
+        time: 1791266804
+      }
+      stop_id: "40036"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: 242
+        time: 1791266951
+      }
+      departure {
+        delay: 242
+        time: 1791266951
+      }
+      stop_id: "40038"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 242
+        time: 1791268142
+      }
+      departure {
+        delay: 0
+        time: 1791268200
+      }
+      stop_id: "44001"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 0
+        time: 1791268991
+      }
+      departure {
+        delay: 4
+        time: 1791268995
+      }
+      stop_id: "41098"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 26
+        time: 1791269039
+      }
+      departure {
+        delay: 39
+        time: 1791269052
+      }
+      stop_id: "40699"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 79
+        time: 1791269119
+      }
+      departure {
+        delay: 126
+        time: 1791269166
+      }
+      stop_id: "40697"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 129
+        time: 1791269269
+      }
+      departure {
+        delay: 147
+        time: 1791269287
+      }
+      stop_id: "40695"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 132
+        time: 1791269352
+      }
+      departure {
+        delay: 132
+        time: 1791269352
+      }
+      stop_id: "41051"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1911"
+    }
+    timestamp: 1791265515
+  }
+}
+entity {
+  id: "9503202"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9503202"
+      start_time: "23:10:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    stop_time_update {
+      stop_sequence: 1
+      arrival {
+        delay: 0
+        time: 1791267000
+      }
+      departure {
+        delay: 0
+        time: 1791267000
+      }
+      stop_id: "40003"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 2
+      arrival {
+        delay: 0
+        time: 1791267042
+      }
+      departure {
+        delay: 15
+        time: 1791267057
+      }
+      stop_id: "42206"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 3
+      arrival {
+        delay: 20
+        time: 1791267138
+      }
+      departure {
+        delay: 30
+        time: 1791267148
+      }
+      stop_id: "42207"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 4
+      arrival {
+        delay: 32
+        time: 1791267219
+      }
+      departure {
+        delay: 41
+        time: 1791267228
+      }
+      stop_id: "42208"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 5
+      arrival {
+        delay: 17
+        time: 1791267271
+      }
+      departure {
+        delay: 32
+        time: 1791267286
+      }
+      stop_id: "42199"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 6
+      arrival {
+        delay: 6
+        time: 1791267326
+      }
+      departure {
+        delay: 17
+        time: 1791267337
+      }
+      stop_id: "42209"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 7
+      arrival {
+        delay: -34
+        time: 1791267602
+      }
+      departure {
+        delay: 0
+        time: 1791267636
+      }
+      stop_id: "42253"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 8
+      arrival {
+        delay: 2
+        time: 1791267722
+      }
+      departure {
+        delay: 33
+        time: 1791267753
+      }
+      stop_id: "40024"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: 32
+        time: 1791267841
+      }
+      departure {
+        delay: 60
+        time: 1791267869
+      }
+      stop_id: "42243"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: 45
+        time: 1791267921
+      }
+      departure {
+        delay: 78
+        time: 1791267954
+      }
+      stop_id: "40026"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: 56
+        time: 1791267998
+      }
+      departure {
+        delay: 81
+        time: 1791268023
+      }
+      stop_id: "40028"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: 46
+        time: 1791268075
+      }
+      departure {
+        delay: 65
+        time: 1791268094
+      }
+      stop_id: "40030"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: 49
+        time: 1791268140
+      }
+      departure {
+        delay: 62
+        time: 1791268153
+      }
+      stop_id: "42250"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: 49
+        time: 1791268190
+      }
+      departure {
+        delay: 54
+        time: 1791268195
+      }
+      stop_id: "40078"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: 42
+        time: 1791268221
+      }
+      departure {
+        delay: 56
+        time: 1791268235
+      }
+      stop_id: "40032"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: 56
+        time: 1791268367
+      }
+      departure {
+        delay: 78
+        time: 1791268389
+      }
+      stop_id: "40034"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: 78
+        time: 1791268440
+      }
+      departure {
+        delay: 78
+        time: 1791268440
+      }
+      stop_id: "40036"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: 78
+        time: 1791268587
+      }
+      departure {
+        delay: 78
+        time: 1791268587
+      }
+      stop_id: "40038"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 78
+        time: 1791269778
+      }
+      departure {
+        delay: 78
+        time: 1791269778
+      }
+      stop_id: "44002"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1921"
+    }
+    timestamp: 1791265516
+  }
+}
+entity {
+  id: "9503155"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9503155"
+      start_time: "23:05:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    stop_time_update {
+      stop_sequence: 1
+      arrival {
+        delay: -28
+        time: 1791266672
+      }
+      departure {
+        delay: 0
+        time: 1791266700
+      }
+      stop_id: "41051"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 2
+      arrival {
+        delay: 0
+        time: 1791266786
+      }
+      departure {
+        delay: 21
+        time: 1791266807
+      }
+      stop_id: "40694"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 3
+      arrival {
+        delay: 16
+        time: 1791266896
+      }
+      departure {
+        delay: 106
+        time: 1791266986
+      }
+      stop_id: "40696"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 4
+      arrival {
+        delay: 177
+        time: 1791267093
+      }
+      departure {
+        delay: 191
+        time: 1791267107
+      }
+      stop_id: "40698"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 5
+      arrival {
+        delay: 199
+        time: 1791267138
+      }
+      departure {
+        delay: 199
+        time: 1791267138
+      }
+      stop_id: "41099"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 6
+      arrival {
+        delay: 199
+        time: 1791268099
+      }
+      departure {
+        delay: 0
+        time: 1791268200
+      }
+      stop_id: "44002"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 7
+      arrival {
+        delay: 0
+        time: 1791269234
+      }
+      departure {
+        delay: 0
+        time: 1791269234
+      }
+      stop_id: "40037"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 8
+      arrival {
+        delay: 0
+        time: 1791269399
+      }
+      departure {
+        delay: 14
+        time: 1791269413
+      }
+      stop_id: "40035"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: 108
+        time: 1791269571
+      }
+      departure {
+        delay: 124
+        time: 1791269587
+      }
+      stop_id: "40033"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: 124
+        time: 1791269726
+      }
+      departure {
+        delay: 145
+        time: 1791269747
+      }
+      stop_id: "40031"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: 122
+        time: 1791269774
+      }
+      departure {
+        delay: 133
+        time: 1791269785
+      }
+      stop_id: "40079"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: 112
+        time: 1791269839
+      }
+      departure {
+        delay: 119
+        time: 1791269846
+      }
+      stop_id: "42246"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: 81
+        time: 1791269879
+      }
+      departure {
+        delay: 111
+        time: 1791269909
+      }
+      stop_id: "40029"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: 79
+        time: 1791269978
+      }
+      departure {
+        delay: 109
+        time: 1791270008
+      }
+      stop_id: "40027"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: 81
+        time: 1791270056
+      }
+      departure {
+        delay: 110
+        time: 1791270085
+      }
+      stop_id: "40025"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: 94
+        time: 1791270119
+      }
+      departure {
+        delay: 117
+        time: 1791270142
+      }
+      stop_id: "42245"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: 102
+        time: 1791270222
+      }
+      departure {
+        delay: 115
+        time: 1791270235
+      }
+      stop_id: "40023"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: 113
+        time: 1791270373
+      }
+      departure {
+        delay: 135
+        time: 1791270395
+      }
+      stop_id: "40083"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 141
+        time: 1791270473
+      }
+      departure {
+        delay: 147
+        time: 1791270479
+      }
+      stop_id: "42210"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 121
+        time: 1791270523
+      }
+      departure {
+        delay: 133
+        time: 1791270535
+      }
+      stop_id: "42200"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 81
+        time: 1791270611
+      }
+      departure {
+        delay: 91
+        time: 1791270621
+      }
+      stop_id: "42201"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 63
+        time: 1791270675
+      }
+      departure {
+        delay: 70
+        time: 1791270682
+      }
+      stop_id: "42202"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 58
+        time: 1791270741
+      }
+      departure {
+        delay: 63
+        time: 1791270746
+      }
+      stop_id: "41191"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 48
+        time: 1791270788
+      }
+      departure {
+        delay: 57
+        time: 1791270797
+      }
+      stop_id: "42203"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 25
+      arrival {
+        delay: 46
+        time: 1791270886
+      }
+      departure {
+        delay: 46
+        time: 1791270886
+      }
+      stop_id: "42204"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1919"
+    }
+    timestamp: 1791264602
+  }
+}
+entity {
+  id: "9503233"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9503233"
+      start_time: "23:40:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    stop_time_update {
+      stop_sequence: 1
+      arrival {
+        delay: 0
+        time: 1791268800
+      }
+      departure {
+        delay: 0
+        time: 1791268800
+      }
+      stop_id: "40003"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 2
+      arrival {
+        delay: 0
+        time: 1791268842
+      }
+      departure {
+        delay: 13
+        time: 1791268855
+      }
+      stop_id: "42206"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 3
+      arrival {
+        delay: 18
+        time: 1791268936
+      }
+      departure {
+        delay: 26
+        time: 1791268944
+      }
+      stop_id: "42207"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 4
+      arrival {
+        delay: 27
+        time: 1791269014
+      }
+      departure {
+        delay: 36
+        time: 1791269023
+      }
+      stop_id: "42208"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 5
+      arrival {
+        delay: 12
+        time: 1791269066
+      }
+      departure {
+        delay: 27
+        time: 1791269081
+      }
+      stop_id: "42199"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 6
+      arrival {
+        delay: 1
+        time: 1791269121
+      }
+      departure {
+        delay: 15
+        time: 1791269135
+      }
+      stop_id: "42209"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 7
+      arrival {
+        delay: -58
+        time: 1791269378
+      }
+      departure {
+        delay: -24
+        time: 1791269412
+      }
+      stop_id: "42253"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 8
+      arrival {
+        delay: -23
+        time: 1791269497
+      }
+      departure {
+        delay: 8
+        time: 1791269528
+      }
+      stop_id: "40024"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: 7
+        time: 1791269616
+      }
+      departure {
+        delay: 35
+        time: 1791269644
+      }
+      stop_id: "42243"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: 20
+        time: 1791269696
+      }
+      departure {
+        delay: 53
+        time: 1791269729
+      }
+      stop_id: "40026"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: 31
+        time: 1791269773
+      }
+      departure {
+        delay: 56
+        time: 1791269798
+      }
+      stop_id: "40028"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: 20
+        time: 1791269849
+      }
+      departure {
+        delay: 39
+        time: 1791269868
+      }
+      stop_id: "40030"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: 23
+        time: 1791269914
+      }
+      departure {
+        delay: 36
+        time: 1791269927
+      }
+      stop_id: "42250"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: 22
+        time: 1791269963
+      }
+      departure {
+        delay: 27
+        time: 1791269968
+      }
+      stop_id: "40078"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: 15
+        time: 1791269994
+      }
+      departure {
+        delay: 30
+        time: 1791270009
+      }
+      stop_id: "40032"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: 150
+        time: 1791270261
+      }
+      departure {
+        delay: 173
+        time: 1791270284
+      }
+      stop_id: "40034"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: 173
+        time: 1791270335
+      }
+      departure {
+        delay: 173
+        time: 1791270335
+      }
+      stop_id: "40036"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: 173
+        time: 1791270482
+      }
+      departure {
+        delay: 173
+        time: 1791270482
+      }
+      stop_id: "40038"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 173
+        time: 1791271673
+      }
+      departure {
+        delay: 0
+        time: 1791271800
+      }
+      stop_id: "44001"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 0
+        time: 1791272591
+      }
+      departure {
+        delay: 4
+        time: 1791272595
+      }
+      stop_id: "41098"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 26
+        time: 1791272639
+      }
+      departure {
+        delay: 39
+        time: 1791272652
+      }
+      stop_id: "40699"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 79
+        time: 1791272719
+      }
+      departure {
+        delay: 126
+        time: 1791272766
+      }
+      stop_id: "40697"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 134
+        time: 1791272874
+      }
+      departure {
+        delay: 152
+        time: 1791272892
+      }
+      stop_id: "40695"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 142
+        time: 1791272962
+      }
+      departure {
+        delay: 142
+        time: 1791272962
+      }
+      stop_id: "41051"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1905"
+    }
+    timestamp: 1791265533
+  }
+}
+entity {
+  id: "9503170"
+  is_deleted: false
+  trip_update {
+    trip {
+      trip_id: "9503170"
+      start_time: "22:05:00"
+      start_date: "20261005"
+      route_id: "101"
+    }
+    stop_time_update {
+      stop_sequence: 7
+      arrival {
+        delay: -11
+        time: 1791265623
+      }
+      departure {
+        delay: -11
+        time: 1791265623
+      }
+      stop_id: "40037"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 8
+      arrival {
+        delay: -11
+        time: 1791265788
+      }
+      departure {
+        delay: 6
+        time: 1791265805
+      }
+      stop_id: "40035"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 9
+      arrival {
+        delay: 96
+        time: 1791265959
+      }
+      departure {
+        delay: 114
+        time: 1791265977
+      }
+      stop_id: "40033"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 10
+      arrival {
+        delay: 114
+        time: 1791266116
+      }
+      departure {
+        delay: 133
+        time: 1791266135
+      }
+      stop_id: "40031"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 11
+      arrival {
+        delay: 121
+        time: 1791266173
+      }
+      departure {
+        delay: 134
+        time: 1791266186
+      }
+      stop_id: "40079"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 12
+      arrival {
+        delay: 118
+        time: 1791266245
+      }
+      departure {
+        delay: 129
+        time: 1791266256
+      }
+      stop_id: "42246"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 13
+      arrival {
+        delay: 94
+        time: 1791266292
+      }
+      departure {
+        delay: 125
+        time: 1791266323
+      }
+      stop_id: "40029"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 14
+      arrival {
+        delay: 87
+        time: 1791266386
+      }
+      departure {
+        delay: 121
+        time: 1791266420
+      }
+      stop_id: "40027"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 15
+      arrival {
+        delay: 94
+        time: 1791266469
+      }
+      departure {
+        delay: 125
+        time: 1791266500
+      }
+      stop_id: "40025"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 16
+      arrival {
+        delay: 112
+        time: 1791266537
+      }
+      departure {
+        delay: 137
+        time: 1791266562
+      }
+      stop_id: "42245"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 17
+      arrival {
+        delay: 123
+        time: 1791266643
+      }
+      departure {
+        delay: 139
+        time: 1791266659
+      }
+      stop_id: "40023"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 18
+      arrival {
+        delay: 131
+        time: 1791266791
+      }
+      departure {
+        delay: 156
+        time: 1791266816
+      }
+      stop_id: "40083"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 19
+      arrival {
+        delay: 158
+        time: 1791266890
+      }
+      departure {
+        delay: 166
+        time: 1791266898
+      }
+      stop_id: "42210"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 20
+      arrival {
+        delay: 144
+        time: 1791266946
+      }
+      departure {
+        delay: 158
+        time: 1791266960
+      }
+      stop_id: "42200"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 21
+      arrival {
+        delay: 111
+        time: 1791267041
+      }
+      departure {
+        delay: 127
+        time: 1791267057
+      }
+      stop_id: "42201"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 22
+      arrival {
+        delay: 100
+        time: 1791267112
+      }
+      departure {
+        delay: 110
+        time: 1791267122
+      }
+      stop_id: "42202"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 23
+      arrival {
+        delay: 99
+        time: 1791267182
+      }
+      departure {
+        delay: 106
+        time: 1791267189
+      }
+      stop_id: "41191"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 24
+      arrival {
+        delay: 91
+        time: 1791267231
+      }
+      departure {
+        delay: 102
+        time: 1791267242
+      }
+      stop_id: "42203"
+      schedule_relationship: SCHEDULED
+    }
+    stop_time_update {
+      stop_sequence: 25
+      arrival {
+        delay: 93
+        time: 1791267333
+      }
+      departure {
+        delay: 93
+        time: 1791267333
+      }
+      stop_id: "42204"
+      schedule_relationship: SCHEDULED
+    }
+    vehicle {
+      id: "1905"
+    }
+    timestamp: 1791265533
+  }
+}
