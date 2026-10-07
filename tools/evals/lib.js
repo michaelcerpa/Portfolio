@@ -23,7 +23,14 @@ const SAMPLE_SLACK_S = 30;     // samples are ~15 s apart; allow one gap of slac
 function loadRecording(file) {
   let buf = fs.readFileSync(file);
   if (file.endsWith(".gz")) buf = zlib.gunzipSync(buf);
-  return buf.toString("utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((s) => s.t);
+  const samples = buf.toString("utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((s) => s.t);
+  // What the server would hold as vehicles at each moment: it reuses the last positions when the feed blinks empty.
+  let last = null;
+  for (const s of samples) {
+    s.vpServed = c.keepVehicles(last, { vehicles: s.vp || [] }, AGENCY.keepVehiclesS, s.t * 1000).vehicles;
+    if ((s.vp || []).length) last = { at: s.t * 1000, vehicles: s.vp };
+  }
+  return samples;
 }
 
 function loadModel(zipPath) {
@@ -33,13 +40,13 @@ function loadModel(zipPath) {
 }
 
 // The engine's view of one recorded sample (same shape decodeFeed() produces).
-function liveAt(sample) {
+function liveAt(sample, naive = false) {
   return {
     tripUpdates: (sample.tu || []).map((u) => ({
       trip: { tripId: u.trip, startDate: u.date || undefined }, vehicle: { id: u.veh },
       stops: Object.entries(u.stops || {}).map(([seq, t]) => ({ seq: +seq, arr: { time: t }, dep: { time: t } })).sort((a, b) => a.seq - b.seq),
     })),
-    vehicles: (sample.vp || []).map((v) => ({
+    vehicles: ((naive ? sample.vp : sample.vpServed ?? sample.vp) || []).map((v) => ({
       trip: { tripId: v.trip }, vehicle: { id: v.veh }, pos: { lat: v.lat, lon: v.lon }, ts: v.ts, seq: v.seq || undefined,
     })),
     ts: sample.tu_ts || sample.vp_ts || sample.t,
@@ -48,11 +55,12 @@ function liveAt(sample) {
 }
 
 // Departures exactly as /api/pgo computes them (same options as api/_lib/handler.js). naive: without the
-// protections (turnaround hold/cap, at-stop hold), to prove the eval catches the bugs they fix.
+// protections (turnaround hold/cap, at-stop and pulling-up holds, kept GPS), to prove the eval catches the bugs they fix.
 function departuresAt(model, sample, stop, naive = false) {
-  return c.departures(model, liveAt(sample), {
+  return c.departures(model, liveAt(sample, naive), {
     from: [stop.from], to: [stop.to], now: sample.t,
-    holdAt: !naive && AGENCY.turnaround ? [AGENCY.turnaround] : [], atStopMeters: naive ? 0 : AGENCY.atStopMeters,
+    holdAt: !naive && AGENCY.turnaround ? [AGENCY.turnaround] : [],
+    atStopMeters: naive ? 0 : AGENCY.atStopMeters, approachMeters: naive ? 0 : AGENCY.approachMeters,
   });
 }
 

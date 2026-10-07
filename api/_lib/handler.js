@@ -46,8 +46,8 @@ module.exports = (key, deps = {}) => async (req, res) => {
       schedule: { updated: model.lastModified, validUntil: model.validUntil },
       origin: model.stops[from[0]] || null,
       origins: from.map((id) => model.stops[id]).filter(Boolean),
-      departures: departures(model, live, { from, to, now, holdAt, atStopMeters: agency.atStopMeters }),
-      recent: departures(model, live, { from, to, now, holdAt, atStopMeters: agency.atStopMeters, recent: true }),
+      departures: departures(model, live, { from, to, now, holdAt, atStopMeters: agency.atStopMeters, approachMeters: agency.approachMeters }),
+      recent: departures(model, live, { from, to, now, holdAt, atStopMeters: agency.atStopMeters, approachMeters: agency.approachMeters, recent: true }),
     };
     // Nothing soon (late night, weekends for the commute-only routes): say when the next one is.
     if (!body.departures.length) {

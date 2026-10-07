@@ -1,6 +1,6 @@
 /* Shuttle — Presidio GO's Downtown route between Lombard Gate and 50 Beale St, both ways.
    Data: /api/pgo (Presidio GO's own GTFS + GTFS-Realtime feeds, merged server-side).
-   Every time shown is labeled live (shuttle GPS), estimated, or timetable — never faked.
+   Times follow presidio/timing.js: never later than the timetable unless the shuttle is on that run.
    Same app as /bus/, adapted: one route, Presidio GO Pass runs, and a loop that turns around at 50 Beale. */
 (function () {
   "use strict";
@@ -445,7 +445,7 @@
     } else if (p.state === "waiting") {
       const t0 = timeAt(stops[0]);
       hero.innerHTML = `<div class="ride-lead">Waiting for the shuttle</div>
-        <div class="ride-big"><span class="num">${Math.max(0, Math.round((t0 - now) / 60))}</span><span class="unit">min</span></div>
+        <div class="ride-big"><span class="num">${Math.max(0, Math.floor((t0 - now) / 60))}</span><span class="unit">min</span></div>
         <div class="ride-sub">at ${esc(SHORT[stops[0].id] || bare(stops[0].name))} · <span class="num">${clock(t0)}</span></div>`;
     } else if (p.state === "next") {
       hero.innerHTML = `<div class="ride-lead">Your stop is next</div>

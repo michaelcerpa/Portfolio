@@ -1,5 +1,5 @@
 // Network-first service worker: always fresh online, still opens offline (last good copy).
-const CACHE = "shuttle-v5";
+const CACHE = "shuttle-v6";
 const SHELL = ["./", "app.css", "app.js", "timing.js", "manifest.webmanifest", "icon-192.png",
                "../bus/ride.js", "../bus/vendor/leaflet/leaflet.css", "../bus/vendor/leaflet/leaflet.js",
                "../fonts/SpaceGrotesk-var.woff2", "../fonts/JetBrainsMono-var.woff2"];
