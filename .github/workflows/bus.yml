@@ -4,9 +4,9 @@ name: bus
 on:
   push:
     branches: [main]
-    paths: ["bus/**", "presidio/**", "api/**", "tools/bus*", "tools/shuttle*", ".github/workflows/bus.yml"]
+    paths: ["bus/**", "presidio/**", "api/**", "tools/bus*", "tools/shuttle*", "tools/evals/**", ".github/workflows/bus.yml"]
   pull_request:
-    paths: ["bus/**", "presidio/**", "api/**", "tools/bus*", "tools/shuttle*", ".github/workflows/bus.yml"]
+    paths: ["bus/**", "presidio/**", "api/**", "tools/bus*", "tools/shuttle*", "tools/evals/**", ".github/workflows/bus.yml"]
   schedule:
     - cron: "11 14 * * 1"   # Mondays, before the morning commute
   workflow_dispatch:
@@ -39,6 +39,9 @@ jobs:
       - run: node --test tools/shuttle.test.js
         env:
           PGO_FIXTURES: /tmp/pgo
+      # Replays recorded live feeds against GPS departures (tools/evals/): never a time after a shuttle left, never
+      # dropped while at the stop. Also checks that the pre-fix logic fails it (the eval can see that bug).
+      - run: node --test tools/evals/eval.test.js
       - name: Check the deployed app
         if: github.event_name != 'pull_request'
         run: |

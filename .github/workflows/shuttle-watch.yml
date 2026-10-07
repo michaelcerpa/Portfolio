@@ -1,0 +1,71 @@
+# /presidio/ shuttle watch: every weekday, record Presidio GO's live feed through the morning and evening commutes,
+# then run the evals on that day's real data. A failure (red run, emailed by GitHub) means the page would have shown
+# a departure time after a shuttle actually left, or dropped one still at the stop. Recordings are kept on the
+# shuttle-recordings branch, so every day becomes a regression case for tools/evals/.
+name: shuttle-watch
+on:
+  schedule:
+    - cron: "50 12 * * 1-5"   # 5:50am PDT / 4:50am PST, records until 9:45am Pacific
+    - cron: "50 22 * * 1-5"   # 3:50pm PDT / 2:50pm PST, records until 7:15pm Pacific
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "Record this many minutes (default: until the end of the commute window)"
+        required: false
+permissions:
+  contents: write
+concurrency:
+  group: shuttle-watch
+  cancel-in-progress: false
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Record the live feed
+        run: |
+          python3 -m venv /tmp/v && /tmp/v/bin/pip -q install gtfs-realtime-bindings
+          now=$(TZ=America/Los_Angeles date +%H%M)
+          if [ -n "${{ github.event.inputs.minutes }}" ]; then mins=${{ github.event.inputs.minutes }}; part=manual
+          elif [ "$now" -lt 1200 ]; then end=$(TZ=America/Los_Angeles date -d "09:45" +%s); part=am
+          else end=$(TZ=America/Los_Angeles date -d "19:15" +%s); part=pm; fi
+          [ -z "$mins" ] && mins=$(( (end - $(date +%s)) / 60 ))
+          name="$(TZ=America/Los_Angeles date +%Y-%m-%d)-$part"
+          echo "NAME=$name" >> "$GITHUB_ENV"
+          echo "Recording $mins minutes as $name"
+          mkdir -p /tmp/rec && /tmp/v/bin/python tools/evals/record.py /tmp/rec "$mins"
+          gzip -9 -c /tmp/rec/feed.jsonl > "/tmp/rec/$name.jsonl.gz"
+          gzip -9 -c /tmp/rec/api.jsonl > "/tmp/rec/$name.api.jsonl.gz"
+          # The timetable in force that day (the evals fall back to tools/evals/recordings/gtfs.zip without it).
+          cp tools/evals/recordings/gtfs.zip /tmp/rec/gtfs.zip
+          curl -fsS --retry 3 -o "/tmp/rec/$name.gtfs.zip" https://presidiobus.com/gtfs.zip || rm -f "/tmp/rec/$name.gtfs.zip"
+      - name: Keep the recording (shuttle-recordings branch)
+        if: always()
+        run: |
+          [ -f "/tmp/rec/$NAME.jsonl.gz" ] || exit 0
+          git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin shuttle-recordings && git worktree add -q /tmp/store origin/shuttle-recordings \
+            || { git worktree add -q --detach /tmp/store && git -C /tmp/store checkout -q --orphan shuttle-recordings && git -C /tmp/store rm -rqf . ; }
+          cp "/tmp/rec/$NAME.jsonl.gz" "/tmp/rec/$NAME.api.jsonl.gz" /tmp/store/
+          [ -f "/tmp/rec/$NAME.gtfs.zip" ] && cp "/tmp/rec/$NAME.gtfs.zip" /tmp/store/
+          cd /tmp/store && git add -A && git commit -qm "recording $NAME" && git push -q origin HEAD:shuttle-recordings
+      - name: Deterministic eval on today's feed
+        run: node tools/evals/shuttle-eval.js "/tmp/rec/$NAME.jsonl.gz" --report /tmp/rec/eval.json
+      - name: LLM-judged eval on today's feed
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then echo "::notice::ANTHROPIC_API_KEY secret not set; skipping the LLM-judged eval"; exit 0; fi
+          npm install --no-save --no-audit --no-fund @anthropic-ai/sdk playwright@1.56.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          node tools/evals/shuttle-llm-eval.mjs "/tmp/rec/$NAME.jsonl.gz" --report /tmp/rec/llm-eval.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shuttle-watch-${{ env.NAME }}
+          path: /tmp/rec/*.json*
+          if-no-files-found: ignore

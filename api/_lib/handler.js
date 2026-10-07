@@ -18,7 +18,8 @@ function needsPass(agency, model, d) {
   return agency.passOnly[half].includes(d.trip);
 }
 
-module.exports = (key) => async (req, res) => {
+// deps lets the evals (tools/evals/) feed it a recorded snapshot instead of fetching the agency's feeds.
+module.exports = (key, deps = {}) => async (req, res) => {
   const agency = AGENCIES[key];
   const q = new URL(req.url, "http://x").searchParams;
   const from = (q.get("from") || agency.defaults.from.join(",")).split(",").filter(Boolean).slice(0, 8);
@@ -31,7 +32,7 @@ module.exports = (key) => async (req, res) => {
   const now = Math.floor(Date.now() / 1000);
   const holdAt = agency.turnaround ? [agency.turnaround] : [];
   try {
-    const [model, live] = await Promise.all([getModel(fetch, key), getLive(fetch, key)]);
+    const [model, live] = await Promise.all([(deps.getModel || getModel)(fetch, key), (deps.getLive || getLive)(fetch, key)]);
     const feed = { ok: !live.errors.length, ts: live.ts, errors: live.errors };
     if (rideTrip) {
       const r = ride(model, live, { trip: rideTrip, date: rideDate, from: from[0], to: to[0], now, holdAt });
