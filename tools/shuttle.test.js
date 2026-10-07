@@ -163,6 +163,11 @@ test("real feeds: her stops, the timetable, and which runs need a pass", { skip:
   const pm = await api("/api/pgo/?from=8894813&to=31980", base + 16 * 3600 + 20 * 60);
   assert.deepEqual(list(pm.body).slice(0, 8), ["16:30*", "16:45", "17:00*", "17:15", "17:30*", "17:45", "18:00*", "18:15"]);
   for (const d of pm.body.departures) assert.ok(d.dest.id === "31980" && d.dest.sched > d.sched);
+  // Or the same runs 2 minutes later at Drumm & California (Embarcadero BART), the other downtown pick-up.
+  const drumm = await api("/api/pgo/?from=839326&to=31980", base + 16 * 3600 + 20 * 60);
+  assert.deepEqual(list(drumm.body).slice(0, 8), ["16:32*", "16:47", "17:02*", "17:17", "17:32*", "17:47", "18:02*", "18:17"]);
+  assert.deepEqual(drumm.body.departures.map((d) => d.trip).slice(0, 8), pm.body.departures.map((d) => d.trip).slice(0, 8));
+  for (const d of drumm.body.departures) assert.ok(d.origin.id === "839326" && d.dest.id === "31980" && d.dest.sched > d.sched);
 
   // Ride mode on the morning run.
   const first = am.body.departures[0];

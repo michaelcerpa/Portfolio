@@ -11,15 +11,18 @@
     work: { label: "To work", title: "Lombard Gate <span class=\"arrow\">→</span> 50 Beale", arrive: "at work",
             from: ["31933"],                   // Lombard Gate
             to: ["8894813"] },                 // Beale & Mission ("50 Beale Street" on the timetable)
-    home: { label: "To home", title: "50 Beale <span class=\"arrow\">→</span> Letterman", arrive: "home",
-            from: ["8894813"],                 // Beale & Mission, where the loop turns around
+    home: { label: "To home", arrive: "home",  // from: the pick-up she chose (HOME_STOPS), see cfg()
             to: ["31980"] },                   // Letterman Digital Arts Center (the way back skips Lombard Gate)
   };
+  // Two downtown pick-ups on the way home, on the same run: 50 Beale (where the loop turns around)
+  // and Drumm & California (Embarcadero BART), 2 minutes later.
+  const HOME_STOPS = [{ id: "8894813", note: "first stop" }, { id: "839326", note: "2 min later" }];
   const OFFICE = [37.7914, -122.3979];        // the office, a block from 50 Beale
   const POLL_MS = 15000;
-  const SHORT = { "31933": "Lombard Gate", "8894813": "50 Beale", "31980": "Letterman" };
-  const WALKS = [["31933", "Home → Lombard Gate"], ["8894813", "Office ↔ 50 Beale"], ["31980", "Letterman → home"]];
-  const DEFAULTS = { walk: { "31933": 5, "8894813": 3, "31980": 6 }, pass: true };
+  const SHORT = { "31933": "Lombard Gate", "8894813": "50 Beale", "839326": "Drumm & California", "31980": "Letterman" };
+  const WALKS = [["31933", "Home → Lombard Gate"], ["8894813", "Office ↔ 50 Beale"], ["839326", "Office → Drumm & California"],
+                 ["31980", "Letterman → home"]];
+  const DEFAULTS = { walk: { "31933": 5, "8894813": 3, "839326": 5, "31980": 6 }, pass: true, homeStop: "8894813" };
 
   /* ---------- storage (best effort: private mode etc. may throw) ---------- */
   const store = {
@@ -28,7 +31,8 @@
   };
   const saved = store.get("pgo:settings", {});
   // pass: has a Presidio GO Pass. Without one, the pass-only runs (weekday rush hours) are hidden.
-  const settings = { walk: Object.assign({}, DEFAULTS.walk, saved.walk), pass: saved.pass ?? DEFAULTS.pass };
+  const settings = { walk: Object.assign({}, DEFAULTS.walk, saved.walk), pass: saved.pass ?? DEFAULTS.pass,
+                     homeStop: HOME_STOPS.some((h) => h.id === saved.homeStop) ? saved.homeStop : DEFAULTS.homeStop };
   const walkMin = (id) => settings.walk[id] ?? 5;
 
   // Direction: mornings default to work, afternoons/evenings to home; a tap overrides for 4 hours.
@@ -36,7 +40,11 @@
   const autoDir = () => (laHour() >= 4 && laHour() < 12 ? "work" : "home");
   const pinned = store.get("pgo:dir", null);
   let dir = pinned && Date.now() < pinned.until ? pinned.dir : autoDir();
-  const cfg = () => DIRS[dir];
+  const cfg = () => (dir === "home"
+    ? { ...DIRS.home, from: [settings.homeStop], title: `${esc(SHORT[settings.homeStop])} <span class="arrow">→</span> Letterman` }
+    : DIRS.work);
+  // What's on screen: the direction, plus the pick-up stop on the way home (cached data and map are per view).
+  const view = () => (dir === "home" ? "home-" + settings.homeStop : dir);
 
   /* ---------- state ---------- */
   let data = null, receivedAt = 0, skewMs = 0, fetchError = null, selected = null, didFit = false;
@@ -251,9 +259,9 @@
   }
 
   async function loadMapLayer() {
-    const forDir = dir, key = "pgo:map:" + forDir;
+    const forView = view(), key = "pgo:map:" + forView;
     const draw = (layer) => {
-      if (!layer || !map || forDir !== dir) return;
+      if (!layer || !map || forView !== view()) return;
       routeLayer.clearLayers();
       for (const line of layer.lines) {
         L.polyline(line.points, { color: line.color, weight: 3, opacity: 0.45, interactive: false }).addTo(routeLayer);
@@ -339,25 +347,26 @@
     return `${apiBase}?from=${cfg().from.join(",")}&to=${cfg().to.join(",")}${withMap ? "&map=1" : ""}`;
   }
 
-  let inflight = false;
+  let inflight = false, again = false;
   async function refresh() {
-    if (inflight) return;
+    if (inflight) { again = true; return; }  // e.g. switched stop mid-request: fetch the new view right after
     inflight = true;
-    const forDir = dir;
+    const forView = view();
     try {
       const r = await apiFetch(false, { cache: "no-store", signal: AbortSignal.timeout(12000) });
       const body = await r.json();
       if (!r.ok) throw new Error(body.error || "HTTP " + r.status);
-      if (forDir !== dir) return;  // switched direction while this was in flight
+      if (forView !== view()) return;  // switched direction or stop while this was in flight
       data = body; receivedAt = Date.now(); fetchError = null;
       skewMs = Math.abs(body.now * 1000 - Date.now()) > 90000 ? body.now * 1000 - Date.now() : 0;
-      store.set("pgo:last:" + dir, { data, receivedAt });
+      store.set("pgo:last:" + forView, { data, receivedAt });
       renderFoot();
     } catch (e) {
       fetchError = e;
     } finally {
       inflight = false;
       render();
+      if (again) { again = false; refresh(); }
     }
   }
 
@@ -548,6 +557,7 @@
     }
     settings.pass = $("hasPass").checked;
     store.set("pgo:settings", settings);
+    renderPickup();
     render();
   }
 
@@ -555,12 +565,32 @@
   function renderDir() {
     $("title").innerHTML = cfg().title;
     for (const b of document.querySelectorAll(".dirs button")) b.setAttribute("aria-selected", String(b.dataset.dir === dir));
+    renderPickup();
+  }
+  // On the way home: which downtown stop to catch the shuttle at. Same run either way.
+  function renderPickup() {
+    const el = $("pickup");
+    el.hidden = dir !== "home";
+    if (el.hidden) return;
+    el.innerHTML = `<span class="pickup-label" id="pickupLabel">Pick up at</span>` + HOME_STOPS.map((h) =>
+      `<button type="button" role="radio" aria-checked="${h.id === settings.homeStop}" data-stop="${h.id}">
+        <b>${esc(SHORT[h.id])}</b><span>${walkMin(h.id)} min walk · ${esc(h.note)}</span></button>`).join("");
+  }
+  function setHomeStop(id) {
+    if (id === settings.homeStop || !HOME_STOPS.some((h) => h.id === id)) return;
+    settings.homeStop = id;
+    store.set("pgo:settings", settings);
+    switchView();
   }
   function setDir(next, byTap) {
     if (byTap) store.set("pgo:dir", { dir: next, until: Date.now() + 4 * 3600 * 1000 });
     if (next === dir) return;
     dir = next;
-    const c = store.get("pgo:last:" + dir, null);
+    switchView();
+  }
+  // Show the new view right away (its cached copy if recent), then fetch it.
+  function switchView() {
+    const c = store.get("pgo:last:" + view(), null);
     data = c && Date.now() - c.receivedAt < 10 * 60 * 1000 ? c.data : null;
     receivedAt = c?.receivedAt || 0;
     selected = null; didFit = false; recentOpen = false;
@@ -574,7 +604,7 @@
   }
 
   /* ---------- boot ---------- */
-  const cached = store.get("pgo:last:" + dir, null);
+  const cached = store.get("pgo:last:" + view(), null);
   if (cached && Date.now() - cached.receivedAt < 10 * 60 * 1000) { data = cached.data; receivedAt = cached.receivedAt; }
   renderDir();
   initMap();
@@ -610,6 +640,7 @@
   $("ride").addEventListener("click", (e) => { unlockAudio(); if (e.target.id === "rideDone") endRide(); });
   $("fit").addEventListener("click", fit);
   document.querySelector(".dirs").addEventListener("click", (e) => { const b = e.target.closest("[data-dir]"); if (b) setDir(b.dataset.dir, true); });
+  $("pickup").addEventListener("click", (e) => { const b = e.target.closest("[data-stop]"); if (b) setHomeStop(b.dataset.stop); });
   $("openSettings").addEventListener("click", openSettings);
   $("settings").addEventListener("close", () => { if ($("settings").returnValue === "save") saveSettings(); });
 
