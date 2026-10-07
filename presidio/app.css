@@ -29,9 +29,6 @@ button{font:inherit;color:inherit}
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 h1{font-size:19px;font-weight:500;letter-spacing:-.01em;margin-top:4px}
 h1 .arrow{color:var(--ink-soft)}
-.icon-btn{background:none;border:1px solid var(--rule-strong);border-radius:10px;width:40px;height:40px;
-          display:grid;place-items:center;color:var(--ink-soft);cursor:pointer;flex:none}
-.icon-btn:active{background:var(--panel)}
 
 /* ---------- direction switch ---------- */
 .dirs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:14px}
@@ -51,6 +48,7 @@ h1 .arrow{color:var(--ink-soft)}
 .pickup button[aria-checked="true"] b{color:var(--accent)}
 
 /* ---------- feed status + holiday note ---------- */
+.feed[hidden]{display:none}
 .feed{display:flex;align-items:center;gap:8px;margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
 .beacon{width:8px;height:8px;border-radius:50%;background:var(--ink-faint);flex:none}
 .feed.ok .beacon{background:var(--accent);box-shadow:0 0 0 0 rgba(111,191,147,.6);animation:ping 2s var(--ease) infinite}
@@ -87,8 +85,7 @@ h1 .arrow{color:var(--ink-soft)}
 .chip{flex:none;font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 8px;border-radius:999px;white-space:nowrap;
       border:1px solid currentColor;line-height:1.1}
 .chip.ontime{color:var(--accent)} .chip.late{color:var(--late)} .chip.verylate{color:var(--very-late)}
-.chip.early{color:var(--early)} .chip.sched{color:var(--ink-faint);border-style:dashed}
-.chip.maybe{color:var(--late);border-style:dashed}
+.chip.early{color:var(--early)}
 .chip.canceled{color:var(--bad);background:rgba(240,122,90,.12)}
 
 /* ---------- map ---------- */
@@ -128,44 +125,15 @@ h1 .arrow{color:var(--ink-soft)}
 .row .line1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .row .t{font-family:var(--mono);font-size:20px;font-weight:600;letter-spacing:-.02em}
 .row .in{font-size:14px;color:var(--ink-soft)}
-.row .line2,.row .line3{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
-.row .line3{color:var(--ink-faint)}
-.row .tag{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);
-          border:1px solid var(--accent-deep);padding:1px 5px;border-radius:4px;margin-left:2px}
-.tag.pass,.row .tag.pass{color:var(--ink-soft);border:1px solid var(--rule-strong);font-family:var(--mono);font-size:10px;letter-spacing:.06em;
-                         text-transform:uppercase;padding:1px 5px;border-radius:4px;margin-left:2px}
-.hero .pass-note{display:flex;align-items:center;gap:6px;margin-top:6px}
-.hero .pass-note .tag{margin-left:0}
+.row .line2{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
 .empty{color:var(--ink-soft);padding:18px 4px;font-size:14px}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:11.5px;color:var(--ink-faint)}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
-.dot.live{background:var(--accent)} .dot.est{background:var(--ink-soft)} .dot.sched{border:1px dashed var(--ink-faint)}
 
 /* ---------- footer ---------- */
 .foot{margin-top:22px;padding-bottom:28px;font-size:11.5px;color:var(--ink-faint);line-height:1.6}
 .foot a{color:var(--ink-soft)}
 
-/* ---------- settings sheet ---------- */
-dialog{margin:auto auto 0;width:100%;max-width:560px;border:none;background:var(--panel);color:var(--ink);
-       border-radius:18px 18px 0 0;padding:0;border-top:1px solid var(--rule-strong)}
-dialog::backdrop{background:rgba(0,0,0,.55)}
-.sheet{padding:20px var(--gutter) calc(20px + env(safe-area-inset-bottom));display:grid;gap:14px}
-.sheet h2{font-size:17px;font-weight:500}
-.sheet label{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px}
-.sheet label span{display:flex;align-items:center;gap:6px;color:var(--ink-soft);font-family:var(--mono);font-size:13px}
-.sheet input[type=number]{width:62px;padding:8px;border-radius:8px;border:1px solid var(--rule-strong);background:var(--bg);
-                          color:var(--ink);font-family:var(--mono);font-size:16px;text-align:center}
-.sheet fieldset{border:none}
-.sheet legend{font-size:14px;margin-bottom:8px}
-.sheet .check{align-items:flex-start}
-.check-text{display:grid;gap:3px}
-.sheet .check-text small{font-size:12px;color:var(--ink-faint);font-family:var(--sans)}
-.sheet input[type=checkbox]{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--accent)}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chips label{display:inline-flex;gap:6px;padding:6px 10px;border:1px solid var(--rule-strong);border-radius:999px;font-family:var(--mono);font-size:13px}
-.chips input{accent-color:var(--accent)}
+/* ---------- misc ---------- */
 .fine{font-size:12px;color:var(--ink-faint)}
-.primary{background:var(--accent);color:var(--bg);border:none;border-radius:12px;padding:13px;font-weight:600;font-size:15px;cursor:pointer}
 
 @media (prefers-reduced-motion:reduce){.feed.ok .beacon{animation:none}}
 
@@ -199,7 +167,6 @@ body.riding{overflow:hidden}
 .ride-title{display:flex;align-items:center;gap:12px}
 .ride-dest{font-size:19px;font-weight:500;margin-top:2px}
 .ghost{background:none;border:1px solid var(--rule-strong);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink-soft);cursor:pointer}
-.ride-src{margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
 .ride-hero{margin-top:14px;border-radius:18px;padding:20px 18px;border:1px solid var(--rule-strong);
            background:linear-gradient(160deg,var(--panel-2),var(--panel))}
 .ride-lead{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
@@ -207,7 +174,6 @@ body.riding{overflow:hidden}
 .ride-big .num{font-size:64px;line-height:1;font-weight:600;letter-spacing:-.03em}
 .ride-big .unit{font-size:20px;color:var(--ink-soft)}
 .ride-sub{font-size:15px;color:var(--ink-soft);margin-top:10px;line-height:1.6}
-.ride-sub .chip{display:inline-block;margin-left:4px;vertical-align:1px}
 .ride-sub b{color:var(--ink);font-weight:500}
 .ride-sub2{font-size:13px;color:var(--ink-faint);margin-top:6px}
 .ride-hero.next{background:var(--late);border-color:var(--late);color:var(--bg);animation:pulse 1.4s var(--ease) infinite}

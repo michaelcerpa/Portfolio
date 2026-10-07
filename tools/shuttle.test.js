@@ -174,6 +174,15 @@ test("timing: a later estimate is never the time to be there until the shuttle i
   assert.deepEqual(Timing.status(d("scheduled", null)), ["sched", "timetable"]);
   assert.deepEqual(Timing.status({ ...d("canceled", null), status: "canceled" }), ["canceled", "canceled"]);
   assert.deepEqual(Timing.status({ ...d("live", null), atStop: true }), ["ontime", "at your stop"]);
+  // The page shows a label only when it is real: no "timetable", no "may run late", no guessing before the run.
+  assert.equal(Timing.label(d("estimated", 360)), null);
+  assert.equal(Timing.label(d("estimated", -180)), null);
+  assert.equal(Timing.label(d("scheduled", null)), null);
+  assert.equal(Timing.label(d("live", null)), null);
+  assert.deepEqual(Timing.label(d("live", 360)), ["verylate", "6 min late"]);
+  assert.deepEqual(Timing.label(d("live", 20)), ["ontime", "on time"]);
+  assert.deepEqual(Timing.label({ ...d("estimated", null), status: "canceled" }), ["canceled", "canceled"]);
+  assert.deepEqual(Timing.label({ ...d("estimated", 360), atStop: true }), ["ontime", "at your stop"]);
 });
 
 test("the missed 6:34: an estimate from the previous loop never pushes the time later", () => {
