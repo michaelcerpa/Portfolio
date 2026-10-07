@@ -134,6 +134,32 @@ test("a shuttle the feed has marked past your stop stays listed while its GPS st
     { from: ["L"], to: ["B"], now: at(TUE, 7, 33) + 30 })[0].trip, "PD0800");
 });
 
+test("a shuttle still pulling up stays listed after the feed drops the stop, and its time is capped at a slow crawl", () => {
+  // Seen on the 8:48 from Lombard Gate: the feed dropped the stop at 8:50:09 with the shuttle 86 m out; it pulled up at
+  // 8:50:54 and left at 8:51:07. And at 50 Beale, a late shuttle 146 m out was predicted at 9:01:54 but left at 9:01:24.
+  const m = loopModel(), now = at(TUE, 7, 34);
+  const tu = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, stops: [{ seq: 2, arr: { time: at(TUE, 7, 45) }, dep: { time: at(TUE, 7, 45) } }] };
+  const vp = (lat, lon) => ({ trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat, lon }, ts: now - 5 });
+  const opts = { from: ["L"], to: ["B"], now, atStopMeters: 60, approachMeters: 300 };
+  // 120 m short of the gate, on the way in from the Transit Center.
+  const pulling = c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.79888, -122.44852)] }, opts);
+  assert.deepEqual([pulling[0].trip, pulling[0].status, !!pulling[0].atStop], ["PD0730", "live", false]);
+  assert.ok(Timing.departs(pulling[0]) <= now + 60, "120 m at 2 m/s: no later than a minute out");
+  // 120 m past it, toward Van Ness: it has left.
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.7984, -122.44594)] }, opts)[0].trip, "PD0800");
+  // Off by default (Golden Gate's page keeps its behavior).
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.79888, -122.44852)] }, { ...opts, approachMeters: 0 })[0].trip, "PD0800");
+});
+
+test("when the vehicle feed blinks empty for a poll, the last positions are kept for up to a minute", () => {
+  const last = { at: 1_000_000, vehicles: [{ vehicle: { id: "11" } }] }, empty = { tripUpdates: [], vehicles: [], errors: [] };
+  assert.equal(c.keepVehicles(last, empty, 60, 1_000_000 + 30_000).vehicles, last.vehicles);
+  assert.equal(c.keepVehicles(last, empty, 60, 1_000_000 + 90_000).vehicles.length, 0);
+  assert.equal(c.keepVehicles(last, empty, undefined, 1_000_000 + 30_000).vehicles.length, 0);  // Golden Gate: off
+  const fresh = { ...empty, vehicles: [{ vehicle: { id: "12" } }] };
+  assert.equal(c.keepVehicles(last, fresh, 60, 1_000_000 + 30_000), fresh);
+});
+
 test("past the turnaround: a shuttle parked at 50 Beale reaches Drumm on the timetable's 2 minutes, not the feed's 9", () => {
   // Seen on PD0700: parked at 50 Beale at 7:30:18 the feed said Drumm 7:39:40; it left Drumm at 7:34:01.
   const m = loopModel();

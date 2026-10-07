@@ -29,6 +29,8 @@ module.exports = {
     turnaround: "8894813",
     // The feed marks a stop done the moment a shuttle pulls up; it can sit there another minute (5 at 50 Beale).
     atStopMeters: 60,
+    approachMeters: 300,  // GPS this close and short of the stop along the route = still pulling up (feed drops the stop early)
+    keepVehiclesS: 60,    // the vehicle feed sometimes blinks empty for a poll; keep the last positions this long
     // Weekday runs the official timetable marks with * (Presidio GO Pass holders only). One run can be open
     // on its way downtown and pass-only on its way back, so each half of the loop has its own list.
     passOnly: {

@@ -211,8 +211,10 @@ const rankOf = (ids) => new Map([].concat(ids).map((id, i) => [id, i]));
 // opts.holdAt: stops where buses wait for their timetable time (a turnaround), so they never leave early.
 // opts.atStopMeters: some feeds mark a stop done as soon as the bus arrives; while the bus's GPS is still
 // within this distance of your stop, it hasn't left (the item gets atStop: true).
+// opts.approachMeters: some feeds also drop a stop once its predicted time passes, with the bus still pulling up;
+// while its GPS has it this close and still short of your stop along the route, it hasn't left either.
 function departures(model, live, opts) {
-  const { now, windowMin = 120, limit = 14, recent = false, days = [-1, 0, 1], atStopMeters = 0 } = opts;
+  const { now, windowMin = 120, limit = 14, recent = false, days = [-1, 0, 1], atStopMeters = 0, approachMeters = 0 } = opts;
   const fromRank = rankOf(opts.from), toRank = rankOf(opts.to), hold = new Set([].concat(opts.holdAt || []));
   const { tuByTrip, vpByTrip, vpById, lookup } = indexLive(live);
 
@@ -238,13 +240,23 @@ function departures(model, live, opts) {
       if (pred !== null && pred < sched && hold.has(origin.stop)) pred = sched;
       pred = capAfterTurnaround(trip, tu, base, hold, origin, pred, now);
       const destPred = capAfterTurnaround(trip, tu, base, hold, dest, atDest?.time ?? null, now);
-      const effective = pred ?? sched;
+      let effective = pred ?? sched;
       const stop = model.stops[origin.stop];
-      const atStop = !!(atStopMeters && vp?.pos && vp.ts && now - vp.ts < 90 && stop && Math.abs(now - effective) < 900 &&
-                        metersApart(vp.pos.lat, vp.pos.lon, stop.lat, stop.lon) < atStopMeters);
+      const gps = vp?.pos && vp.ts && now - vp.ts < 90 && stop && Math.abs(now - effective) < 900
+        ? metersApart(vp.pos.lat, vp.pos.lon, stop.lat, stop.lon) : Infinity;
+      const atStop = !!atStopMeters && gps < atStopMeters;
+      const approaching = !atStop && !!approachMeters && gps < approachMeters &&
+                          beforeStop(model, trip, trip.stops.indexOf(origin), vp.pos.lat, vp.pos.lon);
+      // Pulling up, it gets there no later than a 2 m/s crawl would (the feed's estimate this close runs slow: 2 min
+      // for 146 m at 50 Beale, which it then left 30 s before that estimate). A turnaround still never leaves early.
+      if (approaching && pred !== null) {
+        pred = Math.min(pred, now + Math.round(gps / 2));
+        if (hold.has(origin.stop)) pred = Math.max(pred, sched);
+        effective = pred;
+      }
       // A bus has left once the live data says so, or (live-predicted) its prediction is past,
-      // or (untracked) it is two minutes past its scheduled time — unless its GPS still has it at the stop.
-      const left = !atStop && (passed(tu, vp, origin) || effective < now - (pred ? 30 : 120));
+      // or (untracked) it is two minutes past its scheduled time — unless its GPS still has it at or pulling up to the stop.
+      const left = !atStop && !approaching && (passed(tu, vp, origin) || effective < now - (pred ? 30 : 120));
       if (recent) {
         if (!left || canceled || (atDest?.time ?? base + dest.arr) < now - 120) continue;
       } else {
@@ -303,8 +315,12 @@ function toSegment(p, a, b) {
   return { off: Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy), along: t * Math.sqrt(len2) };
 }
 
-// The trip's shape cut to the part between two of its stops (falls back to straight stop-to-stop lines).
-function rideLine(model, trip, i, j) {
+// A trip's shape in meters, with where each of its stops sits along it (memoized per model and trip).
+const shapeIndexes = new WeakMap();
+function shapeIndex(model, trip) {
+  let byTrip = shapeIndexes.get(model);
+  if (!byTrip) shapeIndexes.set(model, (byTrip = new Map()));
+  if (byTrip.has(trip.id)) return byTrip.get(trip.id);
   const stopPts = trip.stops.map((s) => model.stops[s.stop]).map((st) => [st?.lat, st?.lon]);
   const raw = model.shapes[trip.shape]?.length > 1 ? model.shapes[trip.shape] : stopPts;
   const xy = projector(raw[0][0]);
@@ -322,13 +338,34 @@ function rideLine(model, trip, i, j) {
     }
     return best;
   };
-  let seg = 0, start = null, end = null;
-  for (let k = 0; k <= j; k++) {
-    const b = along(k, seg);
-    seg = b.seg;
-    if (k === i) start = b.at;
-    if (k === j) end = b.at;
+  const stops = [];
+  for (let k = 0, seg = 0; k < trip.stops.length; k++) seg = (stops[k] = along(k, seg)).seg;
+  const ix = { raw, xy, pts, cum, stops };
+  byTrip.set(trip.id, ix);
+  return ix;
+}
+
+// True when a position is on the trip's shape short of stop k (between the stop before it and k). Feeds that
+// drop a stop once its predicted time passes would otherwise read a shuttle still pulling up as gone.
+function beforeStop(model, trip, k, lat, lon, maxOffRoute = 60) {
+  const ix = shapeIndex(model, trip), p = ix.xy(lat, lon), from = ix.stops[Math.max(0, k - 1)], to = ix.stops[k];
+  let best = null;
+  for (let s = from.seg; s <= to.seg && s < ix.pts.length - 1; s++) {
+    const r = toSegment(p, ix.pts[s], ix.pts[s + 1]);
+    if (!best || r.off < best.off) best = { off: r.off, at: ix.cum[s] + r.along };
   }
+  // ...and not closer to the stretch just after the stop (a loop can pass near itself).
+  for (let s = to.seg; s <= (ix.stops[k + 1] || to).seg && s < ix.pts.length - 1; s++) {
+    const r = toSegment(p, ix.pts[s], ix.pts[s + 1]);
+    if (best && ix.cum[s] + r.along > to.at && r.off < best.off) return false;
+  }
+  return !!best && best.off < maxOffRoute && best.at < to.at;
+}
+
+// The trip's shape cut to the part between two of its stops (falls back to straight stop-to-stop lines).
+function rideLine(model, trip, i, j) {
+  const { raw, cum, stops } = shapeIndex(model, trip);
+  const start = stops[i].at, end = stops[j].at;
   const out = [];
   const interp = (d) => {
     let k = cum.findIndex((c) => c >= d);
@@ -450,8 +487,16 @@ async function getModel(fetchImpl = fetch, key = "ggt") {
   return c.modelPromise;
 }
 
+// Presidio GO's vehicle feed now and then publishes an empty snapshot (or the fetch fails) for one poll, which would
+// drop the GPS that keeps a shuttle at the curb listed. With agency.keepVehiclesS, reuse the last vehicles for that
+// long; each still carries its own GPS time, so nothing downstream takes them for fresh fixes.
+function keepVehicles(last, data, keepS, nowMs) {
+  if (!keepS || data.vehicles.length || !last?.vehicles.length || nowMs - last.at > keepS * 1000) return data;
+  return { ...data, vehicles: last.vehicles };
+}
+
 async function getLive(fetchImpl = fetch, key = "ggt") {
-  const { sources } = AGENCIES[key], c = (caches[key] ||= {});
+  const { sources, keepVehiclesS } = AGENCIES[key], c = (caches[key] ||= {});
   if (c.live && Date.now() - c.live.at < 8000) return c.live.data;
   const grab = async (url) => {
     const r = await fetchImpl(url, { signal: AbortSignal.timeout(6000) });
@@ -459,15 +504,17 @@ async function getLive(fetchImpl = fetch, key = "ggt") {
     return decodeFeed(Buffer.from(await r.arrayBuffer()));
   };
   const [tu, vp] = await Promise.allSettled([grab(sources.tripUpdates), grab(sources.vehicles)]);
-  const data = {
+  const fetched = {
     tripUpdates: tu.status === "fulfilled" ? tu.value.tripUpdates : [],
     vehicles: vp.status === "fulfilled" ? vp.value.vehicles : [],
     ts: Math.max(tu.value?.header.ts || 0, vp.value?.header.ts || 0) || null,
     errors: [tu, vp].filter((x) => x.status === "rejected").map((x) => String(x.reason?.message || x.reason)),
   };
+  const data = keepVehicles(c.vehicles, fetched, keepVehiclesS, Date.now());
+  if (fetched.vehicles.length) c.vehicles = { at: Date.now(), vehicles: fetched.vehicles };
   if (!data.errors.length) c.live = { at: Date.now(), data };
   return data;
 }
 
-module.exports = { departures, ride, mapLayer, buildModel, getModel, getLive, serviceDayBase, ymdOf, runsOn,
+module.exports = { departures, ride, mapLayer, buildModel, getModel, getLive, keepVehicles, serviceDayBase, ymdOf, runsOn,
                    federalHolidays, weekendOnHolidays, SOURCES, AGENCIES };
