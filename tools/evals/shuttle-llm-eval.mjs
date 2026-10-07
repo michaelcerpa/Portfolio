@@ -6,7 +6,9 @@
 // A calibration set (screens in the style of the page before the missed-shuttle fix, at moments where it was wrong)
 // must be flagged too, or the judge isn't trusted and the run fails.
 //
-//   ANTHROPIC_API_KEY=... node tools/evals/shuttle-llm-eval.mjs [--dry-run] [--report out.json] [recordings...]
+//   ANTHROPIC_API_KEY=... node tools/evals/shuttle-llm-eval.mjs [--dry-run] [--max-screens N] [--report out.json] [recordings...]
+// --max-screens caps the judged screens (closest-to-departure moments first, spread across stops), default 40, plus
+// up to 12 calibration screens: ~$0.035 a call on claude-opus-5-5, so ~$2 a run at most.
 // Needs: npm i --no-save @anthropic-ai/sdk playwright (+ a Chromium for Playwright). Exits 1 on any failure.
 import fs from "node:fs";
 import path from "node:path";
@@ -22,8 +24,10 @@ const makeHandler = require("../../api/_lib/handler.js");
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
-const reportAt = args.includes("--report") ? args[args.indexOf("--report") + 1] : null;
-const files = L.recordingFiles(args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--report"));
+const opt = (name, dflt) => (args.includes(name) ? args[args.indexOf(name) + 1] : dflt);
+const reportAt = opt("--report", null);
+const MAX_SCREENS = +opt("--max-screens", 40), MAX_CONTROLS = 12;
+const files = L.recordingFiles(args.filter((a, i) => !a.startsWith("--") && !["--report", "--max-screens"].includes(args[i - 1])));
 const MODEL = "claude-opus-5-5";
 const OFFSETS_MIN = [20, 10, 4, 1];   // judge the screen this long before each actual departure
 const CONCURRENCY = 4;
@@ -182,7 +186,18 @@ async function pool(items, fn) {
 
 /* ---------- 4. run ---------- */
 
-const screens = cases.filter((k) => k.kind === "screen"), controls = cases.filter((k) => k.kind === "control");
+// Keep the moments that matter most (1 and 4 min before it left, where a wrong screen makes her miss it), taking
+// turns across stops so each stop is covered, then the 10 and 20 min ones while there's room.
+function cap(list, n) {
+  if (list.length <= n) return list;
+  const keyed = list.map((k, i) => ({ k, i, prio: OFFSETS_MIN.length - 1 - [...OFFSETS_MIN].reverse().indexOf(k.offset ?? 1) }));
+  const byStop = {};
+  for (const x of keyed.sort((a, b) => a.prio - b.prio || a.i - b.i)) (byStop[x.k.stop.from] ||= []).push(x.k);
+  const out = [], queues = Object.values(byStop);
+  while (out.length < n && queues.some((q) => q.length)) for (const q of queues) if (q.length && out.length < n) out.push(q.shift());
+  return out;
+}
+const screens = cap(cases.filter((k) => k.kind === "screen"), MAX_SCREENS), controls = cap(cases.filter((k) => k.kind === "control"), MAX_CONTROLS);
 console.log(`${screens.length} screens to judge (${OFFSETS_MIN.join("/")} min before each of the recorded departures) + ${controls.length} calibration screens`);
 await renderScreens(screens);
 for (const k of controls) k.screen = oldScreen(k);
