@@ -134,6 +134,24 @@ test("a shuttle the feed has marked past your stop stays listed while its GPS st
     { from: ["L"], to: ["B"], now: at(TUE, 7, 33) + 30 })[0].trip, "PD0800");
 });
 
+test("past the turnaround: a shuttle parked at 50 Beale reaches Drumm on the timetable's 2 minutes, not the feed's 9", () => {
+  // Seen on PD0700: parked at 50 Beale at 7:30:18 the feed said Drumm 7:39:40; it left Drumm at 7:34:01.
+  const m = loopModel();
+  const t = (h, mi, sec = 0) => at(TUE, h, mi) + sec;
+  const tu = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" },
+               stops: [{ seq: 4, arr: { time: t(8, 11, 40) }, dep: { time: t(8, 11, 40) } }, { seq: 5, arr: { time: t(8, 31) }, dep: { time: t(8, 31) } }] };
+  const vp = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat: 37.79165, lon: -122.3965 }, ts: t(8, 0, 15) };
+  const [d] = c.departures(m, { tripUpdates: [tu], vehicles: [vp] }, { from: ["D"], to: ["M"], now: t(8, 0, 18), holdAt: ["B"] });
+  assert.equal(d.trip, "PD0730");
+  assert.equal(d.pred, t(8, 2, 18), "leaves 50 Beale now (8:00:18), Drumm 2 minutes later");
+  assert.equal(d.dest.pred, t(8, 22, 18), "and Letterman on the timetable's 22 minutes");
+  // Once it is rolling the feed's own (earlier) prediction wins.
+  const rolling = { ...tu, stops: [{ seq: 4, arr: { time: t(8, 1, 42) }, dep: { time: t(8, 1, 42) } }] };
+  assert.equal(c.departures(m, { tripUpdates: [rolling], vehicles: [vp] }, { from: ["D"], to: ["M"], now: t(8, 0, 33), holdAt: ["B"] })[0].pred, t(8, 1, 42));
+  // Without a turnaround (Golden Gate) nothing changes.
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp] }, { from: ["D"], to: ["M"], now: t(8, 0, 18) })[0].pred, t(8, 11, 40));
+});
+
 /* ---------- which time the page shows (presidio/timing.js) ---------- */
 
 test("timing: a later estimate is never the time to be there until the shuttle is on the run", () => {

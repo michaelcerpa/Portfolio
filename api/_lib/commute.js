@@ -160,6 +160,21 @@ function passed(tu, vp, s) {
   return false;
 }
 
+// At a turnaround the bus waits for its timetable time, but some feeds (Presidio GO) predict the stops after it
+// as if it waited far longer: with the shuttle parked at 50 Beale, Drumm & California 2 minutes on was predicted
+// 8-9 minutes out and kept sliding, then snapped back once it moved. Cap those predictions at: leave the turnaround
+// at its timetable time (or when the bus gets there, or now, if later), then the timetable's travel time. Only ever
+// moves a prediction earlier.
+function capAfterTurnaround(trip, tu, base, holdIds, s, time, now) {
+  if (time == null) return time;
+  for (const turn of trip.stops) {
+    if (!holdIds.has(turn.stop) || turn.seq >= s.seq) continue;
+    const reach = predictAt(tu, turn, base)?.time ?? 0;  // when it gets there (the feed drops it once there)
+    time = Math.min(time, Math.max(base + turn.dep, reach, now) + (s.dep - turn.dep));
+  }
+  return time;
+}
+
 /* ---------- main computation ---------- */
 
 function indexLive(live) {
@@ -221,6 +236,8 @@ function departures(model, live, opts) {
       let pred = atOrigin?.time ?? null;
       // The feed's time there is when the bus arrives; at a turnaround it then waits to leave on schedule.
       if (pred !== null && pred < sched && hold.has(origin.stop)) pred = sched;
+      pred = capAfterTurnaround(trip, tu, base, hold, origin, pred, now);
+      const destPred = capAfterTurnaround(trip, tu, base, hold, dest, atDest?.time ?? null, now);
       const effective = pred ?? sched;
       const stop = model.stops[origin.stop];
       const atStop = !!(atStopMeters && vp?.pos && vp.ts && now - vp.ts < 90 && stop && Math.abs(now - effective) < 900 &&
@@ -258,7 +275,7 @@ function departures(model, live, opts) {
         status: canceled ? "canceled" : atOrigin?.skipped ? "skipped" : vehicle && !onEarlierTrip ? "live" : pred ? "estimated" : "scheduled",
         sched, pred, delay: pred !== null ? pred - sched : null, ...(atStop ? { atStop } : {}),
         origin: { id: origin.stop, name: model.stops[origin.stop]?.name, lat: model.stops[origin.stop]?.lat, lon: model.stops[origin.stop]?.lon },
-        dest: { id: dest.stop, name: model.stops[dest.stop]?.name, sched: base + dest.arr, pred: atDest?.time ?? null },
+        dest: { id: dest.stop, name: model.stops[dest.stop]?.name, sched: base + dest.arr, pred: destPred },
         vehicle,
       });
     }
@@ -344,6 +361,7 @@ function ride(model, live, { trip: tripId, date, from, to, now, holdAt = [] }) {
     const p = canceled ? null : predictAt(tu, s, base);
     let pred = p?.time ?? null;
     if (k === 0 && pred !== null && pred < base + s.dep && [].concat(holdAt).includes(s.stop)) pred = base + s.dep; // see departures()
+    pred = capAfterTurnaround(trip, tu, base, new Set([].concat(holdAt)), s, pred, now);
     return { id: s.stop, seq: s.seq, name: st.name, lat: st.lat, lon: st.lon,
              sched: base + s.arr, pred, skipped: !!p?.skipped };
   });
