@@ -1,6 +1,6 @@
 # Michael Cerpa — Portfolio
 
-Personal portfolio site. I build AI agents at Pallet. Before that: Army intelligence →
+Personal portfolio site. I'm an agent PM at Pallet. Before that: Army intelligence →
 UC Berkeley → JPMorgan → Wells Fargo.
 
 **Live:** https://mcerpa.com
