@@ -62,9 +62,9 @@ jobs:
             const b = require("/tmp/home.json");
             if (!Array.isArray(b.departures) || !b.origins?.length) throw new Error("bad home API body: " + JSON.stringify(b).slice(0, 300));
             console.log("home departures:", b.departures.length, b.later ? "| next later: " + b.later.route : "");'
-          # The Presidio GO shuttle page and its API (both directions).
+          # The Presidio GO shuttle page and its API (both directions, both downtown pick-ups).
           curl -fsS --retry 3 https://mcerpa.com/presidio/ | grep -q 'id="hasPass"'
-          for q in "from=31933&to=8894813" "from=8894813&to=31980"; do
+          for q in "from=31933&to=8894813" "from=8894813&to=31980" "from=839326&to=31980"; do
             curl -fsS --retry 3 "https://mcerpa.com/api/pgo/?$q" > /tmp/pgo.json
             node -e '
               const b = require("/tmp/pgo.json");
