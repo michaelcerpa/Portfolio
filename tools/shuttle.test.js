@@ -198,12 +198,15 @@ test("the missed 6:34: an estimate from the previous loop never pushes the time 
 
 /* ---------- real Presidio GO data, through the API handler (CI downloads a fresh snapshot) ---------- */
 
-async function api(url, now) {
+// live: false serves no live feed (timetable only), for checks at a pretend time of day that the snapshot's
+// live trips would otherwise affect (e.g. a 7:40am snapshot already has the 7:03 as departed).
+async function api(url, now, live = true) {
   const files = fs.readdirSync(FX);
   const latest = (p) => path.join(FX, files.filter((f) => f.startsWith(p) && f.endsWith(".pb")).sort().pop());
   const realFetch = global.fetch, realNow = Date.now;
   global.fetch = async (u) => {
     const s = String(u);
+    if (!live && s.includes("gtfs-rt")) return new Response("", { status: 503 });
     const file = s.includes("tripupdates") ? latest("TripUpdates") : s.includes("vehiclepositions") ? latest("VehiclePositions") : path.join(FX, "GTFSTransitData.zip");
     return new Response(fs.readFileSync(file), { status: 200, headers: { "last-modified": "fixture" } });
   };
@@ -234,32 +237,44 @@ test("real feeds: her stops, the timetable, and which runs need a pass", { skip:
   const list = (b) => b.departures.map((d) => clock(d.sched) + (d.pass ? "*" : ""));
 
   // Morning from Lombard Gate: presidio.gov marks 7:33–8:49 with * (pass holders only).
-  const am = await api("/api/pgo/?from=31933&to=8894813", base + 7 * 3600);
+  const am = await api("/api/pgo/?from=31933&to=8894813", base + 7 * 3600, false);
   assert.equal(am.code, 200);
   assert.deepEqual(list(am.body).slice(0, 8), ["07:03", "07:18", "07:33*", "07:48*", "08:03*", "08:18*", "08:33*", "08:48*"]);
   for (const d of am.body.departures) assert.ok(d.dest.id === "8894813" && d.dest.sched > d.sched && d.dest.sched - d.sched < 40 * 60);
 
   // Evening from 50 Beale: every other run from 4:30 to 6:00 needs a pass.
-  const pm = await api("/api/pgo/?from=8894813&to=31980", base + 16 * 3600 + 20 * 60);
+  const pm = await api("/api/pgo/?from=8894813&to=31980", base + 16 * 3600 + 20 * 60, false);
   assert.deepEqual(list(pm.body).slice(0, 8), ["16:30*", "16:45", "17:00*", "17:15", "17:30*", "17:45", "18:00*", "18:15"]);
   for (const d of pm.body.departures) assert.ok(d.dest.id === "31980" && d.dest.sched > d.sched);
   // Or the same runs 2 minutes later at Drumm & California (Embarcadero BART), the other downtown pick-up.
-  const drumm = await api("/api/pgo/?from=839326&to=31980", base + 16 * 3600 + 20 * 60);
+  const drumm = await api("/api/pgo/?from=839326&to=31980", base + 16 * 3600 + 20 * 60, false);
   assert.deepEqual(list(drumm.body).slice(0, 8), ["16:32*", "16:47", "17:02*", "17:17", "17:32*", "17:47", "18:02*", "18:17"]);
   assert.deepEqual(drumm.body.departures.map((d) => d.trip).slice(0, 8), pm.body.departures.map((d) => d.trip).slice(0, 8));
   for (const d of drumm.body.departures) assert.ok(d.origin.id === "839326" && d.dest.id === "31980" && d.dest.sched > d.sched);
 
   // Ride mode on the morning run.
   const first = am.body.departures[0];
-  const ride = await api(`/api/pgo/?ride=${first.trip}&date=${first.date}&from=31933&to=8894813`, base + 7 * 3600);
+  const ride = await api(`/api/pgo/?ride=${first.trip}&date=${first.date}&from=31933&to=8894813`, base + 7 * 3600, false);
   assert.deepEqual([ride.body.stops[0].id, ride.body.stops.at(-1).id], ["31933", "8894813"]);
   assert.ok(ride.body.line.length > 5);
 
   // The coming Columbus Day runs the weekend schedule (no pass runs, nothing before 9).
   const y = +ymd.slice(0, 4);
   const columbus = Object.entries(c.federalHolidays(y)).find(([, n]) => n === "Columbus Day")[0];
-  const hol = await api("/api/pgo/?from=31933&to=8894813", c.serviceDayBase(columbus) + 8 * 3600);
+  const hol = await api("/api/pgo/?from=31933&to=8894813", c.serviceDayBase(columbus) + 8 * 3600, false);
   assert.equal(hol.body.holiday, "Columbus Day");
   assert.ok(hol.body.departures.length > 0);
   assert.ok(hol.body.departures.every((d) => !d.pass && d.sched >= c.serviceDayBase(columbus) + 9 * 3600));
+
+  // And with the live snapshot at the moment it was taken (last: the handler caches live data briefly).
+  if (tu.header.ts) {
+    const now = await api("/api/pgo/?from=31933&to=8894813", tu.header.ts);
+    assert.equal(now.code, 200);
+    assert.ok(now.body.feed.ok, "live feed decoded: " + JSON.stringify(now.body.feed.errors));
+    for (const d of now.body.departures) {
+      assert.ok(["live", "estimated", "scheduled", "canceled", "skipped"].includes(d.status));
+      assert.ok(d.pred == null || Math.abs(d.pred - d.sched) < 3 * 3600);
+      assert.ok(Timing.departs(d) <= Math.max(d.pred ?? d.sched, d.sched), "never later than both the timetable and the feed");
+    }
+  }
 });
