@@ -1,12 +1,11 @@
-# /presidio/ shuttle watch: every weekday, record Presidio GO's live feed through the morning and evening commutes,
-# then run the evals on that day's real data. A failure (red run, emailed by GitHub) means the page would have shown
-# a departure time after a shuttle actually left, or dropped one still at the stop. Recordings are kept on the
-# shuttle-recordings branch, so every day becomes a regression case for tools/evals/.
+# /presidio/ shuttle watch: once a week (Monday morning), record Presidio GO's live feed through the commute, then run
+# the evals on that real data. It catches changes in how the feed behaves, which no code change would surface. A
+# failure (red run, emailed by GitHub) means the page would have shown a departure time after a shuttle actually left,
+# or dropped one still at the stop. Recordings are kept on the shuttle-recordings branch as regression cases.
 name: shuttle-watch
 on:
   schedule:
-    - cron: "50 12 * * 1-5"   # 5:50am PDT / 4:50am PST, records until 9:45am Pacific
-    - cron: "50 22 * * 1-5"   # 3:50pm PDT / 2:50pm PST, records until 7:15pm Pacific
+    - cron: "50 12 * * 1"     # Mondays 5:50am PDT / 4:50am PST, records until 9:45am Pacific
   workflow_dispatch:
     inputs:
       minutes:
@@ -55,6 +54,7 @@ jobs:
           cd /tmp/store && git add -A && git commit -qm "recording $NAME" && git push -q origin HEAD:shuttle-recordings
       - name: Deterministic eval on today's feed
         run: node tools/evals/shuttle-eval.js "/tmp/rec/$NAME.jsonl.gz" --report /tmp/rec/eval.json
+      # ~$2 a run (capped at 40 screens); skipped unless the ANTHROPIC_API_KEY secret is set.
       - name: LLM-judged eval on today's feed
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
