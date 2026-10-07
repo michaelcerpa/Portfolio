@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Michael Cerpa — AI Product Manager</title>
-  <meta name="description" content="AI Product Manager shipping 0-to-1 in regulated finance. Army Intelligence → UC Berkeley → JPMorgan → Wells Fargo. Live, clickable projects — not slideware.">
+  <title>Michael Cerpa — Agent PM</title>
+  <meta name="description" content="Michael Cerpa builds AI agents at Pallet. Before that: Army Intelligence, UC Berkeley, JPMorgan, Wells Fargo. Live projects you can open and use.">
   <meta name="theme-color" content="#08130D">
 
   <link rel="icon" type="image/png" sizes="48x48" href="favicon.png">
@@ -12,15 +12,15 @@
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Michael Cerpa">
-  <meta property="og:title" content="Michael Cerpa — AI Product Manager">
-  <meta property="og:description" content="I take messy problems and ship something real. Live projects from regulated-finance AI and the Sierra backcountry.">
+  <meta property="og:title" content="Michael Cerpa — Agent PM at Pallet">
+  <meta property="og:description" content="I build AI agents at Pallet. Live projects: enterprise AI, Sierra trip planning, and Bay Area transit.">
   <meta property="og:url" content="https://mcerpa.com/">
   <meta property="og:image" content="https://mcerpa.com/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Michael Cerpa — AI Product Manager">
-  <meta name="twitter:description" content="I take messy problems and ship something real. Live projects from regulated-finance AI and the Sierra backcountry.">
+  <meta name="twitter:title" content="Michael Cerpa — Agent PM at Pallet">
+  <meta name="twitter:description" content="I build AI agents at Pallet. Live projects: enterprise AI, Sierra trip planning, and Bay Area transit.">
   <meta name="twitter:image" content="https://mcerpa.com/og.png">
 
   <link rel="preload" href="fonts/SpaceGrotesk-var.woff2" as="font" type="font/woff2" crossorigin>
@@ -49,9 +49,9 @@
     <path d="M-20,185 C260,-30 560,280 910,75 S1420,185 1490,10" fill="none" stroke="#6FBF93" stroke-width="1"/>
   </svg>
 
-  <div class="eyebrow up d1">AI Product Manager · First conversation → live system</div>
-  <h1 class="up d2">I take messy problems and ship something <span class="acc">real</span>.</h1>
-  <p class="sub up d3">Army Intelligence → UC Berkeley → JPMorgan → Wells Fargo</p>
+  <div class="eyebrow up d1">Agent PM · San Francisco</div>
+  <h1 class="up d2">I build AI agents at Pallet.</h1>
+  <p class="sub up d3">Before that: Army&nbsp;Intelligence → UC&nbsp;Berkeley → JPMorgan → Wells&nbsp;Fargo</p>
 
   <p class="tick up d3" id="tick" hidden>
     <span class="beacon" aria-hidden="true"></span>
@@ -60,10 +60,9 @@
 </header>
 
 <main>
-  <section class="block wrap" id="work">
-    <h2 class="kicker">Work</h2>
-    <p class="lead">I'm the first AI product manager in Wells Fargo's wholesale digital organization. I lead the delivery of its first client-facing GenAI experience.</p>
-    <p class="lead">I grew up building while working summers at my family's construction company. The itch to build never left, the materials just changed.</p>
+  <section class="block wrap" id="work" aria-labelledby="work-h">
+    <h2 class="sr-only" id="work-h">Work</h2>
+    <p class="intro">I grew up building while working summers at my family's construction company. The itch to build never left, the materials just changed.</p>
 
     <article class="stage">
       <div class="rail">
@@ -73,7 +72,7 @@
         <div class="blurb">
           <p>An interactive architecture for building AI in spaces with high reputational risk and federal regulations — where a wrong answer is worse than no answer.</p>
           <p>Trace a request through intent → entitlements → orchestration → grounded response → LLM-as-a-judge → audit, and watch it refuse rather than guess.</p>
-          <p>Along the way, it shows where choosing deterministic over generative pays off. Click into each node to see the thinking behind the platform work above.</p>
+          <p>Along the way, it shows where choosing deterministic over generative pays off. Click into each node to see the thinking behind it.</p>
         </div>
         <a class="openlink" href="/granite/" data-fallback="https://granite-gilt-zeta.vercel.app">view project <span class="arrow">→</span></a>
       </div>
@@ -124,6 +123,37 @@
         </picture>
       </a>
     </article>
+
+    <article class="stage">
+      <div class="rail">
+        <div class="idx">04 — Commute</div>
+        <div class="cats">side project · bay area transit · live data</div>
+        <span class="livetag"><span class="dot" aria-hidden="true"></span>live</span>
+        <div class="blurb">
+          <p>My friends and I couldn't rely on the live times Apple Maps showed for our Golden Gate Transit and Presidio GO commutes. So I built a tracker for each, connected straight to the source: the agency's own real-time feed.</p>
+          <p>Every arrival time on screen says where it came from: the bus's GPS, the agency's prediction, or just the timetable. When a trip is canceled or the feed goes stale, the page says so instead of guessing.</p>
+          <p>It also knows the rules the feeds leave out, like Presidio GO's pass-only rush-hour runs and its weekend schedule on federal holidays. Tap the bus you're on and it counts down your stops, then tells you when to pull the cord.</p>
+        </div>
+        <div class="links">
+          <a class="openlink" href="/bus/">Golden Gate Transit <span class="arrow">→</span></a>
+          <a class="openlink" href="/presidio/">Presidio GO <span class="arrow">→</span></a>
+        </div>
+      </div>
+      <div class="phones">
+        <a class="stageshot phone" href="/bus/" aria-label="Open the Golden Gate Transit tracker">
+          <picture>
+            <source srcset="assets/bus-anim.webp" media="(prefers-reduced-motion: no-preference)">
+            <img src="assets/bus.webp" alt="Golden Gate Transit tracker — the next bus and how late it is, then ride mode counting down stops" loading="lazy" decoding="async" width="640" height="1182">
+          </picture>
+        </a>
+        <a class="stageshot phone" href="/presidio/" aria-label="Open the Presidio GO tracker">
+          <picture>
+            <source srcset="assets/presidio-anim.webp" media="(prefers-reduced-motion: no-preference)">
+            <img src="assets/presidio.webp" alt="Presidio GO tracker — the next shuttle, then shuttles moving on the live map" loading="lazy" decoding="async" width="640" height="1182">
+          </picture>
+        </a>
+      </div>
+    </article>
   </section>
 
   <section class="block wrap" id="about">
@@ -132,8 +162,8 @@
       <p>I enlisted in the Army at 18 and spent four years as an intelligence analyst — briefing generals in an underground bunker near the Korean border, driving tanks across the Mojave.</p>
       <p>Then Berkeley: Political Economy and Finance (Haas BASE Program, 2021), splitting time between reading geopolitical theory and reconciling balance sheets.</p>
       <p>Post-Berkeley I joined JPMorgan as an associate product manager, rotating across three teams — onboarding, an innovation team hunting the bank's next bet, and the platform behind the digital bank. That's where I figured out I'm a 0-to-1 PM. I'd rather ship scrappy and hand off at scale.</p>
-      <p>I moved to Wells Fargo for more ownership and autonomy. I was hired to build the new capital markets &amp; investing experience, but my AI interests took over during the strategy phase: I recruited a senior architect and an engineer and delivered an end-to-end GenAI experience for Wells' FX clients — proof to the enterprise that safe, governed GenAI was possible. Adoption was thin. Not the AI's fault: roadmap dependencies and data migrations got in the way, typical at a big bank. A year in, I pivoted to a platform strategy that solidified the team's role in AI delivery, secured funding to build it out, and brought senior leadership in to clear roadblocks.</p>
-      <p>I'm coming up on two years at Wells and want to keep building with AI.</p>
+      <p>At Wells Fargo I was the first AI product manager in the wholesale digital organization. I recruited a senior architect and an engineer, and we delivered a governed GenAI experience for the bank's FX clients. When adoption stalled on data migrations rather than the AI, I turned the work into a platform strategy and secured funding to build it out.</p>
+      <p>Now I'm an agent PM at <a href="https://pallet.com">Pallet</a>. We build AI agents that run day-to-day operations for manufacturers, distributors, and logistics companies.</p>
     </div>
     <p class="contact">
       <a href="mailto:michael.cerp@gmail.com">michael.cerp@gmail.com</a>
