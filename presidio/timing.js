@@ -37,5 +37,12 @@
     return [m >= 5 ? "verylate" : "late", `${m} min late`];
   }
 
-  return { onRun, departs, arrives, lateEstimate, status };
+  // What the page shows next to a time: only things that are real right now (canceled, at the stop, or the live
+  // lateness of a shuttle that is on the run), else null.
+  function label(d) {
+    if (d.status === "canceled" || d.status === "skipped" || d.atStop) return status(d);
+    return onRun(d) && d.pred != null ? status(d) : null;
+  }
+
+  return { onRun, departs, arrives, lateEstimate, status, label };
 });
