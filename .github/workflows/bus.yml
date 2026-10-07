@@ -49,7 +49,7 @@ jobs:
           API="https://mcerpa.com/api/ggt/?from=40033&to=42203,40053"
           for i in $(seq 1 30); do
             curl -fsS https://mcerpa.com/bus/ 2>/dev/null | grep -q 'id="rows"' && curl -fsS "$API" -o /tmp/api.json 2>/dev/null &&
-              curl -fsS https://mcerpa.com/presidio/ 2>/dev/null | grep -q 'id="hasPass"' && curl -fsS "https://mcerpa.com/api/pgo/" -o /dev/null 2>/dev/null && break
+              curl -fsS https://mcerpa.com/presidio/ 2>/dev/null | cmp -s - presidio/index.html && curl -fsS "https://mcerpa.com/api/pgo/" -o /dev/null 2>/dev/null && break
             sleep 10
           done
           curl -fsS https://mcerpa.com/bus/ | grep -q 'id="rows"'
@@ -66,7 +66,10 @@ jobs:
             if (!Array.isArray(b.departures) || !b.origins?.length) throw new Error("bad home API body: " + JSON.stringify(b).slice(0, 300));
             console.log("home departures:", b.departures.length, b.later ? "| next later: " + b.later.route : "");'
           # The Presidio GO shuttle page and its API (both directions, both downtown pick-ups).
-          curl -fsS --retry 3 https://mcerpa.com/presidio/ | grep -q 'id="hasPass"'
+          curl -fsS --retry 3 https://mcerpa.com/presidio/ > /tmp/presidio.html
+          grep -q 'id="pickup"' /tmp/presidio.html
+          grep -q 'timing.js' /tmp/presidio.html
+          cmp -s /tmp/presidio.html presidio/index.html || echo "::warning::mcerpa.com/presidio/ doesn't match this commit's page yet"
           for q in "from=31933&to=8894813" "from=8894813&to=31980" "from=839326&to=31980"; do
             curl -fsS --retry 3 "https://mcerpa.com/api/pgo/?$q" > /tmp/pgo.json
             node -e '
