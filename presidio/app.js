@@ -47,7 +47,7 @@
   let data = null, receivedAt = 0, skewMs = 0, fetchError = null, selected = null, didFit = false;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const nowSec = () => (Date.now() + skewMs) / 1000;
+  const nowSec = () => Math.floor((Date.now() + skewMs) / 1000);  // whole seconds: every countdown on screen agrees
   const clock = (t) => new Date(t * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" }).replace(/\s?[AP]M$/, "");
   const ago = (s) => (s < 60 ? `${Math.max(0, Math.round(s))}s` : `${Math.round(s / 60)} min`);
   // Feed names carry notes in parentheses ("Van Ness & Union (Drop Off)"): keep them, but quieter.
@@ -155,7 +155,7 @@
       return `<li class="row ${best && best.d === d ? "best" : ""} ${d.status === "canceled" ? "canceled" : ""} ${selected === d.trip ? "sel" : ""}" data-trip="${esc(d.trip)}">
         ${badge(d)}
         <div class="main">
-          <div class="line1"><span class="t">${clock(t)}</span><span class="in">${t <= nowSec() ? "due now" : "in " + until(t)}</span>${best && best.d === d ? `<span class="tag">next</span>` : ""}${passTag(d)}</div>
+          <div class="line1"><span class="t">${clock(t)}</span><span class="in">${until(t) === "now" ? "due now" : "in " + until(t)}</span>${best && best.d === d ? `<span class="tag">next</span>` : ""}${passTag(d)}</div>
           <div class="line2">${sched}→ ${esc(short(d.dest))} ${clock(arrives(d))}</div>
           <div class="line3">${kind ? `<i class="dot ${kind === "live" ? "live" : "est"}"></i>` : `<i class="dot sched"></i>`}${where(d)}</div>
           ${selected === d.trip && d.status !== "canceled" ? `<button class="ride-btn small" data-ride="${esc(d.trip)}">I'm on this shuttle <span aria-hidden="true">→</span></button>` : ""}

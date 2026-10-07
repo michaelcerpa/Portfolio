@@ -1,0 +1,33 @@
+# /presidio/ LLM-judged eval on the committed recordings (tools/evals/recordings/): Claude reads the page as rendered
+# at moments before each recorded departure and judges it against what actually happened. Runs on changes to the
+# shuttle page or engine, and on demand. Needs the ANTHROPIC_API_KEY repository secret (skips with a notice if unset).
+name: shuttle-llm-eval
+on:
+  pull_request:
+    paths: ["presidio/**", "api/**", "tools/evals/**", ".github/workflows/shuttle-llm-eval.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  judge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: LLM-judged eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then echo "::notice::ANTHROPIC_API_KEY secret not set; skipping the LLM-judged eval"; exit 0; fi
+          npm install --no-save --no-audit --no-fund @anthropic-ai/sdk playwright@1.56.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          node tools/evals/shuttle-llm-eval.mjs --report /tmp/llm-eval.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shuttle-llm-eval
+          path: /tmp/llm-eval.json
+          if-no-files-found: ignore
