@@ -6,6 +6,7 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
 const c = require("../api/_lib/commute");
+const Timing = require("../presidio/timing");
 
 const FX = process.env.PGO_FIXTURES;
 
@@ -114,6 +115,67 @@ test("a trip that hasn't started (next stop is sequence 0) reads as waiting, not
   const vp = { trip: { tripId: "PD0800", startDate: TUE }, pos: { lat: 37.8018, lon: -122.4559 }, ts: at(TUE, 7, 59) };
   const [d] = c.departures(m, { tripUpdates: [tu], vehicles: [vp] }, { from: ["L"], to: ["B"], now: at(TUE, 8, 0) });
   assert.deepEqual([d.trip, d.status, d.vehicle.near, d.vehicle.stopsAway], ["PD0800", "live", "Transit Center", 1]);
+});
+
+test("a shuttle the feed has marked past your stop stays listed while its GPS still has it there", () => {
+  // Seen on the 7:03 from Lombard Gate: the feed dropped the stop at 7:03:26, the shuttle pulled away at 7:04:10.
+  const m = loopModel();
+  const tu = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, stops: [{ seq: 2, arr: { time: at(TUE, 7, 41) }, dep: { time: at(TUE, 7, 41) } }] };
+  const vp = (lat, lon, t) => ({ trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat, lon }, ts: t });
+  const opts = (now) => ({ from: ["L"], to: ["B"], now, atStopMeters: 60 });
+  const atGate = c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.79843, -122.44735, at(TUE, 7, 33) + 20)] }, opts(at(TUE, 7, 33) + 30));
+  assert.deepEqual([atGate[0].trip, atGate[0].atStop, atGate[0].status], ["PD0730", true, "live"]);
+  assert.deepEqual(Timing.status(atGate[0]), ["ontime", "at your stop"]);
+  // 150 m down the road: gone.
+  const away = c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.79850, -122.44570, at(TUE, 7, 34))] }, opts(at(TUE, 7, 34) + 5));
+  assert.equal(away[0].trip, "PD0800");
+  // Off by default (Golden Gate's page keeps its behavior).
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.79843, -122.44735, at(TUE, 7, 33) + 20)] },
+    { from: ["L"], to: ["B"], now: at(TUE, 7, 33) + 30 })[0].trip, "PD0800");
+});
+
+/* ---------- which time the page shows (presidio/timing.js) ---------- */
+
+test("timing: a later estimate is never the time to be there until the shuttle is on the run", () => {
+  const sched = at(TUE, 6, 34), d = (status, delay) => ({ status, sched, pred: delay == null ? null : sched + delay,
+                                                         dest: { sched: sched + 1560, pred: delay == null ? null : sched + 1560 + delay } });
+  // Shuttle still finishing its previous loop, feed says 6 min late: be there at 6:34, the estimate is a note.
+  assert.equal(Timing.departs(d("estimated", 360)), sched);
+  assert.equal(Timing.arrives(d("estimated", 360)), sched + 1560);
+  assert.deepEqual(Timing.status(d("estimated", 360)), ["maybe", "may run late"]);
+  assert.equal(Timing.lateEstimate(d("estimated", 360)), sched + 360);
+  // On the run with GPS: late is late.
+  assert.equal(Timing.departs(d("live", 360)), sched + 360);
+  assert.deepEqual(Timing.status(d("live", 360)), ["verylate", "6 min late"]);
+  assert.equal(Timing.lateEstimate(d("live", 360)), null);
+  // An earlier estimate is shown either way (being early is the safe side).
+  assert.equal(Timing.departs(d("estimated", -180)), sched - 180);
+  assert.deepEqual(Timing.status(d("estimated", -180)), ["early", "3 min early"]);
+  assert.deepEqual(Timing.status(d("estimated", 30)), ["ontime", "on time"]);
+  assert.equal(Timing.departs(d("scheduled", null)), sched);
+  assert.deepEqual(Timing.status(d("scheduled", null)), ["sched", "timetable"]);
+  assert.deepEqual(Timing.status({ ...d("canceled", null), status: "canceled" }), ["canceled", "canceled"]);
+  assert.deepEqual(Timing.status({ ...d("live", null), atStop: true }), ["ontime", "at your stop"]);
+});
+
+test("the missed 6:34: an estimate from the previous loop never pushes the time later", () => {
+  // The 6:34 from Lombard Gate is run by the shuttle finishing the 5:45 loop (1 minute layover). Here PD0730 plays
+  // the earlier loop and PD0800 the next run: the feed carries the earlier loop's 6 minutes forward to PD0800.
+  const m = loopModel();
+  const s = (h, mi) => ({ time: at(TUE, h, mi) });
+  // Lombard Gate is stop 1 of the synthetic loop (8:03 on the timetable); the feed says 8:09.
+  const early = { trip: { tripId: "PD0800", startDate: TUE }, vehicle: { id: "11" }, stops: [{ seq: 0, arr: s(8, 6), dep: s(8, 6) },
+    { seq: 1, arr: s(8, 9), dep: s(8, 9) }, { seq: 2, arr: s(8, 16), dep: s(8, 16) }, { seq: 3, arr: s(8, 36), dep: s(8, 36) }] };
+  const bus = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat: 37.7983, lon: -122.4245 }, ts: at(TUE, 7, 50) };
+  const [then] = c.departures(m, { tripUpdates: [early], vehicles: [bus] }, { from: ["L"], to: ["B"], now: at(TUE, 7, 50) });
+  assert.deepEqual([then.trip, then.status, then.vehicle.onEarlierTrip, then.delay], ["PD0800", "estimated", true, 360]);
+  assert.equal(Timing.departs(then), at(TUE, 8, 3), "shows the timetable 8:03, not the 8:09 estimate");
+  assert.equal(Timing.status(then)[1], "may run late");
+  // Ten minutes later the shuttle caught up and is on the run, on time: the time shown didn't move.
+  const onTime = { trip: { tripId: "PD0800", startDate: TUE }, vehicle: { id: "11" }, stops: [{ seq: 1, arr: s(8, 3), dep: s(8, 3) }, { seq: 3, arr: s(8, 30), dep: s(8, 30) }] };
+  const onRun = { ...bus, trip: { tripId: "PD0800", startDate: TUE }, pos: { lat: 37.8018, lon: -122.4559 }, ts: at(TUE, 8, 0) };
+  const [now] = c.departures(m, { tripUpdates: [onTime], vehicles: [onRun] }, { from: ["L"], to: ["B"], now: at(TUE, 8, 0) });
+  assert.deepEqual([now.status, Timing.departs(now), Timing.status(now)[1]], ["live", at(TUE, 8, 3), "on time"]);
 });
 
 /* ---------- real Presidio GO data, through the API handler (CI downloads a fresh snapshot) ---------- */

@@ -194,8 +194,10 @@ const rankOf = (ids) => new Map([].concat(ids).map((id, i) => [id, i]));
 // opts.recent: instead of upcoming buses, list ones that already left `from` and are still on
 // their way to `to` — for "I'm already on the bus".
 // opts.holdAt: stops where buses wait for their timetable time (a turnaround), so they never leave early.
+// opts.atStopMeters: some feeds mark a stop done as soon as the bus arrives; while the bus's GPS is still
+// within this distance of your stop, it hasn't left (the item gets atStop: true).
 function departures(model, live, opts) {
-  const { now, windowMin = 120, limit = 14, recent = false, days = [-1, 0, 1] } = opts;
+  const { now, windowMin = 120, limit = 14, recent = false, days = [-1, 0, 1], atStopMeters = 0 } = opts;
   const fromRank = rankOf(opts.from), toRank = rankOf(opts.to), hold = new Set([].concat(opts.holdAt || []));
   const { tuByTrip, vpByTrip, vpById, lookup } = indexLive(live);
 
@@ -220,9 +222,12 @@ function departures(model, live, opts) {
       // The feed's time there is when the bus arrives; at a turnaround it then waits to leave on schedule.
       if (pred !== null && pred < sched && hold.has(origin.stop)) pred = sched;
       const effective = pred ?? sched;
+      const stop = model.stops[origin.stop];
+      const atStop = !!(atStopMeters && vp?.pos && vp.ts && now - vp.ts < 90 && stop && Math.abs(now - effective) < 900 &&
+                        metersApart(vp.pos.lat, vp.pos.lon, stop.lat, stop.lon) < atStopMeters);
       // A bus has left once the live data says so, or (live-predicted) its prediction is past,
-      // or (untracked) it is two minutes past its scheduled time.
-      const left = passed(tu, vp, origin) || effective < now - (pred ? 30 : 120);
+      // or (untracked) it is two minutes past its scheduled time — unless its GPS still has it at the stop.
+      const left = !atStop && (passed(tu, vp, origin) || effective < now - (pred ? 30 : 120));
       if (recent) {
         if (!left || canceled || (atDest?.time ?? base + dest.arr) < now - 120) continue;
       } else {
@@ -251,7 +256,7 @@ function departures(model, live, opts) {
         trip: trip.id, date: ymd, route: route.short, color: route.color, textColor: route.text,
         headsign: trip.headsign, shape: trip.shape,
         status: canceled ? "canceled" : atOrigin?.skipped ? "skipped" : vehicle && !onEarlierTrip ? "live" : pred ? "estimated" : "scheduled",
-        sched, pred, delay: pred !== null ? pred - sched : null,
+        sched, pred, delay: pred !== null ? pred - sched : null, ...(atStop ? { atStop } : {}),
         origin: { id: origin.stop, name: model.stops[origin.stop]?.name, lat: model.stops[origin.stop]?.lat, lon: model.stops[origin.stop]?.lon },
         dest: { id: dest.stop, name: model.stops[dest.stop]?.name, sched: base + dest.arr, pred: atDest?.time ?? null },
         vehicle,
@@ -260,6 +265,11 @@ function departures(model, live, opts) {
   }
   out.sort((a, b) => (recent ? -1 : 1) * ((a.pred ?? a.sched) - (b.pred ?? b.sched)));
   return out.slice(0, recent ? 3 : limit);
+}
+
+function metersApart(lat1, lon1, lat2, lon2) {
+  const k = Math.cos((lat1 * Math.PI) / 180);
+  return Math.hypot((lat1 - lat2) * 110540, (lon1 - lon2) * 111320 * k);
 }
 
 /* ---------- ride mode: one trip, stop by stop ---------- */

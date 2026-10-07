@@ -8,21 +8,19 @@
   // Boarding (`from`) and alighting (`to`) stops for each direction. The Downtown route is one loop:
   // Presidio Transit Center → Lombard Gate → downtown drop-offs → 50 Beale (turnaround) → pick-ups → Letterman → back.
   const DIRS = {
-    work: { label: "To work", title: "Lombard Gate <span class=\"arrow\">→</span> 50 Beale", arrive: "at work",
+    work: { label: "To work", title: "Lombard Gate <span class=\"arrow\">→</span> 50 Beale",
             from: ["31933"],                   // Lombard Gate
             to: ["8894813"] },                 // Beale & Mission ("50 Beale Street" on the timetable)
-    home: { label: "To home", arrive: "home",  // from: the pick-up she chose (HOME_STOPS), see cfg()
+    home: { label: "To home",                  // from: the pick-up she chose (HOME_STOPS), see cfg()
             to: ["31980"] },                   // Letterman Digital Arts Center (the way back skips Lombard Gate)
   };
   // Two downtown pick-ups on the way home, on the same run: 50 Beale (where the loop turns around)
   // and Drumm & California (Embarcadero BART), 2 minutes later.
-  const HOME_STOPS = [{ id: "8894813", note: "first stop" }, { id: "839326", note: "2 min later" }];
+  const HOME_STOPS = [{ id: "8894813", note: "first stop" }, { id: "839326", note: "Embarcadero BART · 2 min later" }];
   const OFFICE = [37.7914, -122.3979];        // the office, a block from 50 Beale
   const POLL_MS = 15000;
   const SHORT = { "31933": "Lombard Gate", "8894813": "50 Beale", "839326": "Drumm & California", "31980": "Letterman" };
-  const WALKS = [["31933", "Home → Lombard Gate"], ["8894813", "Office ↔ 50 Beale"], ["839326", "Office → Drumm & California"],
-                 ["31980", "Letterman → home"]];
-  const DEFAULTS = { walk: { "31933": 5, "8894813": 3, "839326": 5, "31980": 6 }, pass: true, homeStop: "8894813" };
+  const DEFAULTS = { pass: true, homeStop: "8894813" };
 
   /* ---------- storage (best effort: private mode etc. may throw) ---------- */
   const store = {
@@ -31,9 +29,8 @@
   };
   const saved = store.get("pgo:settings", {});
   // pass: has a Presidio GO Pass. Without one, the pass-only runs (weekday rush hours) are hidden.
-  const settings = { walk: Object.assign({}, DEFAULTS.walk, saved.walk), pass: saved.pass ?? DEFAULTS.pass,
+  const settings = { pass: saved.pass ?? DEFAULTS.pass,
                      homeStop: HOME_STOPS.some((h) => h.id === saved.homeStop) ? saved.homeStop : DEFAULTS.homeStop };
-  const walkMin = (id) => settings.walk[id] ?? 5;
 
   // Direction: mornings default to work, afternoons/evenings to home; a tap overrides for 4 hours.
   const laHour = () => +new Date().toLocaleString("en-US", { hour: "numeric", hourCycle: "h23", timeZone: "America/Los_Angeles" });
@@ -62,18 +59,14 @@
     const m = Math.floor((t - nowSec()) / 60);
     return m <= 0 ? "now" : `${m} min`;
   }
-  function chip(d) {
-    if (d.status === "canceled") return ["canceled", "canceled"];
-    if (d.status === "skipped") return ["canceled", "skips stop"];
-    if (d.delay == null) return ["sched", "timetable"];
-    if (Math.abs(d.delay) < 60) return ["ontime", "on time"];
-    const m = Math.round(d.delay / 60);
-    return m > 0 ? [m >= 5 ? "verylate" : "late", `${m} min late`] : ["early", `${-m} min early`];
-  }
-  function plan(d) {
-    const t = d.pred ?? d.sched;
-    const destT = d.dest.pred ?? d.dest.sched;
-    return { t, leaveBy: t - walkMin(d.origin?.id ?? cfg().from[0]) * 60, atWork: destT + walkMin(d.dest.id) * 60 };
+  // Times and labels follow presidio/timing.js: never later than the timetable until the shuttle is on the run.
+  const { departs, arrives, lateEstimate, status: chip } = window.Timing;
+  // What to say about a time we know more about than the chip shows.
+  function timeNote(d) {
+    const est = lateEstimate(d);
+    if (est) return `Presidio GO estimates ${clock(est)}, but its shuttle is still finishing the previous loop and often catches up · be there by ${clock(departs(d))}`;
+    if (d.pred != null && Math.abs(d.pred - d.sched) >= 60) return `scheduled ${clock(d.sched)}`;
+    return "";
   }
   function milesTo(lat, lon, o) {
     const r = Math.PI / 180, a = Math.sin(((o.lat - lat) * r) / 2) ** 2 +
@@ -84,7 +77,7 @@
     const v = d.vehicle;
     if (d.status === "canceled") return "Presidio GO has canceled this trip.";
     if (!v) return d.status === "estimated" ? "Presidio GO prediction · shuttle not reporting GPS yet" : "No live data yet · timetable time";
-    if (v.onEarlierTrip) return "Shuttle is finishing its previous loop · Presidio GO's estimate";
+    if (v.onEarlierTrip) return "Shuttle is finishing its previous loop";
     const o = d.origin?.lat != null ? d.origin : data?.origin;
     const mi = o ? milesTo(v.lat, v.lon, o) : null;
     // This feed doesn't say "stopped", so judge by distance (it waits a few minutes at 50 Beale).
@@ -94,22 +87,15 @@
     if (mi != null && mi >= 1) return `${mi < 10 ? mi.toFixed(1) : Math.round(mi)} mi away · ${near}`;
     return v.stopsAway != null ? `${v.stopsAway} stop${v.stopsAway === 1 ? "" : "s"} away · ${near}` : near;
   }
-  const visible = () => (data?.departures || []).filter((d) => settings.pass || !d.pass);
+  const visible = () => (data?.departures || []).filter((d) => settings.pass || !d.pass).sort((a, b) => departs(a) - departs(b));
   // One route ("Presidio GO Downtown"), so the badge just says GO.
   const badge = (d) => `<span class="badge" style="background:${esc(d.color)};color:${esc(d.textColor || "#fff")}">GO</span>`;
   const passTag = (d) => (d.pass ? `<span class="tag pass" title="Presidio GO Pass holders only">pass</span>` : "");
 
   /* ---------- rendering ---------- */
   function pickBest(list) {
-    const now = nowSec();
-    let best = null;
-    for (const d of list) {
-      if (d.status === "canceled" || d.status === "skipped") continue;
-      const p = plan(d);
-      if (p.leaveBy < now - 60) continue; // can't make it on foot
-      if (!best || p.atWork < best.p.atWork || (p.atWork === best.p.atWork && p.t < best.p.t)) best = { d, p };
-    }
-    return best;
+    const d = list.find((x) => x.status !== "canceled" && x.status !== "skipped");
+    return d ? { d } : null;
   }
 
   function renderHero(list, best) {
@@ -130,29 +116,29 @@
           <div class="sub">from ${esc(short(l.origin))} · timetable${l.pass ? " · Presidio GO Pass run" : ""}</div></div></div>` : ""}`;
       return;
     }
-    const { d, p } = best;
-    const now = nowSec();
-    const mins = Math.floor((p.leaveBy - now) / 60);
+    const { d } = best;
+    const now = nowSec(), t = departs(d);
+    const mins = Math.floor((t - now) / 60);
     const [cls, txt] = chip(d);
-    const sched = d.pred && Math.abs(d.pred - d.sched) >= 60 ? `scheduled ${clock(d.sched)} · ` : "";
-    const alt = list.filter((x) => x !== d && x.status !== "canceled" && plan(x).leaveBy >= now - 60)
-                    .sort((a, b) => plan(a).atWork - plan(b).atWork)[0];
+    const note = timeNote(d);
+    const alt = list.find((x) => x !== d && x.status !== "canceled" && x.status !== "skipped");
     hero.innerHTML = `
-      <div class="lead">${mins <= 0 ? "Leave" : "Leave in"}</div>
+      <div class="lead">${mins <= 0 ? "Departs" : "Departs in"}</div>
       <div class="leave ${mins <= 0 ? "now" : ""}">
         <span class="big">${mins <= 0 ? "now" : mins}</span>${mins > 0 ? `<span class="unit">min</span>` : ""}
       </div>
-      <div class="leave-by">Leave by <b class="num">${clock(p.leaveBy)}</b> · ${walkMin(d.origin?.id)} min walk to ${esc(short(d.origin) || "the stop")}</div>
+      <div class="leave-by">from ${esc(short(d.origin) || "your stop")}</div>
       <div class="bus">
         ${badge(d)}
         <div class="times">
-          <div class="dep">Departs <span class="num">${clock(p.t)}</span> <span class="chip ${cls}">${txt}</span></div>
-          <div class="sub">${sched}${esc(short(d.dest))} <span class="num">${clock(d.dest.pred ?? d.dest.sched)}</span> · ${cfg().arrive} ~<span class="num">${clock(p.atWork)}</span></div>
+          <div class="dep">Departs <span class="num">${clock(t)}</span> <span class="chip ${cls}">${txt}</span></div>
+          <div class="sub">${esc(short(d.dest))} <span class="num">${clock(arrives(d))}</span></div>
+          ${note ? `<div class="sub">${note}</div>` : ""}
           ${d.pass ? `<div class="sub pass-note">${passTag(d)} Presidio GO Pass holders only</div>` : ""}
         </div>
       </div>
-      <div class="where"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg><span>${where(d)}</span></div>
-      ${alt ? `<div class="alt">Backup: the <b class="num">${clock(plan(alt).t)}</b> → ${cfg().arrive} ~<span class="num">${clock(plan(alt).atWork)}</span> (${chip(alt)[1]}${alt.pass ? ", pass run" : ""})</div>` : ""}
+      ${lateEstimate(d) ? "" : `<div class="where"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg><span>${where(d)}</span></div>`}
+      ${alt ? `<div class="alt">After that: the <b class="num">${clock(departs(alt))}</b> (${chip(alt)[1]}${alt.pass ? ", pass run" : ""})</div>` : ""}
       <button class="ride-btn" data-ride="${esc(d.trip)}">I'm on this shuttle <span aria-hidden="true">→</span></button>`;
   }
 
@@ -160,18 +146,17 @@
     const rows = $("rows");
     if (!data) { rows.innerHTML = ""; return; }
     if (!list.length) { rows.innerHTML = `<li class="empty">${!settings.pass && data.departures?.length ? "Only Presidio GO Pass runs in the next two hours." : "Nothing scheduled in the next two hours."}</li>`; return; }
-    const now = nowSec();
     rows.innerHTML = list.map((d) => {
-      const p = plan(d);
+      const t = departs(d);
       const [cls, txt] = chip(d);
-      const gone = p.leaveBy < now - 60 && d.status !== "canceled";
-      const sched = d.pred && Math.abs(d.pred - d.sched) >= 60 ? `sched ${clock(d.sched)} · ` : "";
+      const est = lateEstimate(d);
+      const sched = est ? `est. ${clock(est)} · ` : d.pred != null && Math.abs(d.pred - d.sched) >= 60 ? `sched ${clock(d.sched)} · ` : "";
       const kind = d.status === "live" ? "live" : d.status === "estimated" ? "estimated" : "";
-      return `<li class="row ${best && best.d === d ? "best" : ""} ${gone ? "gone" : ""} ${d.status === "canceled" ? "canceled" : ""} ${selected === d.trip ? "sel" : ""}" data-trip="${esc(d.trip)}">
+      return `<li class="row ${best && best.d === d ? "best" : ""} ${d.status === "canceled" ? "canceled" : ""} ${selected === d.trip ? "sel" : ""}" data-trip="${esc(d.trip)}">
         ${badge(d)}
         <div class="main">
-          <div class="line1"><span class="t">${clock(p.t)}</span><span class="in">${gone ? "too late to walk" : "in " + until(p.t)}</span>${best && best.d === d ? `<span class="tag">take this</span>` : ""}${passTag(d)}</div>
-          <div class="line2">${cfg().from.length > 1 ? `from ${esc(short(d.origin))} · ` : ""}${sched}→ ${esc(short(d.dest))} ${clock(d.dest.pred ?? d.dest.sched)} · ${cfg().arrive} ~${clock(p.atWork)}</div>
+          <div class="line1"><span class="t">${clock(t)}</span><span class="in">${t <= nowSec() ? "due now" : "in " + until(t)}</span>${best && best.d === d ? `<span class="tag">next</span>` : ""}${passTag(d)}</div>
+          <div class="line2">${sched}→ ${esc(short(d.dest))} ${clock(arrives(d))}</div>
           <div class="line3">${kind ? `<i class="dot ${kind === "live" ? "live" : "est"}"></i>` : `<i class="dot sched"></i>`}${where(d)}</div>
           ${selected === d.trip && d.status !== "canceled" ? `<button class="ride-btn small" data-ride="${esc(d.trip)}">I'm on this shuttle <span aria-hidden="true">→</span></button>` : ""}
         </div>
@@ -222,7 +207,8 @@
   function renderFoot() {
     if (!data) return;
     $("foot").innerHTML = `Live positions and predictions come straight from Presidio GO's public real-time feed, refreshed every 15 s.
-      Arrival times add your walk from the stop. The timetable refreshes on its own when Presidio GO publishes a new one;
+      Until a shuttle is actually on its run, Presidio GO's lateness estimate isn't reliable (shuttles often catch up between loops),
+      so the app shows the timetable time and puts the estimate beside it. The timetable refreshes on its own when Presidio GO publishes a new one;
       on federal holidays the weekend schedule runs. Runs tagged <b>pass</b> are for Presidio GO Pass holders only (weekday rush hours, per presidio.gov),
       and Presidio GO is only for trips to or from the Presidio.`;
   }
@@ -309,7 +295,7 @@
         m.setIcon(icon);
       }
       m.setZIndexOffset(best && best.d === d ? 800 : selected === d.trip ? 900 : 0);
-      m.bindTooltip(`${clock(plan(d).t)} shuttle · ${chip(d)[1]}`, { className: "lbl", direction: "top", offset: [0, -14] });
+      m.bindTooltip(`${clock(departs(d))} shuttle · ${chip(d)[1]}`, { className: "lbl", direction: "top", offset: [0, -14] });
     }
     for (const [trip, m] of markers) if (!seen.has(trip)) { busLayer.removeLayer(m); markers.delete(trip); }
     if (!didFit && data) { fit(); didFit = true; }
@@ -486,11 +472,11 @@
     if (p.state === "arrived") alert("arrived", 2);
 
     const dest = stops[last];
-    const destT = dest.pred ?? dest.sched;
-    const destDelay = dest.pred ? dest.pred - dest.sched : null;
-    const [dcls, dtxt] = chip({ status: rideData.trip.canceled ? "canceled" : "", delay: destDelay });
-    const atWork = destT + walkMin(dest.id) * 60;
-    const arrive = DIRS[ride.dir || "work"].arrive;
+    // The ride's own shuttle GPS is on this run, or not yet: same rule as the main screen (timing.js).
+    const run = { status: rideData.trip.canceled ? "canceled" : rideData.vehicle ? "live" : "estimated" };
+    const destRun = { ...run, pred: dest.pred, sched: dest.sched };
+    const destT = departs(destRun);
+    const [dcls, dtxt] = chip(destRun);
     const miles = p.metersLeft != null ? (p.metersLeft / 1609.34) : null;
 
     src.innerHTML = (() => {
@@ -504,7 +490,7 @@
     if (rideData.trip.canceled) {
       hero.innerHTML = `<div class="ride-lead">Presidio GO canceled this trip.</div><div class="ride-sub">Go back and pick another shuttle.</div>`;
     } else if (p.state === "waiting") {
-      const t0 = stops[0].pred ?? stops[0].sched;
+      const t0 = departs({ ...run, pred: stops[0].pred, sched: stops[0].sched });
       hero.innerHTML = `<div class="ride-lead">Waiting for the shuttle</div>
         <div class="ride-big"><span class="num">${Math.max(0, Math.round((t0 - now) / 60))}</span><span class="unit">min</span></div>
         <div class="ride-sub">at ${esc(SHORT[stops[0].id] || bare(stops[0].name))} ~<span class="num">${clock(t0)}</span> · then ${last} stops to ${esc(ride.dest)}</div>`;
@@ -514,12 +500,11 @@
         <div class="ride-sub">Get off at <b>${esc(bare(dest.name))}</b> · ~<span class="num">${clock(destT)}</span>${miles != null ? ` · ${miles < 0.1 ? Math.round(p.metersLeft * 3.281) + " ft" : miles.toFixed(1) + " mi"}` : ""}</div>`;
     } else if (p.state === "arrived") {
       hero.innerHTML = `<div class="ride-lead">You're at ${esc(ride.dest)}</div>
-        <div class="ride-sub">~${walkMin(dest.id)} min walk · ${arrive} ~<span class="num">${clock(now + walkMin(dest.id) * 60)}</span></div>
         <button class="ride-btn" id="rideDone">Done</button>`;
     } else {
       hero.innerHTML = `<div class="ride-big"><span class="num">${p.stopsLeft}</span><span class="unit">stops left</span></div>
         <div class="ride-sub">Get off at <b>${esc(bare(dest.name))}</b> · ~<span class="num">${clock(destT)}</span> · in ${until(destT)} <span class="chip ${dcls}">${dtxt}</span></div>
-        <div class="ride-sub2">${miles != null ? `${miles.toFixed(1)} mi to go · ` : ""}${arrive} ~<span class="num">${clock(atWork)}</span> · we'll alert you one stop before</div>`;
+        <div class="ride-sub2">${miles != null ? `${miles.toFixed(1)} mi to go · ` : ""}we'll alert you one stop before</div>`;
     }
 
     // Stop-by-stop list with a "you are here" marker.
@@ -546,15 +531,10 @@
 
   /* ---------- settings ---------- */
   function openSettings() {
-    $("walks").innerHTML = WALKS.map(([k, label]) => `<label>${esc(label)} <span><input type="number" data-walk="${k}" min="0" max="30" inputmode="numeric" value="${settings.walk[k]}"> min</span></label>`).join("");
     $("hasPass").checked = settings.pass;
     $("settings").showModal();
   }
   function saveSettings() {
-    for (const input of $("walks").querySelectorAll("input[data-walk]")) {
-      const v = parseInt(input.value, 10), k = input.dataset.walk;
-      settings.walk[k] = Number.isFinite(v) && v >= 0 && v <= 60 ? v : DEFAULTS.walk[k];
-    }
     settings.pass = $("hasPass").checked;
     store.set("pgo:settings", settings);
     renderPickup();
@@ -574,7 +554,7 @@
     if (el.hidden) return;
     el.innerHTML = `<span class="pickup-label" id="pickupLabel">Pick up at</span>` + HOME_STOPS.map((h) =>
       `<button type="button" role="radio" aria-checked="${h.id === settings.homeStop}" data-stop="${h.id}">
-        <b>${esc(SHORT[h.id])}</b><span>${walkMin(h.id)} min walk · ${esc(h.note)}</span></button>`).join("");
+        <b>${esc(SHORT[h.id])}</b><span>${esc(h.note)}</span></button>`).join("");
   }
   function setHomeStop(id) {
     if (id === settings.homeStop || !HOME_STOPS.some((h) => h.id === id)) return;
