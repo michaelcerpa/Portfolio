@@ -27,6 +27,8 @@ module.exports = {
     // The Downtown route is one loop that turns around at 50 Beale St (Beale & Mission). Shuttles get there
     // about 5 minutes before the timetable time and wait, so a departure from there never leaves early.
     turnaround: "8894813",
+    // The feed marks a stop done the moment a shuttle pulls up; it can sit there another minute (5 at 50 Beale).
+    atStopMeters: 60,
     // Weekday runs the official timetable marks with * (Presidio GO Pass holders only). One run can be open
     // on its way downtown and pass-only on its way back, so each half of the loop has its own list.
     passOnly: {
