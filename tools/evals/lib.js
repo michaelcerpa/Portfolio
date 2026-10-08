@@ -20,10 +20,24 @@ const AT_STOP_M = 60;          // GPS within this of the stop = the shuttle is t
 const LEFT_M = 100;            // ...and seen beyond this afterwards = it left
 const SAMPLE_SLACK_S = 30;     // samples are ~15 s apart; allow one gap of slack when judging "after it left"
 
+const metersApart = (a, b) => Math.hypot((a.lat - b.lat) * 110540, (a.lon - b.lon) * 111320 * Math.cos((a.lat * Math.PI) / 180));
+
 function loadRecording(file) {
   let buf = fs.readFileSync(file);
   if (file.endsWith(".gz")) buf = zlib.gunzipSync(buf);
   const samples = buf.toString("utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((s) => s.t);
+  // Recordings before Oct 8 lack the feed's heading: derive it from each vehicle's movement (kept while it stands still).
+  const lastFix = {};
+  for (const s of samples) {
+    for (const v of s.vp || []) {
+      const prev = lastFix[v.veh];
+      if (v.bearing == null) {
+        const moved = prev && metersApart(prev, v) >= 15;
+        v.bearing = moved ? (((Math.atan2((v.lon - prev.lon) * Math.cos((v.lat * Math.PI) / 180), v.lat - prev.lat) * 180) / Math.PI) + 360) % 360 : prev?.bearing ?? null;
+      }
+      if (!prev || metersApart(prev, v) >= 15 || prev.bearing == null) lastFix[v.veh] = { lat: v.lat, lon: v.lon, bearing: v.bearing };
+    }
+  }
   // What the server would hold as vehicles at each moment: it reuses the last positions when the feed blinks empty.
   let last = null;
   for (const s of samples) {
@@ -47,7 +61,7 @@ function liveAt(sample, naive = false) {
       stops: Object.entries(u.stops || {}).map(([seq, t]) => ({ seq: +seq, arr: { time: t }, dep: { time: t } })).sort((a, b) => a.seq - b.seq),
     })),
     vehicles: ((naive ? sample.vp : sample.vpServed ?? sample.vp) || []).map((v) => ({
-      trip: { tripId: v.trip }, vehicle: { id: v.veh }, pos: { lat: v.lat, lon: v.lon }, ts: v.ts, seq: v.seq || undefined,
+      trip: { tripId: v.trip }, vehicle: { id: v.veh }, pos: { lat: v.lat, lon: v.lon, bearing: v.bearing ?? undefined }, ts: v.ts, seq: v.seq || undefined,
     })),
     ts: sample.tu_ts || sample.vp_ts || sample.t,
     errors: [],
@@ -60,7 +74,7 @@ function departuresAt(model, sample, stop, naive = false) {
   return c.departures(model, liveAt(sample, naive), {
     from: [stop.from], to: [stop.to], now: sample.t,
     holdAt: !naive && AGENCY.turnaround ? [AGENCY.turnaround] : [],
-    atStopMeters: naive ? 0 : AGENCY.atStopMeters, approachMeters: naive ? 0 : AGENCY.approachMeters,
+    atStopMeters: naive ? 0 : AGENCY.atStopMeters, gpsTrack: !naive && AGENCY.gpsTrack,
   });
 }
 
@@ -75,11 +89,16 @@ const NaiveTiming = {
   },
 };
 
-const metersApart = (a, b) => Math.hypot((a.lat - b.lat) * 110540, (a.lon - b.lon) * 111320 * Math.cos((a.lat * Math.PI) / 180));
 
 // When each run actually left a stop: its last GPS fix within AT_STOP_M of the stop (near its timetable time there),
 // counted only if a later fix shows it beyond LEFT_M. Returns {trip: {left, sched}}.
-function actualDepartures(model, samples, stopId) {
+// Departures GPS can't show (a frozen fix, say) can be given in <recording>.labels.json: {departures: [{stop, trip, left}]}.
+function loadLabels(file) {
+  const f = file.replace(/\.jsonl(\.gz)?$/, ".labels.json");
+  return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")).departures || [] : [];
+}
+
+function actualDepartures(model, samples, stopId, labels = []) {
   const stop = model.stops[stopId];
   const out = {};
   const ymd = c.ymdOf(samples[0].t), base = c.serviceDayBase(ymd);
@@ -98,6 +117,7 @@ function actualDepartures(model, samples, stopId) {
     }
   }
   for (const trip of Object.keys(near)) if (away[trip]) out[trip] = { left: near[trip], sched: schedAt(trip) };
+  for (const l of labels) if (l.stop === stopId && schedAt(l.trip) != null) out[l.trip] = { left: l.left, sched: schedAt(l.trip), labeled: true };
   return out;
 }
 
@@ -109,4 +129,4 @@ function recordingFiles(args) {
 
 const hm = (t) => (t ? new Date(t * 1000).toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour: "numeric", minute: "2-digit", second: "2-digit" }) : "-");
 
-module.exports = { NaiveTiming, STOPS, SAMPLE_SLACK_S, loadRecording, loadModel, liveAt, departuresAt, actualDepartures, recordingFiles, hm, AGENCY };
+module.exports = { NaiveTiming, STOPS, SAMPLE_SLACK_S, loadRecording, loadLabels, loadModel, liveAt, departuresAt, actualDepartures, recordingFiles, hm, AGENCY };

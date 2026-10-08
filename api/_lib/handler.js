@@ -9,13 +9,12 @@ const { departures, ride, mapLayer, getModel, getLive, ymdOf, AGENCIES } = requi
 
 const ID = /^[A-Za-z0-9_-]{1,20}$/;
 
-// Presidio GO: does boarding this run here need a Presidio GO Pass? (See passOnly in agencies.js.)
-function needsPass(agency, model, d) {
-  const trip = model.trips[d.trip];
+// Presidio GO: does boarding this run at this stop need a Presidio GO Pass? (See passOnly in agencies.js.)
+function needsPass(agency, trip, boardStop) {
   if (!agency.passOnly || !trip) return false;
-  const board = trip.stops.find((s) => s.stop === d.origin.id), turn = trip.stops.find((s) => s.stop === agency.turnaround);
+  const board = trip.stops.find((s) => s.stop === boardStop), turn = trip.stops.find((s) => s.stop === agency.turnaround);
   const half = board && turn && board.seq < turn.seq ? "toDowntown" : "fromDowntown";
-  return agency.passOnly[half].includes(d.trip);
+  return agency.passOnly[half].includes(trip.id);
 }
 
 // deps lets the evals (tools/evals/) feed it a recorded snapshot instead of fetching the agency's feeds.
@@ -31,6 +30,9 @@ module.exports = (key, deps = {}) => async (req, res) => {
   }
   const now = Math.floor(Date.now() / 1000);
   const holdAt = agency.turnaround ? [agency.turnaround] : [];
+  // The rider has no Presidio GO Pass: pass-only runs aren't hers to take, so they aren't listed at all.
+  const skip = agency.passOnly && !agency.riderHasPass ? (trip, origin) => needsPass(agency, trip, origin.stop) : undefined;
+  const opts = { holdAt, skip, atStopMeters: agency.atStopMeters, gpsTrack: agency.gpsTrack };
   try {
     const [model, live] = await Promise.all([(deps.getModel || getModel)(fetch, key), (deps.getLive || getLive)(fetch, key)]);
     const feed = { ok: !live.errors.length, ts: live.ts, errors: live.errors };
@@ -46,16 +48,14 @@ module.exports = (key, deps = {}) => async (req, res) => {
       schedule: { updated: model.lastModified, validUntil: model.validUntil },
       origin: model.stops[from[0]] || null,
       origins: from.map((id) => model.stops[id]).filter(Boolean),
-      departures: departures(model, live, { from, to, now, holdAt, atStopMeters: agency.atStopMeters, approachMeters: agency.approachMeters }),
-      recent: departures(model, live, { from, to, now, holdAt, atStopMeters: agency.atStopMeters, approachMeters: agency.approachMeters, recent: true }),
+      departures: departures(model, live, { from, to, now, ...opts }),
+      recent: departures(model, live, { from, to, now, ...opts, recent: true }),
     };
     // Nothing soon (late night, weekends for the commute-only routes): say when the next one is.
     if (!body.departures.length) {
-      const next = departures(model, { tripUpdates: [], vehicles: [] }, { from, to, now, windowMin: 4 * 24 * 60, limit: 1, days: [0, 1, 2, 3, 4] })[0];
+      const next = departures(model, { tripUpdates: [], vehicles: [] }, { from, to, now, skip, windowMin: 4 * 24 * 60, limit: 1, days: [0, 1, 2, 3, 4] })[0];
       body.later = next ? { route: next.route, color: next.color, textColor: next.textColor, sched: next.sched, origin: next.origin } : null;
-      if (next && agency.passOnly) body.later.pass = needsPass(agency, model, next);
     }
-    if (agency.passOnly) for (const d of [...body.departures, ...body.recent]) d.pass = needsPass(agency, model, d);
     if (model.holidays?.[ymdOf(now)]) body.holiday = model.holidays[ymdOf(now)];
     if (q.get("map")) body.map = mapLayer(model, from, to);
     res.setHeader("Cache-Control", q.get("map") ? "public, s-maxage=3600, stale-while-revalidate=86400"

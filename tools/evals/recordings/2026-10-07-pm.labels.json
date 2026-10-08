@@ -1,0 +1,10 @@
+{
+  "departures": [
+    {
+      "stop": "839326",
+      "trip": "PD1530",
+      "left": 1791414270,
+      "note": "The 4:02 from Drumm & California, Oct 7. The rider reported it came about 4 min late, after the page had dropped it for the next run. Its GPS sat frozen on one spot 174 m from the stop from 3:54:33 to 4:05:03 (fresh timestamps) and the feed stopped predicting the trip at 4:00, so GPS alone never shows it at the stop; at 4:05:18 its GPS had it 311 m past. Left about 4:04:30."
+    }
+  ]
+}
