@@ -244,6 +244,12 @@ function departures(model, live, opts) {
       if (pred !== null && pred < sched && hold.has(origin.stop)) pred = sched;
       pred = capAfterTurnaround(trip, tu, base, hold, origin, pred, now);
       const destPred = capAfterTurnaround(trip, tu, base, hold, dest, atDest?.time ?? null, now);
+      // A late estimate far out is often too late (on Oct 7 the feed had the 6:30 from 50 Beale at 6:34 for minutes
+      // while the shuttle's GPS sat frozen; it left 6:32:57): show the lateness in full only as the time gets close.
+      if (gpsTrack && pred !== null && pred > sched) {
+        const f = Math.min(1, Math.max(0, 1 - (pred - now) / FADE_S));
+        pred = Math.round(sched + (pred - sched) * f);
+      }
       let effective = pred ?? sched;
       const stop = model.stops[origin.stop];
       const gps = vp?.pos && vp.ts && now - vp.ts < 90 && stop && Math.abs(now - effective) < 900
@@ -266,10 +272,26 @@ function departures(model, live, opts) {
         pred = Math.round(Math.min(Math.max(pred ?? sched, soonest), latest));
         effective = pred;
       }
-      // A bus has left once its GPS has it past your stop, or the live data says so, or (live-predicted) its prediction
-      // is past, or (untracked) it is two minutes past its scheduled time; never while its GPS has it at or short of the stop.
+      // Which physical bus will run this trip (its own GPS, or the bus the feed assigned, still on an earlier run)?
+      let bus = vp, onEarlierTrip = false;
+      if (!bus && tu?.vehicle?.id && vpById.has(tu.vehicle.id)) { bus = vpById.get(tu.vehicle.id); onEarlierTrip = true; }
+      const tracked = gpsTrack && ((vp && vp.ts && now - vp.ts < 90) || (onEarlierTrip && bus.ts && now - bus.ts < 300));
+      // When a bus has left your stop:
+      // - never while its GPS has it at or short of the stop;
+      // - once its GPS has it past the stop;
+      // - a bus we're following but can't place (GPS off the mapped streets, or frozen: Presidio GO's sometimes sits on one
+      //   spot for minutes with fresh timestamps) or that is still finishing an earlier run: once the feed says so and its
+      //   GPS has it heading away from the stop, else GRACE_S after its time. The feed dropping the stop or its time passing
+      //   isn't enough: on Oct 7 both happened minutes before the 4:02 from Drumm & California got there;
+      // - otherwise, once the live data says so, or (live-predicted) its prediction is past, or (untracked) it is two
+      //   minutes past its scheduled time.
       const gpsPast = toGo !== null && toGo < -60;
-      const left = !atStop && !enroute && (gpsPast || passed(tu, vp, origin) || effective < now - (pred ? 30 : 120));
+      const away = gps > 150 && gps < Infinity && vp.pos.bearing != null &&
+                   angleOff(vp.pos.bearing, bearingTo(vp.pos, stop)) > 100;
+      const left = atStop || enroute ? false
+        : gpsPast ? true
+        : tracked ? (!onEarlierTrip && passed(tu, vp, origin) && away) || now > Math.max(sched, pred ?? sched) + GRACE_S
+        : passed(tu, vp, origin) || effective < now - (pred ? 30 : 120);
       if (recent) {
         if (!left || canceled || (atDest?.time ?? base + dest.arr) < now - 120) continue;
       } else {
@@ -277,9 +299,7 @@ function departures(model, live, opts) {
         if (effective > now + windowMin * 60) continue;
       }
 
-      // Which physical bus will run this trip, and where is it right now?
-      let bus = vp, onEarlierTrip = false;
-      if (!bus && tu?.vehicle?.id && vpById.has(tu.vehicle.id)) { bus = vpById.get(tu.vehicle.id); onEarlierTrip = true; }
+      // Where is that bus right now?
       const fresh = bus && bus.ts && now - bus.ts < 300;
       let vehicle = null;
       if (bus?.pos && fresh) {
@@ -299,8 +319,9 @@ function departures(model, live, opts) {
         headsign: trip.headsign, shape: trip.shape,
         status: canceled ? "canceled" : atOrigin?.skipped ? "skipped" : vehicle && !onEarlierTrip ? "live" : pred ? "estimated" : "scheduled",
         sched, pred, delay: pred !== null ? pred - sched : null, ...(atStop ? { atStop } : {}),
-        // Past its time and its shuttle is still finishing an earlier run: late, whatever any estimate says.
-        ...(onEarlierTrip && !atStop && now > sched + 60 ? { overdue: true } : {}),
+        // Past its time, not here, and no estimate still ahead (its shuttle still finishing an earlier run, or the feed
+        // has stopped predicting it): late, whatever any earlier estimate said.
+        ...(tracked && !atStop && now >= sched + 60 && (onEarlierTrip || pred === null || pred <= now) ? { overdue: true } : {}),
         origin: { id: origin.stop, name: model.stops[origin.stop]?.name, lat: model.stops[origin.stop]?.lat, lon: model.stops[origin.stop]?.lon },
         dest: { id: dest.stop, name: model.stops[dest.stop]?.name, sched: base + dest.arr, pred: destPred },
         vehicle,
@@ -322,6 +343,11 @@ const M_PER_DEG_LAT = 110540;
 // Bounds on a shuttle's average speed along the route: 20 m/s (45 mph) is above anything seen over a minute or more,
 // even through the Broadway tunnel; 2 m/s is a crawl in traffic.
 const V_FAST = 20, V_CRAWL = 2;
+// How long after its time a followed bus that can't be placed stays listed; and how far out a late estimate fades to
+// nothing (counting in full at its time).
+const GRACE_S = 6 * 60, FADE_S = 15 * 60;
+const bearingTo = (a, b) => ((Math.atan2((b.lon - a.lon) * Math.cos((a.lat * Math.PI) / 180), b.lat - a.lat) * 180) / Math.PI + 360) % 360;
+const angleOff = (a, b) => Math.abs((((a - b) % 360) + 540) % 360 - 180);
 
 function projector(lat0) {
   const kx = 111320 * Math.cos((lat0 * Math.PI) / 180);

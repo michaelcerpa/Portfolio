@@ -92,7 +92,13 @@ const NaiveTiming = {
 
 // When each run actually left a stop: its last GPS fix within AT_STOP_M of the stop (near its timetable time there),
 // counted only if a later fix shows it beyond LEFT_M. Returns {trip: {left, sched}}.
-function actualDepartures(model, samples, stopId) {
+// Departures GPS can't show (a frozen fix, say) can be given in <recording>.labels.json: {departures: [{stop, trip, left}]}.
+function loadLabels(file) {
+  const f = file.replace(/\.jsonl(\.gz)?$/, ".labels.json");
+  return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")).departures || [] : [];
+}
+
+function actualDepartures(model, samples, stopId, labels = []) {
   const stop = model.stops[stopId];
   const out = {};
   const ymd = c.ymdOf(samples[0].t), base = c.serviceDayBase(ymd);
@@ -111,6 +117,7 @@ function actualDepartures(model, samples, stopId) {
     }
   }
   for (const trip of Object.keys(near)) if (away[trip]) out[trip] = { left: near[trip], sched: schedAt(trip) };
+  for (const l of labels) if (l.stop === stopId && schedAt(l.trip) != null) out[l.trip] = { left: l.left, sched: schedAt(l.trip), labeled: true };
   return out;
 }
 
@@ -122,4 +129,4 @@ function recordingFiles(args) {
 
 const hm = (t) => (t ? new Date(t * 1000).toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour: "numeric", minute: "2-digit", second: "2-digit" }) : "-");
 
-module.exports = { NaiveTiming, STOPS, SAMPLE_SLACK_S, loadRecording, loadModel, liveAt, departuresAt, actualDepartures, recordingFiles, hm, AGENCY };
+module.exports = { NaiveTiming, STOPS, SAMPLE_SLACK_S, loadRecording, loadLabels, loadModel, liveAt, departuresAt, actualDepartures, recordingFiles, hm, AGENCY };

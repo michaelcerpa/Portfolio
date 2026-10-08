@@ -43,7 +43,7 @@ for (const file of files) {
   const gtfs = fs.existsSync(file.replace(/\.jsonl(\.gz)?$/, ".gtfs.zip")) ? file.replace(/\.jsonl(\.gz)?$/, ".gtfs.zip") : path.join(path.dirname(file), "gtfs.zip");
   const model = (models[file] = L.loadModel(gtfs));
   for (const stop of L.STOPS) {
-    const actual = L.actualDepartures(model, samples, stop.from);
+    const actual = L.actualDepartures(model, samples, stop.from, L.loadLabels(file));
     for (const [trip, a] of Object.entries(actual)) {
       for (const off of OFFSETS_MIN) {
         const sample = [...samples].reverse().find((s) => s.t <= a.left - off * 60);

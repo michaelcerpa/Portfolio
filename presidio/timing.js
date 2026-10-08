@@ -28,7 +28,7 @@
     if (d.status === "canceled") return ["canceled", "canceled"];
     if (d.status === "skipped") return ["canceled", "skips stop"];
     if (d.atStop) return ["ontime", "at your stop"];  // its GPS has it at the stop right now
-    if (d.overdue && !onRun(d)) return ["late", "running late"];  // past its time, shuttle still finishing its last run
+    if (d.overdue) return ["late", "running late"];  // past its time, not here, and no estimate still ahead
     if (d.pred == null) return ["sched", "timetable"];
     const late = d.pred - d.sched;
     if (Math.abs(late) < 60) return ["ontime", "on time"];

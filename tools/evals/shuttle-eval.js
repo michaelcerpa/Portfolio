@@ -32,7 +32,7 @@ for (const file of files) {
   const model = L.loadModel(gtfs);
   const rec = { file: path.basename(file), from: L.hm(samples[0].t), to: L.hm(samples.at(-1).t), samples: samples.length, stops: [] };
   for (const stop of L.STOPS) {
-    const actual = L.actualDepartures(model, samples, stop.from);
+    const actual = L.actualDepartures(model, samples, stop.from, L.loadLabels(file));
     const st = { stop: stop.name, departures: Object.keys(actual).length, checks: 0, failures: 0, margins: [] };
     const fail = (check, smp, trip, detail) => {
       st.failures++;

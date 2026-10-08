@@ -173,6 +173,33 @@ test("the 4:02 from Drumm: a shuttle running late reads late and stays listed pa
   assert.equal(Timing.departs(late.d), now - 120);
 });
 
+test("a frozen GPS fix and predictions that vanish don't make a shuttle 'gone': it reads 'running late' until it's seen past the stop", () => {
+  // The Oct 7 4:02 from Drumm & California: its GPS sat on one spot off the mapped streets from 3:54 to 4:05 (fresh
+  // timestamps), the feed stopped predicting the trip at 4:00, and it left about 4:04:30.
+  const m = loopModel(), sched = at(TUE, 8, 2);
+  const frozen = (now) => ({ trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat: 37.7952, lon: -122.3940, bearing: 349 }, ts: now - 3 });
+  const opts = (now) => ({ from: ["D"], to: ["M"], now, holdAt: ["B"], atStopMeters: 60, gpsTrack: true });
+  const at4 = (now) => c.departures(m, { tripUpdates: [], vehicles: [frozen(now)] }, opts(now))[0];
+  assert.deepEqual([at4(sched + 30).trip, Timing.label(at4(sched + 30))], ["PD0730", null]);
+  assert.deepEqual([at4(sched + 150).trip, Timing.label(at4(sched + 150))], ["PD0730", ["late", "running late"]]);
+  assert.equal(at4(sched + 150 + 3 * 60).trip, "PD0730", "still within the 6-minute grace");
+  assert.equal(at4(sched + 7 * 60).trip, "PD0800", "given up 6 minutes past its time with no sign of it");
+  // Seen 300 m past the stop toward M: gone at once.
+  const past = { ...frozen(sched + 150), pos: { lat: 37.79408, lon: -122.39967, bearing: 277 } };
+  assert.equal(c.departures(m, { tripUpdates: [], vehicles: [past] }, opts(sched + 150))[0].trip, "PD0800");
+});
+
+test("a late estimate far out shows only part of the lateness, all of it as the time gets close", () => {
+  // Oct 7: with the shuttle's GPS frozen, the feed had the 6:30 from 50 Beale at 6:34 for minutes; it left 6:32:57.
+  const m = loopModel(), sched = at(TUE, 8, 0);
+  const tu = (late) => ({ trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, stops: [{ seq: 3, arr: { time: sched + late }, dep: { time: sched + late } }] });
+  const opts = (now) => ({ from: ["B"], to: ["M"], now, holdAt: ["B"], gpsTrack: true });
+  const far = c.departures(m, { tripUpdates: [tu(240)], vehicles: [] }, opts(sched - 10 * 60))[0];
+  assert.ok(far.pred > sched && far.pred < sched + 240 / 2, "10 min out: well under the feed's 4 min late");
+  const near = c.departures(m, { tripUpdates: [tu(240)], vehicles: [] }, opts(sched + 200))[0];
+  assert.ok(near.pred >= sched + 240 - 20, "40 s out: nearly all of it");
+});
+
 test("when the vehicle feed blinks empty for a poll, the last positions are kept for up to a minute", () => {
   const last = { at: 1_000_000, vehicles: [{ vehicle: { id: "11" } }] }, empty = { tripUpdates: [], vehicles: [], errors: [] };
   assert.equal(c.keepVehicles(last, empty, 60, 1_000_000 + 30_000).vehicles, last.vehicles);
