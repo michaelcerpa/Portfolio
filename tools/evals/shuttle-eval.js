@@ -6,6 +6,8 @@
 //   LISTED    a tracked run is on the list from 30 min before until it actually leaves (not dropped at the curb)
 //   NO_GUESS  a run whose shuttle isn't on it yet is never shown later than the timetable
 //   HONEST    "N min late" only when the shuttle's GPS is on that run
+//   WARNED    a shuttle that leaves 2.5+ min late reads late from a minute past its timetable time until it comes
+//             (the Oct 7 4:02 from Drumm said "1 min early", came ~4 min late, and never said so)
 //
 //   node tools/evals/shuttle-eval.js [recording.jsonl[.gz] ...] [--report out.json] [--naive]
 // Default: every recording in tools/evals/recordings/. Exits 1 on any failure.
@@ -53,10 +55,16 @@ for (const file of files) {
         if (Timing.onRun(d)) st.margins.push(a.left - shown);
       }
       // LISTED: every run that later leaves is on the list from 30 min before its timetable time until it goes.
+      // WARNED: one that leaves 2.5+ min late says "late" from a minute past its time until it gets there.
       for (const [trip, a] of Object.entries(actual)) {
         if (smp.t < Math.min(a.sched, a.left) - 30 * 60 || smp.t > a.left - 15) continue;
         st.checks++;
-        if (!list.some((d) => d.trip === trip)) fail("LISTED", smp, trip, { left: L.hm(a.left), sched: L.hm(a.sched) });
+        const d = list.find((x) => x.trip === trip);
+        if (!d) { fail("LISTED", smp, trip, { left: L.hm(a.left), sched: L.hm(a.sched) }); continue; }
+        if (a.left - a.sched < 150 || smp.t < a.sched + 60 || smp.t > a.left - 30 || d.atStop) continue;
+        st.checks++;
+        const label = (Timing.label ? Timing.label(d) : Timing.status(d))?.[1] || "";
+        if (!/late/.test(label)) fail("WARNED", smp, trip, { label: label || "(none)", shown: L.hm(Timing.departs(d)), left: L.hm(a.left), sched: L.hm(a.sched), status: d.status });
       }
     }
     const m = st.margins.sort((x, y) => x - y);

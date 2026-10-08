@@ -27,6 +27,8 @@ while time.time() < END:
         m = g.FeedMessage(); m.ParseFromString(vp); rec["vp_ts"] = m.header.timestamp
         rec["vp"] = [{"veh": e.vehicle.vehicle.id, "trip": e.vehicle.trip.trip_id, "lat": round(e.vehicle.position.latitude, 6),
                       "lon": round(e.vehicle.position.longitude, 6), "ts": e.vehicle.timestamp, "seq": e.vehicle.current_stop_sequence,
+                      "bearing": round(e.vehicle.position.bearing, 1) if e.vehicle.position.HasField("bearing") else None,
+                      "speed": round(e.vehicle.position.speed, 1) if e.vehicle.position.HasField("speed") else None,
                       "status": e.vehicle.current_status} for e in m.entity if e.HasField("vehicle")]
     feed.write(json.dumps(rec) + "\n"); feed.flush()
     if n % 2 == 0:

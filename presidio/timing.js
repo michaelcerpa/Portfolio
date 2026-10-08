@@ -28,6 +28,7 @@
     if (d.status === "canceled") return ["canceled", "canceled"];
     if (d.status === "skipped") return ["canceled", "skips stop"];
     if (d.atStop) return ["ontime", "at your stop"];  // its GPS has it at the stop right now
+    if (d.overdue && !onRun(d)) return ["late", "running late"];  // past its time, shuttle still finishing its last run
     if (d.pred == null) return ["sched", "timetable"];
     const late = d.pred - d.sched;
     if (Math.abs(late) < 60) return ["ontime", "on time"];
@@ -37,10 +38,10 @@
     return [m >= 5 ? "verylate" : "late", `${m} min late`];
   }
 
-  // What the page shows next to a time: only things that are real right now (canceled, at the stop, or the live
-  // lateness of a shuttle that is on the run), else null.
+  // What the page shows next to a time: only things that are real right now (canceled, at the stop, past its time with
+  // the shuttle not here yet, or the live lateness of a shuttle that is on the run), else null.
   function label(d) {
-    if (d.status === "canceled" || d.status === "skipped" || d.atStop) return status(d);
+    if (d.status === "canceled" || d.status === "skipped" || d.atStop || d.overdue) return status(d);
     return onRun(d) && d.pred != null ? status(d) : null;
   }
 

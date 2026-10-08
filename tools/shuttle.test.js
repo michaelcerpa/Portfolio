@@ -134,21 +134,43 @@ test("a shuttle the feed has marked past your stop stays listed while its GPS st
     { from: ["L"], to: ["B"], now: at(TUE, 7, 33) + 30 })[0].trip, "PD0800");
 });
 
-test("a shuttle still pulling up stays listed after the feed drops the stop, and its time is capped at a slow crawl", () => {
+test("a shuttle still on its way stays listed after the feed drops the stop; once its GPS is past the stop it's gone", () => {
   // Seen on the 8:48 from Lombard Gate: the feed dropped the stop at 8:50:09 with the shuttle 86 m out; it pulled up at
   // 8:50:54 and left at 8:51:07. And at 50 Beale, a late shuttle 146 m out was predicted at 9:01:54 but left at 9:01:24.
   const m = loopModel(), now = at(TUE, 7, 34);
   const tu = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, stops: [{ seq: 2, arr: { time: at(TUE, 7, 45) }, dep: { time: at(TUE, 7, 45) } }] };
-  const vp = (lat, lon) => ({ trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat, lon }, ts: now - 5 });
-  const opts = { from: ["L"], to: ["B"], now, atStopMeters: 60, approachMeters: 300 };
-  // 120 m short of the gate, on the way in from the Transit Center.
-  const pulling = c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.79888, -122.44852)] }, opts);
+  const vp = (lat, lon, bearing) => ({ trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat, lon, bearing }, ts: now - 5 });
+  const opts = { from: ["L"], to: ["B"], now, atStopMeters: 60, gpsTrack: true };
+  // 120 m short of the gate, heading in from the Transit Center.
+  const pulling = c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.79888, -122.44852, 116)] }, opts);
   assert.deepEqual([pulling[0].trip, pulling[0].status, !!pulling[0].atStop], ["PD0730", "live", false]);
-  assert.ok(Timing.departs(pulling[0]) <= now + 60, "120 m at 2 m/s: no later than a minute out");
-  // 120 m past it, toward Van Ness: it has left.
-  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.7984, -122.44594)] }, opts)[0].trip, "PD0800");
+  assert.ok(Timing.departs(pulling[0]) <= now + 60, "120 m at a 2 m/s crawl: no later than a minute out");
+  // 120 m past it, heading on toward Van Ness: it has left.
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.7984, -122.44594, 90)] }, opts)[0].trip, "PD0800");
   // Off by default (Golden Gate's page keeps its behavior).
-  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.79888, -122.44852)] }, { ...opts, approachMeters: 0 })[0].trip, "PD0800");
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp(37.79888, -122.44852, 116)] }, { ...opts, gpsTrack: false })[0].trip, "PD0800");
+});
+
+test("the 4:02 from Drumm: a shuttle running late reads late and stays listed past its time, not swapped for the next one", () => {
+  // Oct 7: at 3:34 the page said the 4:02 would leave at 4:00 (1 min early); it came about 4 minutes late, and at its
+  // timetable time the page dropped it for the next run. Here: the 8:02 from D, the feed still predicting 8:01 (and
+  // already past the turnaround B, so it dropped that stop), the shuttle's GPS 60% of the way from V to B at 8:03.
+  const m = loopModel(), now = at(TUE, 8, 3);
+  const tu = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" },
+               stops: [{ seq: 4, arr: { time: at(TUE, 8, 1) }, dep: { time: at(TUE, 8, 1) } }, { seq: 5, arr: { time: at(TUE, 8, 21) }, dep: { time: at(TUE, 8, 21) } }] };
+  const vp = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat: 37.79428, lon: -122.4077, bearing: 107 }, ts: now - 5 };
+  const opts = { from: ["D"], to: ["M"], now, holdAt: ["B"], atStopMeters: 60, gpsTrack: true };
+  const list = c.departures(m, { tripUpdates: [tu], vehicles: [vp] }, opts);
+  assert.equal(list[0].trip, "PD0730", "still coming: listed first");
+  assert.equal(list[0].status, "live");
+  assert.ok(Timing.departs(list[0]) >= now, "not 'gone' and not in the past");
+  assert.match(Timing.label(list[0])[1], /^\d+ min late$/);
+  // Without the GPS placement it would have been dropped for the 8:32.
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp] }, { ...opts, gpsTrack: false })[0].trip, "PD0800");
+  // And a run whose shuttle is still finishing its previous loop past its time says so, at the timetable time.
+  const late = { ...Timing, d: { status: "estimated", sched: now - 120, pred: now + 300, overdue: true } };
+  assert.deepEqual(Timing.label(late.d), ["late", "running late"]);
+  assert.equal(Timing.departs(late.d), now - 120);
 });
 
 test("when the vehicle feed blinks empty for a poll, the last positions are kept for up to a minute", () => {
@@ -255,7 +277,7 @@ async function api(url, now, live = true) {
 }
 const clock = (t) => new Date(t * 1000).toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour: "numeric", minute: "2-digit", hour12: false });
 
-test("real feeds: her stops, the timetable, and which runs need a pass", { skip: !FX && "set PGO_FIXTURES" }, async () => {
+test("real feeds: her stops, the timetable, and no pass-only runs", { skip: !FX && "set PGO_FIXTURES" }, async () => {
   const model = c.buildModel(fs.readFileSync(path.join(FX, "GTFSTransitData.zip")), "fixture");
   for (const id of ["31933", "8894813", "31980"]) assert.ok(model.stops[id], `stop ${id} still exists`);
   // A weekday that isn't a federal holiday, at or after the snapshot.
@@ -269,22 +291,28 @@ test("real feeds: her stops, the timetable, and which runs need a pass", { skip:
     ymd = new Date(c.serviceDayBase(ymd) * 1000 + 36 * 3600000).toISOString().slice(0, 10).replace(/-/g, "");
   }
   const base = c.serviceDayBase(ymd);
-  const list = (b) => b.departures.map((d) => clock(d.sched) + (d.pass ? "*" : ""));
+  const list = (b) => b.departures.map((d) => clock(d.sched));
 
-  // Morning from Lombard Gate: presidio.gov marks 7:33–8:49 with * (pass holders only).
+  // Morning from Lombard Gate: presidio.gov marks 7:33–8:48 with * (Presidio GO Pass holders only). She has no pass,
+  // so after the 7:18 the next one she can take is the 9:03.
   const am = await api("/api/pgo/?from=31933&to=8894813", base + 7 * 3600, false);
   assert.equal(am.code, 200);
-  assert.deepEqual(list(am.body).slice(0, 8), ["07:03", "07:18", "07:33*", "07:48*", "08:03*", "08:18*", "08:33*", "08:48*"]);
+  assert.deepEqual(list(am.body), ["07:03", "07:18"]);
   for (const d of am.body.departures) assert.ok(d.dest.id === "8894813" && d.dest.sched > d.sched && d.dest.sched - d.sched < 40 * 60);
+  const missed = await api("/api/pgo/?from=31933&to=8894813", base + 7 * 3600 + 25 * 60, false);
+  assert.deepEqual(list(missed.body), ["09:03"]);
 
-  // Evening from 50 Beale: every other run from 4:30 to 6:00 needs a pass.
+  // Evening from 50 Beale: every other run from 4:30 to 6:00 needs a pass; she gets the ones in between.
   const pm = await api("/api/pgo/?from=8894813&to=31980", base + 16 * 3600 + 20 * 60, false);
-  assert.deepEqual(list(pm.body).slice(0, 8), ["16:30*", "16:45", "17:00*", "17:15", "17:30*", "17:45", "18:00*", "18:15"]);
+  assert.deepEqual(list(pm.body).slice(0, 4), ["16:45", "17:15", "17:45", "18:15"]);
   for (const d of pm.body.departures) assert.ok(d.dest.id === "31980" && d.dest.sched > d.sched);
   // Or the same runs 2 minutes later at Drumm & California (Embarcadero BART), the other downtown pick-up.
   const drumm = await api("/api/pgo/?from=839326&to=31980", base + 16 * 3600 + 20 * 60, false);
-  assert.deepEqual(list(drumm.body).slice(0, 8), ["16:32*", "16:47", "17:02*", "17:17", "17:32*", "17:47", "18:02*", "18:17"]);
-  assert.deepEqual(drumm.body.departures.map((d) => d.trip).slice(0, 8), pm.body.departures.map((d) => d.trip).slice(0, 8));
+  assert.deepEqual(list(drumm.body).slice(0, 4), ["16:47", "17:17", "17:47", "18:17"]);
+  assert.deepEqual(drumm.body.departures.map((d) => d.trip).slice(0, 4), pm.body.departures.map((d) => d.trip).slice(0, 4));
+  // Earlier in the afternoon nothing is pass-only: the 4:00 and 4:02 she rode on Oct 7 are listed.
+  const aft = await api("/api/pgo/?from=839326&to=31980", base + 15 * 3600 + 30 * 60, false);
+  assert.deepEqual(list(aft.body).slice(0, 3), ["15:32", "16:02", "16:47"]);
   for (const d of drumm.body.departures) assert.ok(d.origin.id === "839326" && d.dest.id === "31980" && d.dest.sched > d.sched);
 
   // Ride mode on the morning run.
@@ -299,7 +327,7 @@ test("real feeds: her stops, the timetable, and which runs need a pass", { skip:
   const hol = await api("/api/pgo/?from=31933&to=8894813", c.serviceDayBase(columbus) + 8 * 3600, false);
   assert.equal(hol.body.holiday, "Columbus Day");
   assert.ok(hol.body.departures.length > 0);
-  assert.ok(hol.body.departures.every((d) => !d.pass && d.sched >= c.serviceDayBase(columbus) + 9 * 3600));
+  assert.ok(hol.body.departures.every((d) => d.sched >= c.serviceDayBase(columbus) + 9 * 3600));
 
   // And with the live snapshot at the moment it was taken (last: the handler caches live data briefly).
   if (tu.header.ts) {
