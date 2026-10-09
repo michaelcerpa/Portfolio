@@ -1,11 +1,13 @@
-# /presidio/ shuttle watch: once a week (Monday morning), record Presidio GO's live feed through the commute, then run
-# the evals on that real data. It catches changes in how the feed behaves, which no code change would surface. A
+# /presidio/ shuttle watch: record Presidio GO's live feed through the commute, then run the evals on that real data.
+# Every weekday morning and evening through Fri Oct 23 2026 (two weeks of data to measure how late each run really
+# is and calibrate "N min late"), then Monday mornings only. It catches changes in how the feed behaves, which no code change would surface. A
 # failure (red run, emailed by GitHub) means the page would have shown a departure time after a shuttle actually left,
 # or dropped one still at the stop. Recordings are kept on the shuttle-recordings branch as regression cases.
 name: shuttle-watch
 on:
   schedule:
-    - cron: "50 12 * * 1"     # Mondays 5:50am PDT / 4:50am PST, records until 9:45am Pacific
+    - cron: "50 12 * * 1-5"   # weekdays 5:50am PDT / 4:50am PST, records until 9:45am Pacific
+    - cron: "50 21 * * 1-5"   # weekdays 2:50pm PDT / 1:50pm PST, records until 7:15pm Pacific
   workflow_dispatch:
     inputs:
       minutes:
@@ -17,7 +19,20 @@ concurrency:
   group: shuttle-watch
   cancel-in-progress: false
 jobs:
+  # The daily window ends Fri Oct 23 2026; after that, only Monday mornings record (manual runs always do).
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - id: g
+        run: |
+          day=$(TZ=America/Los_Angeles date +%Y%m%d); dow=$(TZ=America/Los_Angeles date +%u); hour=$(TZ=America/Los_Angeles date +%H)
+          if [ "${{ github.event_name }}" != "schedule" ] || [ "$day" -le 20261023 ] || { [ "$dow" = 1 ] && [ "$hour" -lt 12 ]; }
+          then echo run=true >> "$GITHUB_OUTPUT"; else echo run=false >> "$GITHUB_OUTPUT"; fi
   watch:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 330
     steps:
