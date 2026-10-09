@@ -22,7 +22,8 @@ if (FIX.ggt || FIX.pgo) {
     return new Response(fs.readFileSync(set[kind]), { status: 200, headers: { "last-modified": "fixture" } });
   };
 }
-const API = { "/api/ggt": require(path.join(ROOT, "api/ggt.js")), "/api/pgo": require(path.join(ROOT, "api/pgo.js")) };
+const API = { "/api/ggt": require(path.join(ROOT, "api/ggt.js")), "/api/pgo": require(path.join(ROOT, "api/pgo.js")),
+              "/api/pgo-report": require(path.join(ROOT, "api/pgo-report.js")) };
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".woff2": "font/woff2",
                 ".webmanifest": "application/manifest+json", ".svg": "image/svg+xml" };
 
@@ -32,7 +33,11 @@ http.createServer((req, res) => {
   if (handler) {
     res.status = (c) => { res.statusCode = c; return res; };
     res.json = (o) => { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(o)); };
-    return handler(req, res);
+    if (req.method !== "POST") return handler(req, res);
+    // Like Vercel: a JSON body arrives parsed as req.body.
+    let raw = "";
+    req.on("data", (c) => (raw += c)).on("end", () => { try { req.body = JSON.parse(raw); } catch { req.body = raw; } handler(req, res); });
+    return;
   }
   let file = path.join(ROOT, decodeURIComponent(url.pathname));
   if (!file.startsWith(ROOT)) { res.statusCode = 403; return res.end(); }

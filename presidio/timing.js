@@ -23,12 +23,16 @@
   // A later estimate we are not showing as the time (shuttle not on the run yet), else null.
   const lateEstimate = (d) => (!onRun(d) && d.pred != null && d.pred - d.sched >= 60 ? d.pred : null);
 
-  // [css class, label] for the status chip.
-  function status(d) {
+  // [css class, label] for the status chip. now (epoch s): lets a shuttle that's past its time and not here count up
+  // ("3+ min late": it can only be at least that late, so the number is never a guess).
+  function status(d, now) {
     if (d.status === "canceled") return ["canceled", "canceled"];
     if (d.status === "skipped") return ["canceled", "skips stop"];
     if (d.atStop) return ["ontime", "at your stop"];  // its GPS has it at the stop right now
-    if (d.overdue) return ["late", "running late"];  // past its time, not here, and no estimate still ahead
+    if (d.overdue) {  // past its time, not here, and no estimate still ahead
+      const m = now ? Math.floor((now - d.sched) / 60) : 0;
+      return [m >= 5 ? "verylate" : "late", m >= 1 ? `${m}+ min late` : "running late"];
+    }
     if (d.pred == null) return ["sched", "timetable"];
     const late = d.pred - d.sched;
     if (Math.abs(late) < 60) return ["ontime", "on time"];
@@ -40,9 +44,9 @@
 
   // What the page shows next to a time: only things that are real right now (canceled, at the stop, past its time with
   // the shuttle not here yet, or the live lateness of a shuttle that is on the run), else null.
-  function label(d) {
-    if (d.status === "canceled" || d.status === "skipped" || d.atStop || d.overdue) return status(d);
-    return onRun(d) && d.pred != null ? status(d) : null;
+  function label(d, now) {
+    if (d.status === "canceled" || d.status === "skipped" || d.atStop || d.overdue) return status(d, now);
+    return onRun(d) && d.pred != null ? status(d, now) : null;
   }
 
   return { onRun, departs, arrives, lateEstimate, status, label };

@@ -200,6 +200,58 @@ test("a late estimate far out shows only part of the lateness, all of it as the 
   assert.ok(near.pred >= sched + 240 - 20, "40 s out: nearly all of it");
 });
 
+test("past its time and not here, the minutes count up: '3+ min late' is never a guess", () => {
+  const sched = at(TUE, 8, 2), d = { status: "live", sched, pred: null, overdue: true };
+  assert.deepEqual(Timing.label(d, sched + 3 * 60 + 20), ["late", "3+ min late"]);
+  assert.deepEqual(Timing.label(d, sched + 6 * 60), ["verylate", "6+ min late"]);
+  assert.deepEqual(Timing.label(d, sched + 40), ["late", "running late"]);
+  assert.deepEqual(Timing.label(d), ["late", "running late"], "without a clock it can't count");
+});
+
+test("her report: 'running N min late' is validated, stored privately, and waits when storage isn't set up", async () => {
+  const report = require("../api/pgo-report");
+  const now = at(TUE, 16, 5), realNow = Date.now;
+  const ok = { trip: "PD1530", date: TUE, stop: "839326", sched: at(TUE, 16, 2), minutes: 4, device: "a1b2c3d4e5f60718", at: now,
+               page: { shown: at(TUE, 16, 2), label: "3+ min late", status: "live", extra: "dropped" } };
+  const call = async (req, deps) => {
+    Date.now = () => now * 1000;
+    try {
+      return await new Promise((resolve) => {
+        const res = { headers: {}, setHeader(k, v) { this.headers[k] = v; }, status(code) { this.code = code; return this; },
+                      json(body) { resolve({ code: this.code, body, headers: this.headers }); } };
+        report(req, res, deps);
+      });
+    } finally { Date.now = realNow; }
+  };
+  const sent = [];
+  const storage = (count = 1) => ({ env: { KV_REST_API_URL: "https://kv.example/", KV_REST_API_TOKEN: "t" },
+    fetch: async (url, o) => { sent.push({ url, auth: o.headers.Authorization, cmds: JSON.parse(o.body) }); return new Response(JSON.stringify([{ result: count }, { result: 1 }]), { status: 200 }); } });
+
+  assert.equal((await call({ method: "GET" }, storage())).code, 405);
+  assert.equal((await call({ method: "POST", body: { ...ok, minutes: 99 } }, storage())).code, 400);
+  assert.equal((await call({ method: "POST", body: { ...ok, minutes: 2.5 } }, storage())).code, 400);
+  assert.equal((await call({ method: "POST", body: { ...ok, sched: ok.at + 2 * 86400 } }, storage())).code, 400, "a run around when she typed it");
+  assert.equal((await call({ method: "POST", body: { ...ok, device: "x" } }, storage())).code, 400);
+  assert.equal((await call({ method: "POST", body: "not json" }, storage())).code, 400);
+  // No storage yet: 503, so the page keeps it on her phone.
+  assert.equal((await call({ method: "POST", body: ok }, { env: {} })).code, 503);
+  // Stored: one RPUSH of exactly the cleaned report, after the per-hour count.
+  sent.length = 0;
+  const r = await call({ method: "POST", body: JSON.stringify(ok) }, storage());
+  assert.equal(r.code, 200);
+  assert.equal(r.headers["Cache-Control"], "no-store");
+  assert.equal(sent[1].url, "https://kv.example/pipeline");
+  assert.equal(sent[1].auth, "Bearer t");
+  const [cmd, list, json] = sent[1].cmds[0];
+  assert.deepEqual([cmd, list], ["RPUSH", "pgo:reports"]);
+  assert.deepEqual(JSON.parse(json), { at: now, received: now, trip: "PD1530", date: TUE, stop: "839326", sched: ok.sched, minutes: 4,
+                                       device: ok.device, page: { shown: ok.page.shown, label: "3+ min late", status: "live" } });
+  // Sent days later (it waited on her phone): kept, with when she typed it.
+  assert.equal((await call({ method: "POST", body: { ...ok, at: now - 3 * 86400, sched: ok.sched - 3 * 86400, page: undefined } }, storage())).code, 200);
+  // A runaway device is cut off.
+  assert.equal((await call({ method: "POST", body: ok }, storage(31))).code, 429);
+});
+
 test("when the vehicle feed blinks empty for a poll, the last positions are kept for up to a minute", () => {
   const last = { at: 1_000_000, vehicles: [{ vehicle: { id: "11" } }] }, empty = { tripUpdates: [], vehicles: [], errors: [] };
   assert.equal(c.keepVehicles(last, empty, 60, 1_000_000 + 30_000).vehicles, last.vehicles);

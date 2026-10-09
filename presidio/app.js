@@ -58,7 +58,7 @@
   }
   // Times and labels follow presidio/timing.js: never later than the timetable until the shuttle is on the run.
   const { departs, arrives, label } = window.Timing;
-  const chipHtml = (d) => { const l = label(d); return l ? `<span class="chip ${l[0]}">${l[1]}</span>` : ""; };
+  const chipHtml = (d) => { const l = label(d, nowSec()); return l ? `<span class="chip ${l[0]}">${l[1]}</span>` : ""; };
   function milesTo(lat, lon, o) {
     const r = Math.PI / 180, a = Math.sin(((o.lat - lat) * r) / 2) ** 2 +
       Math.cos(lat * r) * Math.cos(o.lat * r) * Math.sin(((o.lon - lon) * r) / 2) ** 2;
@@ -181,9 +181,94 @@
     renderFeed();
     renderNote();
     renderHero(list, best);
+    renderReport(best);
     renderRecent();
     renderRows(list, best);
     renderMarkers(list, best);
+  }
+
+  /* ---------- her report: "my shuttle is running N min late" ---------- */
+  // Live data from the stop, for the runs Presidio GO's feed misses and to check the page against. Sent to
+  // /api/pgo-report/ (stored privately); queued on this phone until it goes through.
+  const device = store.get("pgo:device", null) || (() => {
+    const id = Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(16).padStart(2, "0")).join("");
+    store.set("pgo:device", id);
+    return id;
+  })();
+  const sayLate = (m) => (m === 0 ? "on time" : m > 0 ? `${m} min late` : `${-m} min early`);
+  const reportKey = (d) => `${d.date}|${d.trip}|${d.origin?.id}`;
+  let reportRun = null;  // the run the report box is about
+
+  function renderReport(best) {
+    const el = $("report"), d = best?.d;
+    if (!d || d.status === "canceled" || d.status === "skipped") { el.hidden = true; reportRun = null; return; }
+    // Same run and she's typing: leave the box alone (the page redraws every few seconds).
+    if (reportRun?.key === reportKey(d) && el.dataset.state === "open") { reportRun.d = d; return; }
+    reportRun = { key: reportKey(d), d };
+    el.hidden = false;
+    el.dataset.state = "closed";
+    const mine = store.get("pgo:reported", {})[reportRun.key];
+    el.innerHTML = mine
+      ? `<span class="done">You said ${sayLate(mine.minutes)}${mine.queued ? " (sending when online)" : ""}. <button type="button" class="link" data-report="open">Change</button></span>`
+      : `<button type="button" class="link" data-report="open">Running late or early? Tell us</button>`;
+  }
+
+  function openReport() {
+    const el = $("report");
+    el.dataset.state = "open";
+    el.innerHTML = `<form class="report-form" novalidate>
+        <label for="reportMin">Running</label>
+        <input id="reportMin" type="number" inputmode="numeric" min="1" max="60" step="1" placeholder="0" autocomplete="off">
+        <span>min</span>
+        <button type="submit" data-way="late">Late</button>
+        <button type="submit" data-way="early">Early</button>
+        <button type="submit" data-way="ontime">On time</button>
+        <button type="button" class="x" data-report="close" aria-label="Cancel">×</button>
+      </form>`;
+    $("reportMin").focus();
+  }
+
+  function sendReport(way) {
+    const d = reportRun?.d, el = $("report");
+    if (!d) return;
+    const n = Math.round(+$("reportMin").value || 0);
+    if (way !== "ontime" && !(n >= 1 && n <= (way === "early" ? 15 : 60))) {
+      const err = el.querySelector(".err") || el.querySelector("form").appendChild(Object.assign(document.createElement("span"), { className: "err" }));
+      err.textContent = way === "early" ? "Type how many minutes early (1–15)." : "Type how many minutes late (1–60).";
+      return;
+    }
+    const minutes = way === "ontime" ? 0 : way === "early" ? -n : n, l = label(d, nowSec());
+    const report = { trip: d.trip, date: d.date, stop: d.origin?.id, sched: d.sched, minutes, device, at: nowSec(),
+                     page: { shown: departs(d), label: l ? l[1] : "", status: d.status } };
+    store.set("pgo:queue", [...store.get("pgo:queue", []), report]);
+    const mine = store.get("pgo:reported", {});
+    for (const k of Object.keys(mine)) if (!k.startsWith(d.date)) delete mine[k];  // keep today's only
+    mine[reportRun.key] = { minutes, queued: true };
+    store.set("pgo:reported", mine);
+    el.dataset.state = "closed";
+    reportRun = null;  // redraw as "You said …"
+    render();
+    flushReports();
+  }
+
+  let flushing = false;
+  async function flushReports() {
+    if (flushing) return;
+    flushing = true;
+    try {
+      let q = store.get("pgo:queue", []);
+      while (q.length) {
+        const r = q[0];
+        let res = null;
+        try { res = await fetch("/api/pgo-report/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(r) }); } catch {}
+        if (!res || (res.status !== 200 && res.status !== 400)) break;  // try again later; only a bad report (400) is dropped
+        q = store.get("pgo:queue", []).slice(1);
+        store.set("pgo:queue", q);
+        const mine = store.get("pgo:reported", {}), k = `${r.date}|${r.trip}|${r.stop}`;
+        if (mine[k]) { mine[k].queued = false; store.set("pgo:reported", mine); }
+      }
+    } finally { flushing = false; }
+    if (reportRun && $("report").dataset.state !== "open") { reportRun = null; render(); }
   }
 
   /* ---------- map ---------- */
@@ -231,7 +316,7 @@
   }
 
   function ringColor(d) {
-    const c = (label(d) || ["sched"])[0];
+    const c = (label(d, nowSec()) || ["sched"])[0];
     return { ontime: "#6FBF93", late: "#E8B04B", verylate: "#F07A5A", early: "#86B8FF", canceled: "#F07A5A" }[c] || "#9DB0A4";
   }
 
@@ -257,7 +342,8 @@
         m.setIcon(icon);
       }
       m.setZIndexOffset(best && best.d === d ? 800 : selected === d.trip ? 900 : 0);
-      m.bindTooltip(`${clock(departs(d))}${label(d) ? " · " + label(d)[1] : ""}`, { className: "lbl", direction: "top", offset: [0, -14] });
+      const l = label(d, nowSec());
+      m.bindTooltip(`${clock(departs(d))}${l ? " · " + l[1] : ""}`, { className: "lbl", direction: "top", offset: [0, -14] });
     }
     for (const [trip, m] of markers) if (!seen.has(trip)) { busLayer.removeLayer(m); markers.delete(trip); }
     if (!didFit && data) { fit(); didFit = true; }
@@ -308,6 +394,7 @@
       data = body; receivedAt = Date.now(); fetchError = null;
       skewMs = Math.abs(body.now * 1000 - Date.now()) > 90000 ? body.now * 1000 - Date.now() : 0;
       store.set("pgo:last:" + forView, { data, receivedAt });
+      if (store.get("pgo:queue", []).length) flushReports();  // online again: send what's waiting
     } catch (e) {
       fetchError = e;
     } finally {
@@ -558,6 +645,14 @@
   $("endRide").addEventListener("click", endRide);
   $("ride").addEventListener("click", (e) => { unlockAudio(); if (e.target.id === "rideDone") endRide(); });
   $("fit").addEventListener("click", fit);
+  $("report").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-report]");
+    if (b?.dataset.report === "open") openReport();
+    else if (b?.dataset.report === "close") { $("report").dataset.state = "closed"; reportRun = null; render(); }
+  });
+  $("report").addEventListener("submit", (e) => { e.preventDefault(); sendReport(e.submitter?.dataset.way || "late"); });
+  // A note on Fridays.
+  $("greet").hidden = new Date().toLocaleDateString("en-US", { weekday: "long", timeZone: "America/Los_Angeles" }) !== "Friday";
   document.querySelector(".dirs").addEventListener("click", (e) => { const b = e.target.closest("[data-dir]"); if (b) setDir(b.dataset.dir, true); });
   $("pickup").addEventListener("click", (e) => { const b = e.target.closest("[data-stop]"); if (b) setHomeStop(b.dataset.stop); });
 

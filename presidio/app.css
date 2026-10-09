@@ -27,6 +27,8 @@ button{font:inherit;color:inherit}
 /* ---------- header ---------- */
 .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-top:18px}
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.greet{font-size:13px;color:var(--accent);opacity:.85;margin-top:4px}
+.greet[hidden]{display:none}
 h1{font-size:19px;font-weight:500;letter-spacing:-.01em;margin-top:4px}
 h1 .arrow{color:var(--ink-soft)}
 
@@ -78,6 +80,23 @@ h1 .arrow{color:var(--ink-soft)}
 .hero .where svg{flex:none;margin-top:2px;color:var(--accent)}
 .hero .alt{font-size:13px;color:var(--ink-soft);margin-top:10px}
 .hero .alt b{color:var(--ink);font-weight:500}
+
+/* ---------- her report: "running N min late" ---------- */
+.report{margin-top:8px;font-size:13px;color:var(--ink-soft)}
+.report[hidden]{display:none}
+.report .link{background:none;border:none;padding:6px 2px;font:inherit;color:var(--ink-soft);text-decoration:underline;
+              text-underline-offset:3px;text-decoration-color:var(--rule-strong);cursor:pointer}
+.report .done{padding:6px 2px;display:inline-block}
+.report-form{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--rule-strong);
+             border-radius:12px;background:var(--panel)}
+.report-form input{width:64px;padding:8px;border-radius:8px;border:1px solid var(--rule-strong);background:var(--bg);color:var(--ink);
+                   font-family:var(--mono);font-size:16px;text-align:center}
+.report-form button[type=submit]{border:1px solid var(--rule-strong);background:var(--panel-2);color:var(--ink);border-radius:8px;
+                                 padding:8px 12px;font:inherit;font-size:14px;cursor:pointer}
+.report-form button[data-way=late]{border-color:var(--late);color:var(--late)}
+.report-form button[data-way=early]{border-color:var(--early);color:var(--early)}
+.report-form .x{margin-left:auto;background:none;border:none;color:var(--ink-faint);font-size:20px;line-height:1;cursor:pointer;padding:4px 6px}
+.report-form .err{flex-basis:100%;color:var(--late);font-size:12px}
 
 /* ---------- route badge + status chip ---------- */
 .badge{flex:none;min-width:46px;height:30px;padding:0 8px;border-radius:8px;display:inline-grid;place-items:center;
