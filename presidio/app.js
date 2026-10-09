@@ -651,8 +651,9 @@
     else if (b?.dataset.report === "close") { $("report").dataset.state = "closed"; reportRun = null; render(); }
   });
   $("report").addEventListener("submit", (e) => { e.preventDefault(); sendReport(e.submitter?.dataset.way || "late"); });
-  // A note on Fridays.
-  $("greet").hidden = new Date().toLocaleDateString("en-US", { weekday: "long", timeZone: "America/Los_Angeles" }) !== "Friday";
+  // A note on Fridays (?friday previews it any day).
+  $("greet").hidden = new Date().toLocaleDateString("en-US", { weekday: "long", timeZone: "America/Los_Angeles" }) !== "Friday" &&
+                      !new URLSearchParams(location.search).has("friday");
   document.querySelector(".dirs").addEventListener("click", (e) => { const b = e.target.closest("[data-dir]"); if (b) setDir(b.dataset.dir, true); });
   $("pickup").addEventListener("click", (e) => { const b = e.target.closest("[data-stop]"); if (b) setHomeStop(b.dataset.stop); });
 
