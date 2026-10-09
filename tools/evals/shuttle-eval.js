@@ -63,7 +63,7 @@ for (const file of files) {
         if (!d) { fail("LISTED", smp, trip, { left: L.hm(a.left), sched: L.hm(a.sched) }); continue; }
         if (a.left - a.sched < 150 || smp.t < a.sched + 60 || smp.t > a.left - 30 || d.atStop) continue;
         st.checks++;
-        const label = (Timing.label ? Timing.label(d) : Timing.status(d))?.[1] || "";
+        const label = (Timing.label ? Timing.label(d, smp.t) : Timing.status(d))?.[1] || "";
         if (!/late/.test(label)) fail("WARNED", smp, trip, { label: label || "(none)", shown: L.hm(Timing.departs(d)), left: L.hm(a.left), sched: L.hm(a.sched), status: d.status });
       }
     }
