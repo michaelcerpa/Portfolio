@@ -90,33 +90,48 @@ const NaiveTiming = {
 };
 
 
-// When each run actually left a stop: its last GPS fix within AT_STOP_M of the stop (near its timetable time there),
-// counted only if a later fix shows it beyond LEFT_M. Returns {trip: {left, sched}}.
 // Departures GPS can't show (a frozen fix, say) can be given in <recording>.labels.json: {departures: [{stop, trip, left}]}.
 function loadLabels(file) {
   const f = file.replace(/\.jsonl(\.gz)?$/, ".labels.json");
   return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")).departures || [] : [];
 }
 
+// When each run actually left a stop: its last GPS fix within AT_STOP_M of the stop (near its timetable time there),
+// counted only once a later fix has it beyond LEFT_M going on along the route. A shuttle passing the stop the other
+// way (the loop's way back to the Transit Center goes right by Lombard Gate, often already labelled with its next run)
+// isn't leaving it. Returns {trip: {left, sched}}.
 function actualDepartures(model, samples, stopId, labels = []) {
   const stop = model.stops[stopId];
   const out = {};
   const ymd = c.ymdOf(samples[0].t), base = c.serviceDayBase(ymd);
+  const { alongTrip, shapeIndex } = c._internals;
   const schedAt = (trip) => {
     const t = model.trips[trip], s = t && t.stops.find((x) => x.stop === stopId);
     return s ? base + s.dep : null;
   };
-  const near = {}, away = {};
+  // Going on along the route from the stop: placed past it, or (when it can't be placed) heading the way the route does.
+  const onward = (trip, v) => {
+    const t = model.trips[trip], k = t.stops.findIndex((x) => x.stop === stopId), ix = shapeIndex(model, t);
+    const fix = alongTrip(model, t, base, { lat: v.lat, lon: v.lon, bearing: v.bearing }, v.ts, null);
+    if (fix) return fix.at > ix.stops[k].at;
+    if (v.bearing == null) return false;
+    const seg = Math.min(ix.stops[k].seg, ix.pts.length - 2), [p, q] = [ix.pts[seg], ix.pts[seg + 1]];
+    const dir = (Math.atan2(q[0] - p[0], q[1] - p[1]) * 180) / Math.PI;
+    return Math.abs((((v.bearing - dir) % 360) + 540) % 360 - 180) < 90;
+  };
+  const near = {}, checked = {};
   for (const smp of samples) {
     for (const v of smp.vp || []) {
       const sched = schedAt(v.trip);
       if (sched == null || Math.abs(v.ts - sched) > 25 * 60 || smp.t - v.ts > 90) continue;
       const d = metersApart(v, stop);
-      if (d < AT_STOP_M) near[v.trip] = Math.max(near[v.trip] || 0, v.ts);
-      else if (d > LEFT_M && near[v.trip]) away[v.trip] = true;
+      if (d < AT_STOP_M) { near[v.trip] = Math.max(near[v.trip] || 0, v.ts); checked[v.trip] = false; }
+      else if (d > LEFT_M && near[v.trip] && !checked[v.trip]) {
+        checked[v.trip] = true;
+        if (onward(v.trip, v)) out[v.trip] = { left: near[v.trip], sched };
+      }
     }
   }
-  for (const trip of Object.keys(near)) if (away[trip]) out[trip] = { left: near[trip], sched: schedAt(trip) };
   for (const l of labels) if (l.stop === stopId && schedAt(l.trip) != null) out[l.trip] = { left: l.left, sched: schedAt(l.trip), labeled: true };
   return out;
 }
