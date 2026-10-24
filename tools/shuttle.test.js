@@ -189,15 +189,53 @@ test("a frozen GPS fix and predictions that vanish don't make a shuttle 'gone': 
   assert.equal(c.departures(m, { tripUpdates: [], vehicles: [past] }, opts(sched + 150))[0].trip, "PD0800");
 });
 
-test("a late estimate far out shows only part of the lateness, all of it as the time gets close", () => {
-  // Oct 7: with the shuttle's GPS frozen, the feed had the 6:30 from 50 Beale at 6:34 for minutes; it left 6:32:57.
+test("a late estimate counts less the further out it is (shuttles make up time), most of it close in", () => {
+  // Across 95 departures Oct 7-23, of the lateness seen 4-10 min out as little as 30-40% was left at the stop (worst
+  // 10%); on Oct 7 the feed had the 6:30 from 50 Beale at 6:34 for minutes and it left 6:32:57.
   const m = loopModel(), sched = at(TUE, 8, 0);
   const tu = (late) => ({ trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, stops: [{ seq: 3, arr: { time: sched + late }, dep: { time: sched + late } }] });
   const opts = (now) => ({ from: ["B"], to: ["M"], now, holdAt: ["B"], gpsTrack: true });
-  const far = c.departures(m, { tripUpdates: [tu(240)], vehicles: [] }, opts(sched - 10 * 60))[0];
-  assert.ok(far.pred > sched && far.pred < sched + 240 / 2, "10 min out: well under the feed's 4 min late");
-  const near = c.departures(m, { tripUpdates: [tu(240)], vehicles: [] }, opts(sched + 200))[0];
-  assert.ok(near.pred >= sched + 240 - 20, "40 s out: nearly all of it");
+  const counted = (now) => (c.departures(m, { tripUpdates: [tu(240)], vehicles: [] }, opts(now))[0].pred - sched) / 240;
+  assert.ok(counted(sched - 10 * 60) < 0.2, "14 min out: under a fifth of the feed's 4 min late");
+  assert.ok(counted(sched + 60) > 0.4 && counted(sched + 60) < 0.5, "3 min out: under half");
+  assert.ok(counted(sched + 200) > 0.75, "40 s out: most of it");
+});
+
+test("a shuttle still on its last loop's way back, already labelled with this run, isn't 'gone' before its time", () => {
+  // Oct 15: the 6:04 from Lombard Gate was dropped at 6:02. Its shuttle was passing the gate the other way, back to the
+  // Transit Center; the feed had already dropped the gate from the run and it was heading away from the stop.
+  const m = loopModel(), sched = at(TUE, 7, 33), now = sched - 120;
+  const tu = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, stops: [{ seq: 2, arr: { time: at(TUE, 7, 41) }, dep: { time: at(TUE, 7, 41) } }] };
+  // Off the mapped streets, 300 m from the gate, heading west (away from it).
+  const vp = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat: 37.8005, lon: -122.4500, bearing: 290 }, ts: now - 4 };
+  const opts = { from: ["L"], to: ["B"], now, atStopMeters: 60, gpsTrack: true };
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp] }, opts)[0].trip, "PD0730");
+  // Once its time has come, "passed and heading away" counts.
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [{ ...vp, ts: sched + 56 }] }, { ...opts, now: sched + 60 })[0].trip, "PD0800");
+});
+
+test("a shuttle whose GPS goes quiet for a couple of minutes, or arrives without a timestamp, is still followed", () => {
+  // Oct 22: the 6:02 from Drumm & California's GPS sat 2 minutes old 280 m out; Oct 9: a position came with timestamp 0.
+  const m = loopModel(), sched = at(TUE, 8, 2), now = sched + 90;
+  const tu = { trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, stops: [{ seq: 5, arr: { time: at(TUE, 8, 22) }, dep: { time: at(TUE, 8, 22) } }] };
+  // 255 m out, heading for the stop.
+  const vp = (ts) => ({ trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat: 37.7952, lon: -122.3940, bearing: 233 }, ts });
+  const opts = { from: ["D"], to: ["M"], now, holdAt: ["B"], atStopMeters: 60, gpsTrack: true };
+  const stale = c.departures(m, { tripUpdates: [tu], vehicles: [vp(now - 120)] }, opts)[0];
+  assert.deepEqual([stale.trip, Timing.label(stale, now)], ["PD0730", ["late", "1+ min late"]]);
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp(0)], ts: now - 5 }, opts)[0].trip, "PD0730");
+  // Silent for over 5 minutes: no longer followed, back to the feed's word.
+  assert.equal(c.departures(m, { tripUpdates: [tu], vehicles: [vp(now - 400)] }, opts)[0].trip, "PD0800");
+});
+
+test("a late shuttle heading for the stop stays listed past the 6-minute grace while it can't be placed", () => {
+  // Oct 21: the 6:15 from 50 Beale, 10 minutes late, drove a few blocks the route shape doesn't, 400-700 m out.
+  const m = loopModel(), sched = at(TUE, 8, 2), now = sched + 8 * 60;
+  const vp = (bearing) => ({ trip: { tripId: "PD0730", startDate: TUE }, vehicle: { id: "11" }, pos: { lat: 37.7900, lon: -122.3990, bearing }, ts: now - 3 });
+  const opts = { from: ["D"], to: ["M"], now, holdAt: ["B"], atStopMeters: 60, gpsTrack: true };
+  const coming = c.departures(m, { tripUpdates: [], vehicles: [vp(40)] }, opts)[0];
+  assert.deepEqual([coming.trip, Timing.label(coming, now)], ["PD0730", ["verylate", "8+ min late"]]);
+  assert.equal(c.departures(m, { tripUpdates: [], vehicles: [vp(220)] }, opts)[0].trip, "PD0800", "heading away: given up after the grace");
 });
 
 test("past its time and not here, the minutes count up: '3+ min late' is never a guess", () => {
