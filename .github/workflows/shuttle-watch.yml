@@ -1,13 +1,14 @@
 # /presidio/ shuttle watch: record Presidio GO's live feed through the commute, then run the evals on that real data.
-# Every weekday morning and evening through Fri Oct 23 2026 (two weeks of data to measure how late each run really
-# is and calibrate "N min late"), then Monday mornings only. It catches changes in how the feed behaves, which no code change would surface. A
-# failure (red run, emailed by GitHub) means the page would have shown a departure time after a shuttle actually left,
-# or dropped one still at the stop. Recordings are kept on the shuttle-recordings branch as regression cases.
+# Every weekday morning (5:30-9:45) and evening (2:30-7:15) Pacific through Fri Nov 6 2026, then Monday mornings only.
+# GitHub starts scheduled runs late, often by hours (Oct 9-23 the 5:50am run started 10:00-11:51am and recorded
+# nothing), so it checks every 30 minutes and the first check inside a window records until that window ends. It
+# catches changes in how the feed behaves, which no code change would surface. A failure (red run, emailed by GitHub)
+# means the page would have shown a departure time after a shuttle actually left, or dropped one still coming.
+# Recordings are kept on the shuttle-recordings branch as regression cases.
 name: shuttle-watch
 on:
   schedule:
-    - cron: "50 12 * * 1-5"   # weekdays 5:50am PDT / 4:50am PST, records until 9:45am Pacific
-    - cron: "50 21 * * 1-5"   # weekdays 2:50pm PDT / 1:50pm PST, records until 7:15pm Pacific
+    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       minutes:
@@ -19,17 +20,29 @@ concurrency:
   group: shuttle-watch
   cancel-in-progress: false
 jobs:
-  # The daily window ends Fri Oct 23 2026; after that, only Monday mornings record (manual runs always do).
+  # Records when a check lands inside a window that has no recording yet (manual runs always record).
   gate:
     runs-on: ubuntu-latest
     outputs:
       run: ${{ steps.g.outputs.run }}
     steps:
       - id: g
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          day=$(TZ=America/Los_Angeles date +%Y%m%d); dow=$(TZ=America/Los_Angeles date +%u); hour=$(TZ=America/Los_Angeles date +%H)
-          if [ "${{ github.event_name }}" != "schedule" ] || [ "$day" -le 20261023 ] || { [ "$dow" = 1 ] && [ "$hour" -lt 12 ]; }
-          then echo run=true >> "$GITHUB_OUTPUT"; else echo run=false >> "$GITHUB_OUTPUT"; fi
+          if [ "${{ github.event_name }}" != "schedule" ]; then echo run=true >> "$GITHUB_OUTPUT"; exit 0; fi
+          day=$(TZ=America/Los_Angeles date +%Y%m%d); dow=$(TZ=America/Los_Angeles date +%u); hm=$(TZ=America/Los_Angeles date +%H%M)
+          part=""
+          if [ "$dow" -le 5 ] && [ "$hm" -ge 530 ] && [ "$hm" -lt 930 ]; then part=am
+          elif [ "$dow" -le 5 ] && [ "$hm" -ge 1430 ] && [ "$hm" -lt 1900 ]; then part=pm; fi
+          if [ -z "$part" ] || { [ "$day" -gt 20261106 ] && ! { [ "$dow" = 1 ] && [ "$part" = am ]; }; }; then
+            echo "outside a recording window ($day $hm)"; echo run=false >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          name="$(TZ=America/Los_Angeles date +%Y-%m-%d)-$part.jsonl.gz"
+          size=$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/contents/$name?ref=shuttle-recordings" 2>/dev/null | jq -r '.size // 0' || echo 0)
+          if [ "${size:-0}" -gt 1000 ]; then echo "$name already recorded"; echo run=false >> "$GITHUB_OUTPUT"
+          else echo "recording $name"; echo run=true >> "$GITHUB_OUTPUT"; fi
   watch:
     needs: gate
     if: needs.gate.outputs.run == 'true'
@@ -64,11 +77,15 @@ jobs:
           git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch -q origin shuttle-recordings && git worktree add -q /tmp/store origin/shuttle-recordings \
             || { git worktree add -q --detach /tmp/store && git -C /tmp/store checkout -q --orphan shuttle-recordings && git -C /tmp/store rm -rqf . ; }
-          cp "/tmp/rec/$NAME.jsonl.gz" "/tmp/rec/$NAME.api.jsonl.gz" /tmp/store/
-          [ -f "/tmp/rec/$NAME.gtfs.zip" ] && cp "/tmp/rec/$NAME.gtfs.zip" /tmp/store/
+          # Never overwrite a good recording of the same window (a second run after a crash keeps both).
+          keep="$NAME"; [ -f "/tmp/store/$NAME.jsonl.gz" ] && [ "$(stat -c%s "/tmp/store/$NAME.jsonl.gz")" -gt 1000 ] && keep="$NAME-$(TZ=America/Los_Angeles date +%H%M)"
+          cp "/tmp/rec/$NAME.jsonl.gz" "/tmp/store/$keep.jsonl.gz"; cp "/tmp/rec/$NAME.api.jsonl.gz" "/tmp/store/$keep.api.jsonl.gz"
+          [ -f "/tmp/rec/$NAME.gtfs.zip" ] && cp "/tmp/rec/$NAME.gtfs.zip" "/tmp/store/$keep.gtfs.zip"
           cd /tmp/store && git add -A && git commit -qm "recording $NAME" && git push -q origin HEAD:shuttle-recordings
       - name: Deterministic eval on today's feed
-        run: node tools/evals/shuttle-eval.js "/tmp/rec/$NAME.jsonl.gz" --report /tmp/rec/eval.json
+        run: |
+          if [ "$(zcat "/tmp/rec/$NAME.jsonl.gz" | wc -l)" -lt 10 ]; then echo "::warning::recording $NAME is empty; nothing to evaluate"; exit 0; fi
+          node tools/evals/shuttle-eval.js "/tmp/rec/$NAME.jsonl.gz" --report /tmp/rec/eval.json
       # ~$2 a run (capped at 40 screens); skipped unless the ANTHROPIC_API_KEY secret is set.
       - name: LLM-judged eval on today's feed
         env:
