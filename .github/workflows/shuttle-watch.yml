@@ -6,9 +6,8 @@
 # means the page would have shown a departure time after a shuttle actually left, or dropped one still coming.
 # Recordings are kept on the shuttle-recordings branch as regression cases.
 name: shuttle-watch
+# Stopped Nov 6 2026: no schedule; it only records when started by hand (Actions → shuttle-watch → Run workflow).
 on:
-  schedule:
-    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       minutes:
