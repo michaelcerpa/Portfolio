@@ -1,46 +1,73 @@
-/* wall.js — the wall of TVs behind the home page.
-   Builds 49 screens (7 across, 7 down), bends them into a wide-lens bulge, and plays one short
-   silent clip on each. Every screen shows a different clip. The wall never moves.
+/* wall.js — the globe of TVs behind the home page.
+   Builds 51 screens on the front of a sphere and plays one short silent clip on each.
+   Every screen shows a different clip. The globe never moves.
 
    Kept light on purpose:
    - a screen plays only while it is inside the window and not hidden behind an open page
-   - phones load smaller copies of the clips and play at most 22 at once
+   - phones load smaller copies of the clips and play at most 25 at once
    - if the device drops frames, the outer screens fall back to still pictures
    - visitors who ask for reduced motion get still pictures only                                */
 (function () {
   var root = document.documentElement, wall = document.getElementById('wall');
 
-  // WHAT PLAYS WHERE. 'column,row': clip. 0,0 is the middle screen; row 1 is the row above it.
-  // Calm and dark clips sit on the left, behind the name and menu. The far corners are mostly off screen.
-  var CLIPS = {
-    '-3,3': 'red-lamp-2',   '-2,3': 'night-ridge',  '-1,3': 'cirrus',        '0,3': 'sutro',          '1,3': 'sierra-view',     '2,3': 'city-sky',      '3,3': 'ridge-line-2',
-    '-3,2': 'night-rest',   '-2,2': 'night-climb',  '-1,2': 'alpenglow',     '0,2': 'chairlift-far',  '1,2': 'road-climb',      '2,2': 'dawn-skis',     '3,2': 'road-far',
-    '-3,1': 'dawn-line',    '-2,1': 'night-run',    '-1,1': 'dawn-climber',  '0,1': 'road-descent',   '1,1': 'ski-turns',       '2,1': 'chairlift',     '3,1': 'bridge-fog-2',
-    '-3,0': 'sunrise-lake-2', '-2,0': 'red-lamp',   '-1,0': 'ocean-sunset',  '0,0': 'scree-descent',  '1,0': 'redwoods',        '2,0': 'golden-hills',  '3,0': 'lift-ride',
-    '-3,-1': 'bridge-fog',  '-2,-1': 'night-snow',  '-1,-1': 'sunrise-lake', '0,-1': 'ridge-line',    '1,-1': 'summit-skis',    '2,-1': 'hilltop-stop', '3,-1': 'lift-sun',
-    '-3,-2': 'night-blue',  '-2,-2': 'night-faces', '-1,-2': 'night-poles',  '0,-2': 'bridge-riders', '1,-2': 'sunrise-selfie', '2,-2': 'ski-pov',      '3,-2': 'ocean-sunset-2',
-    '-3,-3': 'shadow',      '-2,-3': 'night-run-2', '-1,-3': 'redwoods-2',   '0,-3': 'headlamp',      '1,-3': 'ski-spray',      '2,-3': 'night-walk',   '3,-3': 'scree-2'
-  };
-  var cells = Object.keys(CLIPS).map(function (k) { var p = k.split(','); return [+p[0], +p[1], CLIPS[k]]; });
-  cells.sort(function (p, q) { return (q[0] * q[0] * 1.4 + q[1] * q[1]) - (p[0] * p[0] * 1.4 + p[1] * p[1]); });   // far screens first, so near ones are painted on top
+  // WHAT PLAYS WHERE. The wall is the front of a sphere: nine rows of screens, top to bottom.
+  // The middle rows hold seven screens; rows nearer the poles hold fewer, as on any globe.
+  // On a laptop you look at the middle of it (the first and last rows are off the top and bottom).
+  // On a phone you see the whole globe.
+  //
+  // Hung like a wall of pictures, not filled in a list:
+  //   - the orange-jacket climber is the centre screen
+  //   - no two neighbours share a colour or a sport: snow beside forest, a ride beside a climb
+  //   - the warm frames (sunset, red lamp, alpenglow) sit far apart, as accents
+  //   - the night clips are spread around, so no side of the globe looks switched off
+  //   - the nine screens round the centre run cool on top (blue dawn, gold hills, white snow), strong in the
+  //     middle (green forest, the climber, the orange sun), and people along the bottom (friends, the rope team, a face)
+  //   - second cuts of a scene go near the poles, where they are small and far from the first
+  var ROWS = [
+    /*  4 */ ['night-blue', 'overlook', 'bridge-fog-2'],
+    /*  3 */ ['night-walk', 'dawn-skis', 'road-far', 'red-lamp-2', 'lift-ride'],
+    /*  2 */ ['night-snow', 'chairlift-far', 'redwoods-2', 'city-sky', 'night-poles', 'ski-pov', 'cirrus'],
+    /*  1 */ ['night-rest', 'red-lamp', 'dawn-climber', 'golden-hills', 'summit-skis', 'road-descent', 'sutro'],
+    /*  0 */ ['bridge-fog', 'ski-turns', 'redwoods', 'scree-descent', 'ocean-sunset', 'chairlift', 'night-run'],
+    /* -1 */ ['sierra-view', 'sunrise-lake', 'hilltop-stop', 'ridge-line', 'sunrise-selfie', 'night-climb', 'dawn-line'],
+    /* -2 */ ['lift-sun', 'night-faces', 'ski-spray', 'bridge-riders', 'road-climb', 'alpenglow', 'headlamp'],
+    /* -3 */ ['ocean-sunset-2', 'night-run-2', 'ridge-line-2', 'sunrise-lake-2', 'scree-2'],
+    /* -4 */ ['night-ridge', 'shadow', 'ski-far']
+  ];
+  var STEP_LAT = 11.8, STEP_LON = 13.9;            // degrees between rows, and between screens along the equator
+  var cells = [];
+  ROWS.forEach(function (row, r) {
+    var lat = (4 - r) * STEP_LAT, step = STEP_LON / Math.cos(lat * Math.PI / 180);      // screens spread out toward the poles so they never overlap
+    row.forEach(function (clip, c) {
+      var lon = (c - (row.length - 1) / 2) * step;
+      var away = Math.acos(Math.cos(lat * Math.PI / 180) * Math.cos(lon * Math.PI / 180)) * 180 / Math.PI;   // degrees from the centre screen
+      cells.push({ clip: clip, lat: lat, lon: lon, away: away });
+    });
+  });
+  cells.sort(function (p, q) { return q.away - p.away; });      // far screens first, so near ones are painted on top
 
   // Phones get lighter copies of the clips (240x184 at 15 frames a second), in assets/tv/s/.
   var SMALL = Math.min(innerWidth, innerHeight) < 600 || (navigator.maxTouchPoints > 1 && Math.min(screen.width, screen.height) < 600);
-  // On a phone the wall is a different shape: see the note in styles.css. One column step there is wider, in degrees.
-  var PHONE = { step: 38 };
   var html = '';
   cells.forEach(function (c, i) {
-    var ring = Math.max(Math.abs(c[0]), Math.abs(c[1]));
-    // --a / --b: where the set sits on the bulge (--ap: on the tighter phone wall).  --z / --k: a trace of unevenness, like sets stacked by hand.
-    html += '<div class="tv" data-col="' + Math.abs(c[0]) + '" style="--a:' + (c[0] * 13.9).toFixed(1) + 'deg;--ap:' + (c[0] * PHONE.step).toFixed(1) + 'deg;--b:' + (c[1] * 11.8).toFixed(1) + 'deg;--z:' + ((((i * 37) % 9) - 4) * 0.12).toFixed(2) + 'deg;--k:' + (0.958 + ((i * 53) % 4) * 0.004).toFixed(3) + '">' +
-      '<div class="set"><span class="tube" style="background-image:url(assets/tv/' + c[2] + '.jpg)">' +
-      '<video muted loop playsinline preload="none" data-src="assets/tv/' + (SMALL ? 's/' : '') + c[2] + '.mp4" data-ring="' + ring + '" data-d="' + (c[0] * c[0] + c[1] * c[1]) + '"></video></span>' +
+    var ring = c.away < 21 ? 1 : c.away < 36 ? 2 : 3;
+    // --a / --b: where the set sits on the globe.  --z / --k: a trace of unevenness, like sets stacked by hand.
+    html += '<div class="tv" style="--a:' + c.lon.toFixed(2) + 'deg;--b:' + c.lat.toFixed(1) + 'deg;--z:' + ((((i * 37) % 9) - 4) * 0.12).toFixed(2) + 'deg;--k:' + (0.958 + ((i * 53) % 4) * 0.004).toFixed(3) + '">' +
+      '<div class="set"><span class="tube" style="background-image:url(assets/tv/' + c.clip + '.jpg)">' +
+      '<video muted loop playsinline preload="none" data-src="assets/tv/' + (SMALL ? 's/' : '') + c.clip + '.mp4" data-ring="' + ring + '" data-d="' + c.away.toFixed(1) + '"></video></span>' +
       '<span class="deck"><b></b><i></i><i></i><i></i><i class="led"></i></span></div></div>';
   });
   wall.innerHTML = html;
 
-  // Fill the window. On a phone the whole width of the pillar of screens fits, edge to edge.
-  function fit() { var n = innerWidth < 760; root.style.setProperty('--s', (n ? Math.max(innerWidth / 760, innerHeight / 1900) : Math.max(innerWidth / 1500, innerHeight / 1060)).toFixed(4)); }
+  // How big to draw the globe. Seen from the front it is 1440 units across.
+  //   laptop: a little wider than the window, so you are looking into the middle of it
+  //   phone:  the whole globe, floating between the name and the music player. It runs a little past the
+  //           sides of the screen so it feels close, while its top and bottom curve away in full view
+  function fit() {
+    var s = innerWidth < 760 ? Math.min(innerWidth * 1.24, (innerHeight - 150) * 1.02) / 1440 : Math.max(innerWidth / 1500, innerHeight / 1060);
+    root.style.setProperty('--s', s.toFixed(4));
+    root.style.setProperty('--gr', (s * 672).toFixed(1) + 'px');      // the globe's radius on screen, for the glow and shading on phones
+  }
   fit();
 
   // ---- playback ----
@@ -53,8 +80,9 @@
 
   function tune() {
     if (still) return;
-    // On a phone at most 22 screens play at once, and the ones showing the most picture go first.
-    var cap = SMALL ? 22 : 99, shown = [];
+    // On a phone at most 25 screens play at once, and the ones showing the most picture go first.
+    // That is the middle of the globe; the thin screens around its edge stay as still pictures.
+    var cap = SMALL ? 25 : 99, shown = [];
     var pr = document.body.classList.contains('has-panel') && !panel.hidden ? panel.getBoundingClientRect() : null;
     vids.forEach(function (v) {
       var r = v.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;

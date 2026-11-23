@@ -137,18 +137,16 @@ html:not(.js) .panel__scroll section + section { margin-top: 48px; }
 
 /* ---------- phones ---------- */
 @media (max-width: 759px) {
-  /* A phone is tall and narrow, so the desktop wall would show as a flat grid: its curve is off the sides.
-     Here the wall bends twice as tightly from side to side (radius 540 instead of 1500) and keeps the gentle
-     curve top to bottom. You see a pillar of screens: one column facing you, one each side turning away. */
-  .tv { transform: scale(var(--s)) perspective(900px) translateZ(-1500px) rotateX(var(--b)) translateZ(960px) rotateY(var(--ap)) translateZ(540px) rotateZ(var(--z, 0deg)) scale(calc(var(--k, 1) * .78)); }
-  .tv[data-col="2"], .tv[data-col="3"] { display: none; }
-  /* no blurred shadows or glows on 49 sets; they cost more than they show at this size */
+  /* A phone shows the whole globe, floating between the name and the music player.
+     No blurred shadows or glows on the sets; they cost more than they show at this size. */
   .set { box-shadow: inset 0 2px 0 rgb(255 255 255 / .07); }
   .tube { box-shadow: 0 0 0 3px #060608, 0 0 0 4px #34343a; }
-  /* the name and the three words sit in one strip across the top, on black, so they cover no screen */
+  /* the name and the three words sit in one strip across the top, above the globe */
   .hud { display: flex; align-items: center; justify-content: space-between; gap: 6px; inset: 0 0 auto 0; padding: 6px 8px 0 6px; }
-  .shade::before { background: linear-gradient(180deg, var(--night) 0, rgb(2 2 8 / .95) 62px, rgb(2 2 8 / 0) 104px); }
-  .shade::after { background: linear-gradient(180deg, rgb(2 2 8 / 0) calc(100% - 96px), rgb(2 2 8 / .95) calc(100% - 56px), var(--night) 100%); }
+  /* shading on the globe itself: it darkens toward its rim, like a lit ball */
+  .shade { background: radial-gradient(circle at 50% 50%, transparent calc(var(--gr, 240px) * .5), rgb(0 0 0 / .62) calc(var(--gr, 240px) * .99), transparent var(--gr, 240px)); }
+  /* a blue glow behind it */
+  body { background: var(--night) radial-gradient(circle at 50% 50%, rgb(46 66 220 / .55) 0, rgb(30 44 170 / .4) calc(var(--gr, 240px) * .98), rgb(16 24 110 / .16) calc(var(--gr, 240px) * 1.18), transparent calc(var(--gr, 240px) * 1.5)); }
   .id { margin: 0; flex: none; }
   .id img { height: 58px; }
   .menu { display: flex; align-items: center; margin: 0; flex: none; }

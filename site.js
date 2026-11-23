@@ -49,7 +49,7 @@
   //      logged in to Spotify hears the whole song; anyone else hears Spotify's 26-second preview.
   //      Nothing is requested from Spotify until the pointer reaches the player or the screen is touched.
   // If neither works, the player stays hidden.
-  var TRACK = { files: ['assets/audio/track.mp3', 'assets/audio/track.m4a'], spotify: '1JtAIBbCgomz38qPBSJzCn' };
+  var TRACK = { files: ['assets/audio/track.mp3', 'assets/audio/track.m4a'], spotify: '4jXl6VtkFFKIt3ycUQc5LT' };   // Circles, Mac Miller
   (function () {
     var box = document.getElementById('player'), pp = document.getElementById('pp'), stop = document.getElementById('stop'), time = document.getElementById('time');
     if (!box) return;
