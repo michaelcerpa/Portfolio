@@ -26,7 +26,7 @@
   var ROWS = [
     /*  4 */ ['night-blue', 'overlook', 'bridge-fog-2'],
     /*  3 */ ['night-walk', 'dawn-skis', 'road-far', 'red-lamp-2', 'lift-ride'],
-    /*  2 */ ['night-snow', 'chairlift-far', 'redwoods-2', 'city-sky', 'night-poles', 'ski-pov', 'cirrus'],
+    /*  2 */ ['night-snow', 'chairlift-far', 'swell', 'city-sky', 'night-poles', 'ski-pov', 'cirrus'],
     /*  1 */ ['night-rest', 'red-lamp', 'dawn-climber', 'golden-hills', 'summit-skis', 'road-descent', 'sutro'],
     /*  0 */ ['bridge-fog', 'ski-turns', 'redwoods', 'scree-descent', 'ocean-sunset', 'chairlift', 'night-run'],
     /* -1 */ ['sierra-view', 'sunrise-lake', 'hilltop-stop', 'ridge-line', 'bridge-riders', 'night-climb', 'dawn-line'],
