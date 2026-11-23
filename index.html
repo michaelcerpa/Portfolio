@@ -1,285 +1,112 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Michael Cerpa — Agent PM</title>
-  <meta name="description" content="Michael Cerpa is a product manager at Pallet, where he builds AI agents for companies that make and move things. Before that: the Army, Berkeley, JPMorgan, and Wells Fargo. Live projects you can open and use.">
-  <meta name="theme-color" content="#08130D">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Michael Cerpa</title>
+  <meta name="description" content="I'm a product manager at Pallet. We build AI agents for companies that make and move things.">
+  <meta name="theme-color" content="#020208">
 
   <link rel="icon" type="image/png" sizes="48x48" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Michael Cerpa">
-  <meta property="og:title" content="Michael Cerpa — Agent PM at Pallet">
-  <meta property="og:description" content="Hi, I'm Michael. I'm a product manager at Pallet, where we build AI agents for companies that make and move things.">
+  <meta property="og:title" content="Michael Cerpa">
+  <meta property="og:description" content="I'm a product manager at Pallet. We build AI agents for companies that make and move things.">
   <meta property="og:url" content="https://mcerpa.com/">
-  <meta property="og:image" content="https://mcerpa.com/og.png">
+  <meta property="og:image" content="https://mcerpa.com/og.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Michael Cerpa — Agent PM at Pallet">
-  <meta name="twitter:description" content="Hi, I'm Michael. I'm a product manager at Pallet, where we build AI agents for companies that make and move things.">
-  <meta name="twitter:image" content="https://mcerpa.com/og.png">
+  <meta name="twitter:title" content="Michael Cerpa">
+  <meta name="twitter:description" content="I'm a product manager at Pallet. We build AI agents for companies that make and move things.">
+  <meta name="twitter:image" content="https://mcerpa.com/og.jpg">
 
   <link rel="preload" href="fonts/SpaceGrotesk-var.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/JetBrainsMono-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/art/name.webp" as="image">
+  <link rel="preload" href="assets/tv/posters.jpg" as="image" media="(min-width: 760px)">
+  <link rel="preload" href="assets/tv/posters-s.jpg" as="image" media="(max-width: 759px)">
   <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.className = 'js';</script>
 </head>
 <body>
 
-<nav class="nav up d4" id="nav">
-  <div class="row">
-    <a href="#top" class="brand">Michael Cerpa</a>
-    <div class="nav-links">
-      <a href="#work">Work</a>
-      <a href="#about">About</a>
-      <a href="#photos">Photos</a>
-      <!-- Resume link lands here once the web-safe PDF exists (BACKLOG.md) -->
-    </div>
-  </div>
-</nav>
+<!-- The globe of TVs. wall.js fills it with 51 screens, each playing one short silent clip. Decoration only. -->
+<div class="wall" id="wall" aria-hidden="true"></div>
+<div class="dim" aria-hidden="true"></div>
+<div class="shade" aria-hidden="true"></div>
+<div class="flick" id="flick" aria-hidden="true"></div>
 
-<header class="hero wrap" id="top">
-  <svg class="topo" viewBox="0 0 1440 420" aria-hidden="true" preserveAspectRatio="xMidYMin slice">
-    <path d="M-20,320 C250,110 550,400 890,200 S1400,330 1480,130" fill="none" stroke="#6FBF93" stroke-width="1"/>
-    <path d="M-20,380 C300,170 640,470 990,250 S1430,380 1490,210" fill="none" stroke="#6FBF93" stroke-width="1"/>
-    <path d="M-20,250 C210,30 510,340 850,130 S1390,250 1480,60" fill="none" stroke="#6FBF93" stroke-width="1"/>
-    <path d="M-20,185 C260,-30 560,280 910,75 S1420,185 1490,10" fill="none" stroke="#6FBF93" stroke-width="1"/>
-  </svg>
-
-  <div class="eyebrow up d1">San Francisco</div>
-  <h1 class="up d2">Hi, I'm Michael.</h1>
-  <p class="sub up d3">I'm a product manager at Pallet, where we build AI agents for companies that make and move things. Before that: the Army, Berkeley, JPMorgan, and Wells&nbsp;Fargo.</p>
-
-  <p class="tick up d3" id="tick" hidden>
-    <span class="beacon" aria-hidden="true"></span>
-    <span><span id="tickText"></span><span class="cursor" aria-hidden="true">▋</span></span>
-  </p>
+<!-- The lettering is ink artwork (drawn from my own photos). The real words are in each image's alt text. -->
+<header class="hud">
+  <h1 class="id"><a href="#" data-home><img src="assets/art/name.webp" alt="Michael Cerpa" width="485" height="260"></a></h1>
+  <nav class="menu" aria-label="Sections">
+    <a href="#about" data-go="about"><img src="assets/art/menu-about.webp" alt="About" width="350" height="141"></a>
+    <a href="#projects" data-go="projects"><img src="assets/art/menu-projects.webp" alt="Projects" width="491" height="141"></a>
+    <a href="#articles" data-go="articles"><img src="assets/art/menu-articles.webp" alt="Articles" width="460" height="141"></a>
+  </nav>
 </header>
 
-<main>
-  <section class="block wrap" id="work" aria-labelledby="work-h">
-    <h2 class="sr-only" id="work-h">Work</h2>
-    <p class="intro">I grew up building while working summers at my family's construction company. The itch to build never left, the materials just changed.</p>
+<!-- The three pages. Each opens as one sheet of drawing paper with the inked mountain on it. -->
+<main id="panel" class="panel sheet">
+  <button type="button" class="panel__close" aria-label="Close"><img loading="lazy" src="assets/art/close.webp" alt="" width="79" height="104"></button>
+  <div class="mt" aria-hidden="true"><img class="mt__peak" src="assets/art/peak-sheet.webp" alt="" width="960" height="1280" loading="lazy"></div>
 
-    <article class="stage">
-      <div class="rail">
-        <div class="idx">01 — Granite</div>
-        <div class="cats">enterprise AI · regulated finance</div>
-        <span class="livetag"><span class="dot" aria-hidden="true"></span>live</span>
-        <div class="blurb">
-          <p>An interactive architecture for building AI in spaces with high reputational risk and federal regulations — where a wrong answer is worse than no answer.</p>
-          <p>Trace a request through intent → entitlements → orchestration → grounded response → LLM-as-a-judge → audit, and watch it refuse rather than guess.</p>
-          <p>Along the way, it shows where choosing deterministic over generative pays off. Click into each node to see the thinking behind it.</p>
-        </div>
-        <a class="openlink" href="/granite/" data-fallback="https://granite-gilt-zeta.vercel.app">view project <span class="arrow">→</span></a>
+  <div class="panel__scroll">
+    <section id="about" data-panel="about">
+      <p class="hi"><img loading="lazy" src="assets/art/hi.webp" alt="Hi, I'm Michael." width="915" height="173"></p>
+      <p>I'm a product manager at Pallet. We build AI agents for companies that make and move things.</p>
+      <p>Off the clock, usually at altitude.</p>
+      <p class="reach">
+        <a href="mailto:michael.cerp@gmail.com">michael.cerp@gmail.com</a>
+        <a href="https://www.linkedin.com/in/michaelanthonycerpa/">LinkedIn</a>
+      </p>
+    </section>
+
+    <section id="projects" data-panel="projects">
+      <h2><img loading="lazy" src="assets/art/h-projects.webp" alt="Projects" width="707" height="216"></h2>
+      <div class="proj">
+        <a class="proj__name" href="/granite/"><img loading="lazy" src="assets/art/p-granite.webp" alt="Granite" width="394" height="124"></a>
+        <p>An architecture for AI in spaces where a wrong answer is worse than no answer.</p>
       </div>
-      <a class="stageshot" href="/granite/" data-fallback="https://granite-gilt-zeta.vercel.app" aria-label="Open Granite">
-        <picture>
-          <source srcset="assets/granite-anim.webp" media="(prefers-reduced-motion: no-preference)">
-          <img src="assets/granite.webp" alt="Granite — the architecture tracing a request" loading="lazy" decoding="async" width="1200" height="750">
-        </picture>
-      </a>
-    </article>
-
-    <article class="stage">
-      <div class="rail">
-        <div class="idx">02 — Strata</div>
-        <div class="cats">forward deployed case · messy in, structured out</div>
-        <span class="livetag"><span class="dot" aria-hidden="true"></span>live</span>
-        <div class="blurb">
-          <p>Strata, sediment pressed into ordered layers, is one extraction engine, not a chatbot, for the paperwork problems industrial companies have carried since their founding: messy data, no in-house engineering.</p>
-          <p>Where Granite is maximum governance, this is maximum simplicity: it reads the mess, writes the structured record, and asks a human only when it isn't sure.</p>
-          <p>Built on real data: interviews with two operators with 35+ years inside a national installer, plus the three summers I spent working in its branches.</p>
-        </div>
-        <a class="openlink" href="/strata/" data-fallback="https://strata-phi-ochre.vercel.app">view project <span class="arrow">→</span></a>
+      <div class="proj">
+        <a class="proj__name" href="/strata/"><img loading="lazy" src="assets/art/p-strata.webp" alt="Strata" width="348" height="124"></a>
+        <p>It reads the mess, writes the structured record, and asks a human only when it isn't sure.</p>
       </div>
-      <a class="stageshot" href="/strata/" data-fallback="https://strata-phi-ochre.vercel.app" aria-label="Open Strata">
-        <picture>
-          <source srcset="assets/strata-anim.webp" media="(prefers-reduced-motion: no-preference)">
-          <img src="assets/strata.webp" alt="Strata — switching from scheduling intake to acquisition integration" loading="lazy" decoding="async" width="1200" height="750">
-        </picture>
-      </a>
-    </article>
-
-    <article class="stage">
-      <div class="rail">
-        <div class="idx">03 — Cairn</div>
-        <div class="cats">side project · sierra nevada trip planning · live data</div>
-        <span class="livetag"><span class="dot" aria-hidden="true"></span>live</span>
-        <div class="blurb">
-          <p>A cairn is a pile of rocks stacked to mark the route — now mostly used as a landmark or for an Instagram photo. This one tells you whether you can still get a permit.</p>
-          <p>I built it for my friends and me after 5+ years of planning Sierra trips the manual way: one site for the latest beta, another for weather, and, most annoying of all, refreshing for permits.</p>
-          <p>Describe a trip in plain language and Cairn returns routes with live permit availability, a packing list tuned to current conditions, and a GPX file for Garmin &amp; Strava.</p>
-        </div>
-        <a class="openlink" href="/cairn/" data-fallback="https://cairn-weld.vercel.app">view project <span class="arrow">→</span></a>
+      <div class="proj">
+        <a class="proj__name" href="/cairn/"><img loading="lazy" src="assets/art/p-cairn.webp" alt="Cairn" width="296" height="124"></a>
+        <p>Sierra trip planning. This one tells you whether you can still get a permit.</p>
       </div>
-      <a class="stageshot" href="/cairn/" data-fallback="https://cairn-weld.vercel.app" aria-label="Open Cairn">
-        <picture>
-          <source srcset="assets/cairn-anim.webp" media="(prefers-reduced-motion: no-preference)">
-          <img src="assets/cairn.webp" alt="Cairn — typing a trip request and opening a matched route" loading="lazy" decoding="async" width="1200" height="750">
-        </picture>
-      </a>
-    </article>
-
-    <article class="stage">
-      <div class="rail">
-        <div class="idx">04 — Commute</div>
-        <div class="cats">side project · bay area transit · live data</div>
-        <span class="livetag"><span class="dot" aria-hidden="true"></span>live</span>
-        <div class="blurb">
-          <p>My friends and I couldn't rely on the live times Apple Maps showed for our Golden Gate Transit and Presidio GO commutes. So I built a tracker for each, connected straight to the source: the agency's own real-time feed.</p>
-          <p>Every arrival time on screen says where it came from: the bus's GPS, the agency's prediction, or just the timetable. When a trip is canceled or the feed goes stale, the page says so instead of guessing.</p>
-          <p>It also knows the rules the feeds leave out, like Presidio GO's pass-only rush-hour runs and its weekend schedule on federal holidays. Tap the bus you're on and it counts down your stops, then tells you when to pull the cord.</p>
-        </div>
-        <div class="links">
-          <a class="openlink" href="/bus/">Golden Gate Transit <span class="arrow">→</span></a>
-          <a class="openlink" href="/presidio/">Presidio GO <span class="arrow">→</span></a>
-        </div>
+      <div class="proj">
+        <a class="proj__name" href="/bus/"><img loading="lazy" src="assets/art/p-commute.webp" alt="Commute" width="456" height="124"></a>
+        <p>Live trackers for my commutes: <a href="/bus/">Golden Gate Transit</a> and <a href="/presidio/">Presidio GO</a>.</p>
       </div>
-      <div class="phones">
-        <a class="stageshot phone" href="/bus/" aria-label="Open the Golden Gate Transit tracker">
-          <picture>
-            <source srcset="assets/bus-anim.webp" media="(prefers-reduced-motion: no-preference)">
-            <img src="assets/bus.webp" alt="Golden Gate Transit tracker — the next bus and how late it is, then ride mode counting down stops" loading="lazy" decoding="async" width="640" height="1182">
-          </picture>
-        </a>
-        <a class="stageshot phone" href="/presidio/" aria-label="Open the Presidio GO tracker">
-          <picture>
-            <source srcset="assets/presidio-anim.webp" media="(prefers-reduced-motion: no-preference)">
-            <img src="assets/presidio.webp" alt="Presidio GO tracker — the next shuttle, then shuttles moving on the live map" loading="lazy" decoding="async" width="640" height="1182">
-          </picture>
-        </a>
-      </div>
-    </article>
-  </section>
+    </section>
 
-  <section class="block wrap" id="about">
-    <h2 class="kicker">About</h2>
-    <div class="prose">
-      <p>I enlisted in the Army at 18 and spent four years as an intelligence analyst — briefing generals in an underground bunker near the Korean border, driving tanks across the Mojave.</p>
-      <p>Then Berkeley: Political Economy and Finance (Haas BASE Program, 2021), splitting time between reading geopolitical theory and reconciling balance sheets.</p>
-      <p>Post-Berkeley I joined JPMorgan as an associate product manager, rotating across three teams — onboarding, an innovation team hunting the bank's next bet, and the platform behind the digital bank. That's where I figured out I'm a 0-to-1 PM. I'd rather ship scrappy and hand off at scale.</p>
-      <p>At Wells Fargo I was the first AI product manager in the wholesale digital organization. I recruited a senior architect and an engineer, and we delivered a governed GenAI experience for the bank's FX clients. When adoption stalled on data migrations rather than the AI, I turned the work into a platform strategy and secured funding to build it out.</p>
-      <p>Now I'm at <a href="https://pallet.com">Pallet</a>, where we build AI agents that run day-to-day operations for manufacturers, distributors, and logistics companies.</p>
-    </div>
-    <p class="contact">
-      <a href="mailto:michael.cerp@gmail.com">michael.cerp@gmail.com</a>
-      <a href="https://www.linkedin.com/in/michaelanthonycerpa/">LinkedIn ↗</a>
-    </p>
-  </section>
-
-  <section class="block" id="photos">
-    <div class="wrap">
-      <div class="kicker">Photos</div>
-      <h2>Off the clock, usually at altitude</h2>
-    </div>
-    <div class="breaks">
-      <figure class="break">
-        <img src="photos/shasta.webp" alt="Summit ridge of Mt. Shasta" loading="lazy" decoding="async">
-        <figcaption>Mt. Shasta · 14,179 ft · 2024-05-11 · 41.4092°N 122.1949°W</figcaption>
-      </figure>
-      <figure class="break">
-        <img src="photos/whitney.webp" alt="Mt. Whitney" loading="lazy" decoding="async">
-        <figcaption>Mt. Whitney · 14,505 ft · 2024-10-04 · 36.5785°N 118.2923°W</figcaption>
-      </figure>
-      <figure class="break">
-        <img src="photos/pico.webp" alt="Crater of Pico de Orizaba" loading="lazy" decoding="async">
-        <figcaption>Pico de Orizaba · 18,491 ft · 2025-02-16 · 19.0303°N 97.2683°W</figcaption>
-      </figure>
-      <figure class="break">
-        <img src="photos/palisades.webp" alt="Palisades Tahoe" loading="lazy" decoding="async">
-        <figcaption>Palisades Tahoe · 9,006 ft · 2026-04-03 · 39.1981°N 120.2873°W</figcaption>
-      </figure>
-    </div>
-  </section>
+    <section id="articles" data-panel="articles">
+      <h2><img loading="lazy" src="assets/art/h-articles.webp" alt="Articles" width="662" height="216"></h2>
+      <!-- Articles go here, newest first. Until the first one exists this line stays. -->
+      <p>Nothing yet.</p>
+    </section>
+  </div>
 </main>
 
-<footer>
-  <div class="row">
-    <span class="fl">© 2026 Michael Cerpa · San Francisco</span>
-    <span>
-      <a href="https://www.linkedin.com/in/michaelanthonycerpa/">LinkedIn</a>
-      <a href="mailto:michael.cerp@gmail.com">Email</a>
-    </span>
+<!-- Music. Hidden until a song file exists at assets/audio/track.mp3 (see site.js). It never starts by itself. -->
+<aside class="player" id="player" aria-label="Music" hidden>
+  <button type="button" class="player__btn" id="pp" aria-label="Play">
+    <img loading="lazy" class="ic-play" src="assets/art/play.webp" alt="" width="106" height="106">
+    <img loading="lazy" class="ic-pause" src="assets/art/pause.webp" alt="" width="106" height="106">
+  </button>
+  <button type="button" class="player__btn" id="stop" aria-label="Stop"><img loading="lazy" src="assets/art/stop.webp" alt="" width="106" height="106"></button>
+  <div class="player__meta">
+    <b><img loading="lazy" src="assets/art/track.webp" alt="Circles" width="239" height="89"></b>
+    <span><img loading="lazy" src="assets/art/artist.webp" alt="Mac Miller" width="263" height="58"></span>
   </div>
-</footer>
+  <span class="player__time" id="time">0:00 / -:--</span>
+</aside>
 
-<script>
-(function () {
-  const nav = document.getElementById("nav");
-  addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 20), { passive: true });
-
-  // local file preview can't use the /granite/ rewrites — fall back to the deploy URLs
-  if (location.protocol === "file:") {
-    document.querySelectorAll("[data-fallback]").forEach(a => a.href = a.dataset.fallback);
-  }
-
-  // email → "copied" (falls back to a normal mailto if the clipboard is unavailable)
-  const em = document.querySelector('.contact a[href^="mailto:"]');
-  if (em) em.addEventListener("click", e => {
-    if (!navigator.clipboard) return;
-    e.preventDefault();
-    navigator.clipboard.writeText("michael.cerp@gmail.com").then(() => {
-      const t = em.textContent;
-      em.textContent = "copied ✓";
-      setTimeout(() => em.textContent = t, 1600);
-    }).catch(() => { location.href = em.href; });
-  });
-
-  /* Live tick — San Francisco weather, straight from NOAA (where I live).
-     Fetched by the visitor's own browser; if it can't be fetched, the line
-     hides. Never faked. */
-  const tick = document.getElementById("tick");
-  const tickText = document.getElementById("tickText");
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const FORECAST = "https://api.weather.gov/gridpoints/MTR/85,105/forecast"; // SF, resolved once
-  let lastChecked = 0;
-
-  function ago() {
-    const m = Math.round((Date.now() - lastChecked) / 60000);
-    return m < 1 ? "updated just now" : `updated ${m}m ago`;
-  }
-
-  function typeOut(line) {
-    tick.hidden = false;
-    if (reduced) { tickText.textContent = line; return; }
-    tickText.textContent = "";
-    let i = 0;
-    (function step() {
-      if (i <= line.length) {
-        tickText.textContent = line.slice(0, i++);
-        setTimeout(step, 26);
-      }
-    })();
-  }
-
-  let current = "";
-  async function refresh(first) {
-    let p = null;
-    try {
-      const r = await fetch(FORECAST, { signal: AbortSignal.timeout(8000) });
-      if (r.ok) p = (await r.json()).properties.periods[0];
-    } catch (e) {}
-    if (!p) { if (first) tick.hidden = true; return; } // no data — say nothing
-    lastChecked = Date.now();
-    const line = `san francisco — ${p.temperature}°F · ${p.shortForecast.toLowerCase()} · NOAA · `;
-    if (first) { typeOut(line + ago()); }
-    else if (line !== current) {
-      tickText.textContent = line + ago();
-      tick.classList.add("flash");
-      tick.addEventListener("animationend", () => tick.classList.remove("flash"), { once: true });
-    }
-    current = line;
-  }
-
-  refresh(true);
-  setInterval(() => refresh(false), 15 * 60 * 1000);
-  setInterval(() => { if (!tick.hidden && current) tickText.textContent = current + ago(); }, 60 * 1000);
-})();
-</script>
-
+<script src="wall.js"></script>
+<script src="site.js"></script>
 </body>
 </html>

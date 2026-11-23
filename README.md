@@ -1,44 +1,49 @@
-# Michael Cerpa — Portfolio
+# Michael Cerpa
 
-Personal portfolio site. I'm an agent PM at Pallet. Before that: Army intelligence →
-UC Berkeley → JPMorgan → Wells Fargo.
-
-**Live:** https://mcerpa.com
+My personal site. **Live:** https://mcerpa.com
 
 ## What this is
 
-A single hand-written page that exhibits my work — Granite and Strata (enterprise AI,
-sanitized), Cairn (a live Sierra trip planner), and Commute (live trackers for my Golden
-Gate Transit and Presidio GO rides). Granite, Strata, and Cairn are each their own repo
-and deploy, served at `mcerpa.com/granite/`, `/strata/`, `/cairn/` — same domain, full
-viewport, no iframes. The Commute trackers live in this repo at `/bus/` and `/presidio/`.
+One screen. A globe of old tube TVs fills the window. Each screen plays a short clip of mine:
+climbing, skiing, riding, running. In front of the wall are my name, three words, and a small
+music player, all drawn in ink. A word opens one sheet of drawing paper.
 
-The hero carries one live element: current San Francisco weather, fetched by the
-visitor's own browser straight from the National Weather Service and typed out on load.
-If the fetch fails, the line hides — it is never faked.
+The site also serves a few things I built:
 
-## Architecture
+- Granite, Strata, and Cairn each have their own repo and deploy. They are served here at
+  `/granite/`, `/strata/`, and `/cairn/`.
+- The Commute trackers live in this repo at `/bus/` and `/presidio/`.
 
-Vanilla HTML / CSS / JS. No framework, no build step, no npm dependencies.
+## How it is built
+
+Plain HTML, CSS, and JavaScript. No framework, no build step, no npm dependencies.
 
 | Path | Job |
 |------|-----|
-| `index.html` | The whole page, semantic hand-written HTML; a little JS for the live weather line, the email-copy interaction, and nav state |
-| `styles.css` | All styling; design tokens (colors, fonts, the house ease) live in `:root` |
-| `vercel.json` | Rewrites that serve each project's separate Vercel deploy under this domain |
+| `index.html` | The whole page, written by hand. All the words are here |
+| `styles.css` | All styling for the home page |
+| `wall.js` | Builds the 51 screens on the front of a globe and plays the clips |
+| `site.js` | Opens and closes the three pages. Runs the music player |
+| `assets/tv/` | The clips: 51 short silent loops, smaller copies for phones in `s/`, and one picture holding every still frame |
+| `assets/art/` | The ink lettering and the mountain, drawn from my own photos |
+| `fonts/` | Self-hosted fonts. No third-party font requests |
+| `vercel.json` | Rewrites that serve each project's separate deploy under this domain |
 | `bus/`, `presidio/` | The Commute trackers: phone-first pages, installable to the home screen |
-| `api/` | Vercel functions behind them. They read each agency's public GTFS timetable and GTFS-Realtime feeds directly, with zero-dependency ZIP, CSV, and protobuf readers in `api/_lib/` |
-| `tools/`, `.github/` | Tests against fresh snapshots of both agencies' feeds, run whenever the trackers change and every Monday |
-| `fonts/` | Two self-hosted variable fonts (Space Grotesk, JetBrains Mono) — no third-party font requests |
-| `assets/`, `photos/` | Card posters (WebP) + demo loops (animated WebP) · summit photos |
+| `api/` | Vercel functions behind the trackers. They read each agency's public GTFS and GTFS-Realtime feeds directly |
+| `tools/`, `.github/` | Tests against fresh snapshots of both agencies' feeds |
 
-Motion is native CSS: scroll-driven reveals (`animation-timeline: view()`) and
-cross-document view transitions, both shipped as progressive enhancement, both
-respecting `prefers-reduced-motion`.
+## Keeping it light
+
+- A screen plays only while it is inside the window and not behind an open page.
+- The still frames for the whole globe arrive in one picture, and the middle screens start first.
+- Phones load smaller copies of the clips and play at most 25 at once.
+- If a device drops frames, the outer screens fall back to still pictures.
+- Visitors who ask for reduced motion get still pictures.
+- With JavaScript off there is no wall, but every word is still readable.
 
 ## Deploy
 
-Static site + functions on **Vercel**; auto-deploys on every push to `main`.
+Static site and functions on **Vercel**. It deploys on every push to `main`.
 
 ---
-Built with vanilla web tech + Claude Code.
+Built with plain web tech and Claude Code.
