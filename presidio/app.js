@@ -161,10 +161,10 @@
     const el = $("feed"), txt = $("feedText");
     const say = (cls, text) => { el.hidden = false; el.className = "feed " + cls; txt.textContent = text; };
     el.hidden = true;
-    if (!data) { if (fetchError) say("bad", "Offline — retrying"); return; }
+    if (!data) { if (fetchError) say("bad", "Offline, retrying"); return; }
     const fetchedAgo = (Date.now() - receivedAt) / 1000;
     if (fetchError && fetchedAgo > 45) say("bad", `Offline — times from ${ago(fetchedAgo)} ago`);
-    else if (!data.feed.ok) say("warn", "Live data is down — times may be off");
+    else if (!data.feed.ok) say("warn", "Live data is down. Times may be off.");
     else if (nowSec() - data.feed.ts > 150) say("warn", `Live data is ${ago(nowSec() - data.feed.ts)} old`);
   }
 
@@ -495,7 +495,7 @@
       rideGeo = RideCore.geometry(body.line, body.stops);
     } catch (e) {
       if (ride !== forRide) return;
-      rideErr = rideData ? null : "Can't reach the shuttle feed yet — retrying…";
+      rideErr = rideData ? null : "Can't reach the shuttle feed yet. Retrying…";
     }
     renderRide();
   }
