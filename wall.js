@@ -21,7 +21,7 @@
   //   - the warm frames (sunset, red lamp, alpenglow) sit far apart, as accents
   //   - the night clips are spread around, so no side of the globe looks switched off
   //   - the nine screens round the centre run cool on top (blue dawn, gold hills, white snow), strong in the
-  //     middle (green forest, the climber, the orange sun), and people along the bottom (friends, the rope team, a face)
+  //     middle (green forest, the climber, the orange sun), and people along the bottom (friends, the rope team, riders in the fog)
   //   - second cuts of a scene go near the poles, where they are small and far from the first
   var ROWS = [
     /*  4 */ ['night-blue', 'overlook', 'bridge-fog-2'],
@@ -29,8 +29,8 @@
     /*  2 */ ['night-snow', 'chairlift-far', 'redwoods-2', 'city-sky', 'night-poles', 'ski-pov', 'cirrus'],
     /*  1 */ ['night-rest', 'red-lamp', 'dawn-climber', 'golden-hills', 'summit-skis', 'road-descent', 'sutro'],
     /*  0 */ ['bridge-fog', 'ski-turns', 'redwoods', 'scree-descent', 'ocean-sunset', 'chairlift', 'night-run'],
-    /* -1 */ ['sierra-view', 'sunrise-lake', 'hilltop-stop', 'ridge-line', 'sunrise-selfie', 'night-climb', 'dawn-line'],
-    /* -2 */ ['lift-sun', 'night-faces', 'ski-spray', 'bridge-riders', 'road-climb', 'alpenglow', 'headlamp'],
+    /* -1 */ ['sierra-view', 'sunrise-lake', 'hilltop-stop', 'ridge-line', 'bridge-riders', 'night-climb', 'dawn-line'],
+    /* -2 */ ['lift-sun', 'night-faces', 'ski-spray', 'redwoods-3', 'road-climb', 'alpenglow', 'headlamp'],
     /* -3 */ ['ocean-sunset-2', 'night-run-2', 'ridge-line-2', 'sunrise-lake-2', 'scree-2'],
     /* -4 */ ['night-ridge', 'shadow', 'ski-far']
   ];
@@ -152,7 +152,7 @@
     var flick = document.getElementById('flick'), t, first = true;
     document.addEventListener('sheet:change', function () {
       if (first) { first = false; return; }            // not on page load
-      if (still) return;
+      if (still || SMALL || innerWidth < 760 || navigator.maxTouchPoints > 0) return;      // laptops only: on iPhones it stuck on screen as a sheet of static
       flick.classList.add('on'); clearTimeout(t);
       t = setTimeout(function () { flick.classList.remove('on'); }, 140);
     });
