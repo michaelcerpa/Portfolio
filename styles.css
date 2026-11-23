@@ -76,14 +76,13 @@ img { display: block; user-select: none; -webkit-user-drag: none; }
 .menu a:nth-child(1) { --r: -2.5deg; } .menu a:nth-child(2) { --r: -1deg; margin-left: 7px; } .menu a:nth-child(3) { --r: -2deg; margin-left: 2px; }
 /* hover or open: the word steps forward and an inked marker appears beside it */
 .menu a::after { content: ""; position: absolute; left: 100%; top: 50%; width: 26px; height: 26px; margin-top: -13px; background: url(assets/art/play.webp) center / contain no-repeat; opacity: 0; transform: scaleX(-1); transition: opacity .1s; }
-.menu a:hover, .menu a[aria-current="true"] { transform: rotate(0deg) translateX(5px) scale(1.07); }
-.menu a:hover::after, .menu a[aria-current="true"]::after { opacity: 1; }
+.menu a[aria-current="true"] { transform: rotate(0deg) translateX(5px) scale(1.07); }
+.menu a[aria-current="true"]::after { opacity: 1; }
 
 /* ---------- music player: tiny, bottom right. Play, stop, the title, the time. ---------- */
 .player { position: fixed; z-index: 25; right: 16px; bottom: 12px; display: grid; grid-template-columns: auto auto auto; align-items: center; }
 .player__btn { width: 28px; height: 28px; display: grid; place-items: center; padding: 0; border: 0; background: none; transition: transform .1s ease; }
 .player__btn img { width: 28px; height: 28px; }
-.player__btn:hover { transform: scale(1.18) rotate(-4deg); }
 .player__btn .ic-pause, .is-playing .player__btn .ic-play { display: none; }
 .is-playing .player__btn .ic-pause { display: block; }
 .player__meta { margin-left: 2px; display: grid; min-width: 0; }
@@ -114,18 +113,25 @@ img { display: block; user-select: none; -webkit-user-drag: none; }
 .sheet h2 img { height: 88px; width: auto; max-width: none; }
 /* links are words with an ink underline. On hover the ink floods the word. */
 .sheet a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2.5px; text-underline-offset: 4px; }
-.sheet a:hover { background: var(--ink); color: var(--paper); text-decoration: none; }
 .sheet .reach { margin-top: 30px; display: grid; gap: 8px; justify-items: start; }
 /* a project: its name in ink, then one line */
 .proj { margin: 0 0 20px; }
 .proj__name { display: inline-block; margin: 0 0 -6px -10px; transition: transform .12s ease; }
 .proj__name img { height: 58px; width: auto; max-width: none; }
-.sheet a.proj__name:hover { background: none; transform: translateX(8px) rotate(-1.5deg); }
 .proj p { margin: 0; max-width: 22em; font-size: 16.5px; }
 /* the close mark: an inked X */
 .panel__close { position: absolute; top: 20px; right: 26px; z-index: 2; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; background: none; transition: transform .12s ease; }
 .panel__close img { height: 34px; width: auto; }
-.panel__close:hover { transform: rotate(8deg) scale(1.15); }
+
+/* ---------- hover effects: only where there is a real pointer. A phone never sees them, so a link always follows on the first tap. ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .menu a:hover { transform: rotate(0deg) translateX(5px) scale(1.07); }
+  .menu a:hover::after { opacity: 1; }
+  .sheet a:hover { background: var(--ink); color: var(--paper); text-decoration: none; }
+  .sheet a.proj__name:hover { background: none; transform: translateX(8px) rotate(-1.5deg); }
+  .player__btn:hover { transform: scale(1.18) rotate(-4deg); }
+  .panel__close:hover { transform: rotate(8deg) scale(1.15); }
+}
 
 /* ---------- without JavaScript: no wall, but everything is still readable ---------- */
 html:not(.js) .panel__close { display: none; }
@@ -149,19 +155,27 @@ html:not(.js) .panel__scroll section + section { margin-top: 48px; }
   .menu a, .menu a:nth-child(n) { margin: 0; padding: 12px 1px; }
   .menu img { height: clamp(22px, 6.7vw, 30px); margin: 0; }
   .menu a::after { display: none; }
-  .menu a:hover, .menu a[aria-current="true"] { transform: rotate(0deg) translateY(3px); }   /* the open page's word drops a touch; no growing, the words are close together here */
+  .menu a[aria-current="true"] { transform: rotate(0deg) translateY(3px); }   /* the open page's word drops a touch; no growing, the words are close together here */
   .player { right: 8px; bottom: 8px; }
   .has-panel .player { visibility: hidden; }
+  /* no static flash and no dimming layer on phones: the sheet covers the globe anyway */
+  .flick, .dim { display: none; }
+  /* no tap highlight or leftover focus box on the menu words */
+  .hud a { -webkit-tap-highlight-color: transparent; }
+  .hud a:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   /* the sheet fills the screen under the top strip. Words on top, mountain below. */
   .panel { --mh: calc((100vh - 74px) * .3); --mh: calc((100dvh - 74px) * .3); top: 74px; left: 0; right: 0; bottom: 0; width: auto; clip-path: none; filter: none; box-shadow: inset 0 4px 0 var(--ink); }
   body[data-open="about"] .panel { --mh: calc((100vh - 74px) * .5); --mh: calc((100dvh - 74px) * .5); }
-  .mt { right: -16%; bottom: -2%; height: var(--mh); }
-  .panel__scroll { width: 100%; height: auto; max-height: 100%; padding: 30px 22px 0; }
+  /* words first, then the mountain takes all the room that is left, shown whole and never cut off */
+  .panel { display: flex; flex-direction: column; }
+  .panel__scroll { order: 1; flex: 0 1 auto; width: 100%; height: auto; padding: 26px 22px 0; }
+  .mt { order: 2; position: relative; right: auto; bottom: auto; height: auto; aspect-ratio: auto; flex: 1 1 0; min-height: 120px; margin-top: 4px; }
+  .mt__peak { object-fit: contain; object-position: right bottom; }
   .sheet p { font-size: 17px; }
   .sheet .hi { margin: -8px 0 12px -14px; } .sheet .hi img { height: 62px; }
-  .sheet h2 { margin: -10px 0 4px -16px; } .sheet h2 img { height: 66px; }
+  .sheet h2 { margin: -10px 0 0 -16px; } .sheet h2 img { height: 58px; }
   .sheet .reach { margin-top: 18px; }
-  .proj { margin-bottom: 9px; } .proj__name img { height: 42px; } .proj p { font-size: 15.5px; line-height: 1.4; max-width: none; }
+  .proj { margin-bottom: 5px; } .proj__name img { height: 38px; } .proj p { font-size: 15px; line-height: 1.36; max-width: none; }
   .panel__close { top: 10px; right: 10px; }
 }
 

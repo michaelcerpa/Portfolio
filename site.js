@@ -11,7 +11,7 @@
   // otherwise the browser tries to scroll the page to the section and nudges the sheet out of place.
   sections.forEach(function (s) { s.removeAttribute('id'); });
   var OLD = { work: 'projects' };                       // addresses from the previous site
-  var last = null;
+  var last = null, viaKey = false;
 
   function current() {
     var id = decodeURIComponent(location.hash.slice(1));
@@ -25,20 +25,21 @@
     document.body.dataset.open = id || '';
     panel.hidden = !id;
     if (id) { sections.forEach(function (s) { s.hidden = s.dataset.panel !== id; }); scroller.scrollTop = 0; panel.scrollTop = 0; }
-    else if (last && document.contains(last)) last.focus({ preventScroll: true });
+    else if (viaKey && last && document.contains(last)) last.focus({ preventScroll: true });      // hand focus back only for keyboard users
+    viaKey = false;
     document.dispatchEvent(new CustomEvent('sheet:change', { detail: { id: id } }));
   }
   function shut() { if (current()) { history.pushState(null, '', location.pathname + location.search); render(); } }
 
   document.addEventListener('click', function (e) {
     var a = e.target.closest('[data-go]');
-    if (a) { e.preventDefault(); last = a; if (current() === a.dataset.go) shut(); else location.hash = a.dataset.go; return; }   // the same word again closes it
+    if (a) { e.preventDefault(); last = a; a.blur(); if (current() === a.dataset.go) shut(); else location.hash = a.dataset.go; return; }   // the same word again closes it
     if (e.target.closest('[data-home]')) { e.preventDefault(); return shut(); }                                                   // so does the name
     if (e.target.closest('.panel__close')) return shut();
     if (current() && !e.target.closest('#panel, .hud, .player')) shut();                                                          // and a click on the wall
   });
   addEventListener('hashchange', render);
-  addEventListener('keydown', function (e) { if (e.key === 'Escape') shut(); });
+  addEventListener('keydown', function (e) { if (e.key === 'Escape') { viaKey = true; shut(); } });
   render();
 
   // The pages' artwork is not needed to draw the globe, so it is fetched a moment later, once the globe is up.
