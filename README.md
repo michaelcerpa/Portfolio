@@ -4,7 +4,7 @@ My personal site. **Live:** https://mcerpa.com
 
 ## What this is
 
-One screen. A wall of old tube TVs fills the window. Each screen plays a short clip of mine:
+One screen. A globe of old tube TVs fills the window. Each screen plays a short clip of mine:
 climbing, skiing, riding, running. In front of the wall are my name, three words, and a small
 music player, all drawn in ink. A word opens one sheet of drawing paper.
 
@@ -22,9 +22,9 @@ Plain HTML, CSS, and JavaScript. No framework, no build step, no npm dependencie
 |------|-----|
 | `index.html` | The whole page, written by hand. All the words are here |
 | `styles.css` | All styling for the home page |
-| `wall.js` | Builds the 49 screens, bends them into the wide-lens bulge, and plays the clips |
+| `wall.js` | Builds the 51 screens on the front of a globe and plays the clips |
 | `site.js` | Opens and closes the three pages. Runs the music player |
-| `assets/tv/` | The clips: 49 short silent loops, a still frame for each, and smaller copies for phones in `s/` |
+| `assets/tv/` | The clips: 51 short silent loops, smaller copies for phones in `s/`, and one picture holding every still frame |
 | `assets/art/` | The ink lettering and the mountain, drawn from my own photos |
 | `fonts/` | Self-hosted fonts. No third-party font requests |
 | `vercel.json` | Rewrites that serve each project's separate deploy under this domain |
@@ -35,7 +35,8 @@ Plain HTML, CSS, and JavaScript. No framework, no build step, no npm dependencie
 ## Keeping it light
 
 - A screen plays only while it is inside the window and not behind an open page.
-- Phones load smaller copies of the clips and play at most 22 at once.
+- The still frames for the whole globe arrive in one picture, and the middle screens start first.
+- Phones load smaller copies of the clips and play at most 25 at once.
 - If a device drops frames, the outer screens fall back to still pictures.
 - Visitors who ask for reduced motion get still pictures.
 - With JavaScript off there is no wall, but every word is still readable.

@@ -48,12 +48,17 @@
 
   // Phones get lighter copies of the clips (240x184 at 15 frames a second), in assets/tv/s/.
   var SMALL = Math.min(innerWidth, innerHeight) < 600 || (navigator.maxTouchPoints > 1 && Math.min(screen.width, screen.height) < 600);
+  // The still frame of every clip is packed into one picture (tools/make-posters.mjs in the mock-up folder),
+  // tiles in alphabetical order, nine across. One request shows the whole globe before any video arrives.
+  var ORDER = cells.map(function (c) { return c.clip; }).sort(), COLS = 9, PROWS = Math.ceil(ORDER.length / COLS);
+  root.style.setProperty('--posters', 'url(assets/tv/posters' + (innerWidth < 760 ? '-s' : '') + '.jpg)');
   var html = '';
   cells.forEach(function (c, i) {
+    var n = ORDER.indexOf(c.clip), px = (n % COLS) / (COLS - 1) * 100, py = Math.floor(n / COLS) / (PROWS - 1) * 100;
     var ring = c.away < 21 ? 1 : c.away < 36 ? 2 : 3;
     // --a / --b: where the set sits on the globe.  --z / --k: a trace of unevenness, like sets stacked by hand.
     html += '<div class="tv" style="--a:' + c.lon.toFixed(2) + 'deg;--b:' + c.lat.toFixed(1) + 'deg;--z:' + ((((i * 37) % 9) - 4) * 0.12).toFixed(2) + 'deg;--k:' + (0.958 + ((i * 53) % 4) * 0.004).toFixed(3) + '">' +
-      '<div class="set"><span class="tube" style="background-image:url(assets/tv/' + c.clip + '.jpg)">' +
+      '<div class="set"><span class="tube" style="background-position:' + px.toFixed(2) + '% ' + py.toFixed(2) + '%">' +
       '<video muted loop playsinline preload="none" data-src="assets/tv/' + (SMALL ? 's/' : '') + c.clip + '.mp4" data-ring="' + ring + '" data-d="' + c.away.toFixed(1) + '"></video></span>' +
       '<span class="deck"><b></b><i></i><i></i><i></i><i class="led"></i></span></div></div>';
   });
@@ -77,6 +82,7 @@
   var panel = document.getElementById('panel');
   var maxRing = 3;            // 3 = every screen, 2 = the outer ring shows stills, 1 = only the middle nine play
   var refused = false;        // the browser said no to auto-play (Low Power Mode, strict settings)
+  var ramp = 9;               // how many clips may be fetched so far: the middle nine first, then outward a few at a time
 
   function tune() {
     if (still) return;
@@ -96,10 +102,12 @@
       shown.sort(function (a, b) { return b[1] - a[1]; });
       shown.splice(cap).forEach(function (x) { if (!x[0].paused) x[0].pause(); });
     }
+    var fetched = vids.filter(function (v) { return v.getAttribute('src'); }).length;
+    shown.sort(function (a, b) { return a[0].dataset.d - b[0].dataset.d; });      // nearest the middle first
     shown.forEach(function (x) {
       var v = x[0];
       if (refused) return;
-      if (!v.getAttribute('src')) v.setAttribute('src', v.dataset.src);
+      if (!v.getAttribute('src')) { if (fetched >= ramp) return; fetched++; v.setAttribute('src', v.dataset.src); }
       v.muted = true;
       if (v.paused) {
         var p = v.play();
@@ -114,6 +122,7 @@
   document.addEventListener('visibilitychange', tune);
   document.addEventListener('sheet:change', function () { setTimeout(tune, 30); });
   tune();
+  var rampTimer = setInterval(function () { ramp += 8; tune(); if (ramp > 60) clearInterval(rampTimer); }, 260);
 
   // Watchdog: for the first few seconds, watch for dropped video frames and slow screen updates.
   // If the device is struggling, drop the outer ring of screens to stills, then the next ring.

@@ -25,6 +25,8 @@
 
   <link rel="preload" href="fonts/SpaceGrotesk-var.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/art/name.webp" as="image">
+  <link rel="preload" href="assets/tv/posters.jpg" as="image" media="(min-width: 760px)">
+  <link rel="preload" href="assets/tv/posters-s.jpg" as="image" media="(max-width: 759px)">
   <link rel="stylesheet" href="styles.css">
   <script>document.documentElement.className = 'js';</script>
 </head>
@@ -38,7 +40,7 @@
 
 <!-- The lettering is ink artwork (drawn from my own photos). The real words are in each image's alt text. -->
 <header class="hud">
-  <h1 class="id"><a href="#" data-home><img src="assets/art/name.webp" alt="Michael Cerpa" width="1288" height="690"></a></h1>
+  <h1 class="id"><a href="#" data-home><img src="assets/art/name.webp" alt="Michael Cerpa" width="485" height="260"></a></h1>
   <nav class="menu" aria-label="Sections">
     <a href="#about" data-go="about"><img src="assets/art/menu-about.webp" alt="About" width="350" height="141"></a>
     <a href="#projects" data-go="projects"><img src="assets/art/menu-projects.webp" alt="Projects" width="491" height="141"></a>
@@ -48,12 +50,12 @@
 
 <!-- The three pages. Each opens as one sheet of drawing paper with the inked mountain on it. -->
 <main id="panel" class="panel sheet">
-  <button type="button" class="panel__close" aria-label="Close"><img src="assets/art/close.webp" alt="" width="79" height="104"></button>
+  <button type="button" class="panel__close" aria-label="Close"><img loading="lazy" src="assets/art/close.webp" alt="" width="79" height="104"></button>
   <div class="mt" aria-hidden="true"><img class="mt__peak" src="assets/art/peak-sheet.webp" alt="" width="960" height="1280" loading="lazy"></div>
 
   <div class="panel__scroll">
     <section id="about" data-panel="about">
-      <p class="hi"><img src="assets/art/hi.webp" alt="Hi, I'm Michael." width="915" height="173"></p>
+      <p class="hi"><img loading="lazy" src="assets/art/hi.webp" alt="Hi, I'm Michael." width="915" height="173"></p>
       <p>I'm a product manager at Pallet. We build AI agents for companies that make and move things.</p>
       <p>Off the clock, usually at altitude.</p>
       <p class="reach">
@@ -63,43 +65,43 @@
     </section>
 
     <section id="projects" data-panel="projects">
-      <h2><img src="assets/art/h-projects.webp" alt="Projects" width="707" height="216"></h2>
+      <h2><img loading="lazy" src="assets/art/h-projects.webp" alt="Projects" width="707" height="216"></h2>
       <div class="proj">
-        <a class="proj__name" href="/granite/"><img src="assets/art/p-granite.webp" alt="Granite" width="394" height="124"></a>
+        <a class="proj__name" href="/granite/"><img loading="lazy" src="assets/art/p-granite.webp" alt="Granite" width="394" height="124"></a>
         <p>An architecture for AI in spaces where a wrong answer is worse than no answer.</p>
       </div>
       <div class="proj">
-        <a class="proj__name" href="/strata/"><img src="assets/art/p-strata.webp" alt="Strata" width="348" height="124"></a>
+        <a class="proj__name" href="/strata/"><img loading="lazy" src="assets/art/p-strata.webp" alt="Strata" width="348" height="124"></a>
         <p>It reads the mess, writes the structured record, and asks a human only when it isn't sure.</p>
       </div>
       <div class="proj">
-        <a class="proj__name" href="/cairn/"><img src="assets/art/p-cairn.webp" alt="Cairn" width="296" height="124"></a>
+        <a class="proj__name" href="/cairn/"><img loading="lazy" src="assets/art/p-cairn.webp" alt="Cairn" width="296" height="124"></a>
         <p>Sierra trip planning. This one tells you whether you can still get a permit.</p>
       </div>
       <div class="proj">
-        <a class="proj__name" href="/bus/"><img src="assets/art/p-commute.webp" alt="Commute" width="456" height="124"></a>
+        <a class="proj__name" href="/bus/"><img loading="lazy" src="assets/art/p-commute.webp" alt="Commute" width="456" height="124"></a>
         <p>Live trackers for my commutes: <a href="/bus/">Golden Gate Transit</a> and <a href="/presidio/">Presidio GO</a>.</p>
       </div>
     </section>
 
     <section id="articles" data-panel="articles">
-      <h2><img src="assets/art/h-articles.webp" alt="Articles" width="662" height="216"></h2>
+      <h2><img loading="lazy" src="assets/art/h-articles.webp" alt="Articles" width="662" height="216"></h2>
       <!-- Articles go here, newest first. Until the first one exists this line stays. -->
       <p>Nothing yet.</p>
     </section>
   </div>
 </main>
 
-<!-- Music. Stays hidden unless there is something to play (see site.js). It never starts by itself. -->
+<!-- Music. Hidden until a song file exists at assets/audio/track.mp3 (see site.js). It never starts by itself. -->
 <aside class="player" id="player" aria-label="Music" hidden>
   <button type="button" class="player__btn" id="pp" aria-label="Play">
-    <img class="ic-play" src="assets/art/play.webp" alt="" width="106" height="106">
-    <img class="ic-pause" src="assets/art/pause.webp" alt="" width="106" height="106">
+    <img loading="lazy" class="ic-play" src="assets/art/play.webp" alt="" width="106" height="106">
+    <img loading="lazy" class="ic-pause" src="assets/art/pause.webp" alt="" width="106" height="106">
   </button>
-  <button type="button" class="player__btn" id="stop" aria-label="Stop"><img src="assets/art/stop.webp" alt="" width="106" height="106"></button>
+  <button type="button" class="player__btn" id="stop" aria-label="Stop"><img loading="lazy" src="assets/art/stop.webp" alt="" width="106" height="106"></button>
   <div class="player__meta">
-    <b><img src="assets/art/track.webp" alt="Circles" width="239" height="89"></b>
-    <span><img src="assets/art/artist.webp" alt="Mac Miller" width="263" height="58"></span>
+    <b><img loading="lazy" src="assets/art/track.webp" alt="Circles" width="239" height="89"></b>
+    <span><img loading="lazy" src="assets/art/artist.webp" alt="Mac Miller" width="263" height="58"></span>
   </div>
   <span class="player__time" id="time">0:00 / -:--</span>
 </aside>

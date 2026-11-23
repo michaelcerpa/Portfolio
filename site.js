@@ -41,68 +41,29 @@
   addEventListener('keydown', function (e) { if (e.key === 'Escape') shut(); });
   render();
 
+  // The pages' artwork is not needed to draw the globe, so it is fetched a moment later, once the globe is up.
+  // By the time anyone opens a page it is already there.
+  addEventListener('load', function () { setTimeout(function () { document.querySelectorAll('img[loading="lazy"]').forEach(function (i) { i.loading = 'eager'; }); }, 2500); });
+
   // ---------- music ----------
   // One song. It never starts by itself: browsers only allow sound after a press, and it would be rude anyway.
-  // Where the sound comes from, in order:
-  //   1. a song file at assets/audio/track.mp3 (or track.m4a), if one has been added
-  //   2. otherwise Spotify's own player, kept out of sight and driven by the ink buttons. A visitor who is
-  //      logged in to Spotify hears the whole song; anyone else hears Spotify's 26-second preview.
-  //      Nothing is requested from Spotify until the pointer reaches the player or the screen is touched.
-  // If neither works, the player stays hidden.
-  var TRACK = { files: ['assets/audio/track.mp3', 'assets/audio/track.m4a'], spotify: '4jXl6VtkFFKIt3ycUQc5LT' };   // Circles, Mac Miller
+  // It plays a song file at assets/audio/track.mp3 (or track.m4a). Until that file exists, the player stays hidden.
+  var TRACK = { files: ['assets/audio/track.mp3', 'assets/audio/track.m4a'] };
   (function () {
     var box = document.getElementById('player'), pp = document.getElementById('pp'), stop = document.getElementById('stop'), time = document.getElementById('time');
     if (!box) return;
     var fmt = function (s) { s = Math.floor(s || 0); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); };
-    var pos = 0, dur = 0, playing = false, src = null, kind = 'none';
-    function paint() { time.textContent = fmt(pos) + ' / ' + (dur ? fmt(dur) : '-:--'); box.classList.toggle('is-playing', playing); pp.setAttribute('aria-label', playing ? 'Pause' : 'Play'); }
-    function ready(source, name) { src = source; kind = name; box.hidden = false; paint(); }
-
-    // 1. the file
-    var au = new Audio(), fi = 0;
-    au.preload = 'metadata'; au.loop = true; au.volume = 0.7;
-    au.addEventListener('loadedmetadata', function () {
-      dur = isFinite(au.duration) ? au.duration : 0;
-      ready({ play: function () { var p = au.play(); if (p && p.catch) p.catch(function () {}); }, pause: function () { au.pause(); },
-              stop: function () { au.pause(); try { au.currentTime = 0; } catch (e) {} pos = 0; paint(); } }, 'file');
-    });
-    au.addEventListener('play', function () { playing = true; paint(); });
-    au.addEventListener('pause', function () { playing = false; paint(); });
-    au.addEventListener('timeupdate', function () { pos = au.currentTime; paint(); });
-    au.addEventListener('error', function () { if (++fi < TRACK.files.length) au.src = TRACK.files[fi]; else if (TRACK.spotify) spotify(); });
-    au.src = TRACK.files[0];
-
-    // 2. Spotify
-    function spotify() {
-      var ctl = null, wanted = false, loading = false, begun = false;
-      box.insertAdjacentHTML('beforeend', '<a class="player__via" href="https://open.spotify.com/track/' + TRACK.spotify + '" target="_blank" rel="noopener">on Spotify</a>');
-      function load() {
-        if (loading) return; loading = true;
-        var holder = document.createElement('div'); holder.className = 'player__embed'; holder.setAttribute('aria-hidden', 'true');
-        holder.appendChild(document.createElement('div')); document.body.appendChild(holder);
-        window.onSpotifyIframeApiReady = function (API) {
-          API.createController(holder.firstChild, { uri: 'spotify:track:' + TRACK.spotify, width: 320, height: 152 }, function (c) {
-            c.addListener('ready', function () { ctl = c; if (wanted) { begun = true; c.play(); } });
-            c.addListener('playback_update', function (e) {
-              var d = e.data || {}; dur = (d.duration || 0) / 1000; if (wanted) pos = (d.position || 0) / 1000; playing = !d.isPaused && wanted; paint();
-            });
-          });
-        };
-        var s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true;
-        s.onerror = function () { box.hidden = true; };          // Spotify unreachable: no player
-        document.head.appendChild(s);
-      }
-      // get Spotify's player ready just before it is needed, so the first press starts the song
-      box.addEventListener('pointerenter', load);
-      addEventListener('touchstart', load, { once: true, passive: true });
-      pp.addEventListener('focus', load);
-      ready({ play: function () { wanted = true; if (!ctl) return load(); if (begun) ctl.resume(); else { begun = true; ctl.play(); } },   // resume carries on from where it was paused
-              pause: function () { wanted = false; if (ctl) ctl.pause(); },
-              stop: function () { wanted = false; begun = false; if (ctl) ctl.pause(); pos = 0; playing = false; paint(); } }, 'spotify');
+    var au = new Audio(), fi = 0, ready = false;
+    function paint() {
+      time.textContent = fmt(au.currentTime) + ' / ' + (isFinite(au.duration) && au.duration ? fmt(au.duration) : '-:--');
+      box.classList.toggle('is-playing', !au.paused); pp.setAttribute('aria-label', au.paused ? 'Play' : 'Pause');
     }
-
-    pp.addEventListener('click', function () { if (!src) return; if (playing) src.pause(); else src.play(); });
-    stop.addEventListener('click', function () { if (src) src.stop(); });
-    window.TVMUSIC = { state: function () { return { playing: playing, pos: +pos.toFixed(1), dur: +dur.toFixed(1), source: kind, shown: !box.hidden }; } };
+    au.preload = 'metadata'; au.loop = true; au.volume = 0.7;
+    au.addEventListener('loadedmetadata', function () { ready = true; box.hidden = false; paint(); });
+    ['play', 'pause', 'timeupdate'].forEach(function (ev) { au.addEventListener(ev, paint); });
+    au.addEventListener('error', function () { if (++fi < TRACK.files.length) au.src = TRACK.files[fi]; });   // no file: the player stays hidden
+    au.src = TRACK.files[0];
+    pp.addEventListener('click', function () { if (!ready) return; if (au.paused) { var p = au.play(); if (p && p.catch) p.catch(function () {}); } else au.pause(); });
+    stop.addEventListener('click', function () { if (!ready) return; au.pause(); try { au.currentTime = 0; } catch (e) {} paint(); });
   })();
 })();

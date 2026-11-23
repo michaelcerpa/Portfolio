@@ -40,7 +40,7 @@ img { display: block; user-select: none; -webkit-user-drag: none; }
 .set { position: absolute; inset: 6px; display: flex; flex-direction: column; padding: 18px 18px 0; border: 1px solid #303036; border-radius: 16px;
   background: linear-gradient(180deg, #26262b 0%, #141417 55%, #0a0a0c 100%);
   box-shadow: inset 0 2px 0 rgb(255 255 255 / .07), 0 14px 30px rgb(0 0 0 / .6); }
-.tube { position: relative; flex: 1; min-height: 0; border-radius: 30px / 34px; overflow: hidden; background: #050508 center / cover no-repeat;
+.tube { position: relative; flex: 1; min-height: 0; border-radius: 30px / 34px; overflow: hidden; background: #050508 var(--posters) no-repeat; background-size: 900% 600%;   /* one picture holds every still: 9 across, 6 down */
   box-shadow: 0 0 0 3px #060608, 0 0 0 4px #34343a, 0 0 34px rgb(110 150 255 / .28); }
 .tube video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 /* glass: a soft highlight, scan lines, dark corners. One static layer per screen. */
@@ -90,12 +90,8 @@ img { display: block; user-select: none; -webkit-user-drag: none; }
 .player__meta b img { height: 21px; width: auto; }
 .player__meta span { display: block; margin-top: -5px; }
 .player__meta span img { height: 15px; width: auto; }
-.player__time, .player__via { grid-row: 2; margin-top: -3px; font: 700 10.5px/1 var(--f-body); letter-spacing: .04em; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--ink); text-shadow: var(--halo); }
+.player__time { grid-row: 2; margin-top: -3px; font: 700 10.5px/1 var(--f-body); letter-spacing: .04em; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--ink); text-shadow: var(--halo); }
 .player__time { grid-column: 3; justify-self: end; margin-right: 5px; }
-.player__via { grid-column: 1 / -1; grid-row: 3; justify-self: end; margin: 3px 5px 0 0; text-decoration: none; text-transform: uppercase; font-size: 9.5px; letter-spacing: .08em; }
-.player__via:hover { text-decoration: underline; }
-/* Spotify's own player: inside the page but out of sight (it will not start if it is moved off screen) */
-.player__embed { position: fixed; right: 0; bottom: 0; width: 320px; height: 152px; opacity: 0; pointer-events: none; z-index: -1; }
 
 /* ---------- the three pages: one sheet of drawing paper with the inked mountain on it ---------- */
 .panel { --mh: 92vh; position: fixed; z-index: 20; top: 4vh; bottom: 4vh; right: 3vw; width: min(1000px, 68vw); overflow: hidden; overflow: clip; color: var(--ink);
