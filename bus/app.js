@@ -185,7 +185,7 @@
   function renderFeed() {
     const el = $("feed"), txt = $("feedText");
     el.className = "feed";
-    if (!data) { if (fetchError) el.classList.add("bad"); txt.textContent = fetchError ? "offline — retrying" : "connecting to Golden Gate's live feed…"; return; }
+    if (!data) { if (fetchError) el.classList.add("bad"); txt.textContent = fetchError ? "offline, retrying" : "connecting to Golden Gate's live feed…"; return; }
     const now = nowSec();
     const fetchedAgo = (Date.now() - receivedAt) / 1000;
     if (fetchError && fetchedAgo > 45) {
@@ -442,7 +442,7 @@
       rideGeo = RideCore.geometry(body.line, body.stops);
     } catch (e) {
       if (ride !== forRide) return;
-      rideErr = rideData ? null : "Can't reach the bus feed yet — retrying…";
+      rideErr = rideData ? null : "Can't reach the bus feed yet. Retrying…";
     }
     renderRide();
   }
